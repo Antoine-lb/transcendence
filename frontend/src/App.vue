@@ -5,16 +5,10 @@ import HelloWorld from "@/components/HelloWorld.vue";
 
 <template>
   <header>
-    <img
-      alt="Vue logo"
-      class="logo"
-      src="@/assets/logo.svg"
-      width="125"
-      height="125"
-    />
+    <img alt="Vue logo" class="logo" src="@/assets/logo.png" width="125" />
 
     <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+      <HelloWorld msg="Transcendence" />
 
       <nav>
         <RouterLink to="/">Home</RouterLink>
@@ -50,7 +44,7 @@ header {
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
+  color: #6c3eb2;
   transition: 0.4s;
 }
 
