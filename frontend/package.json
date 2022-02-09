@@ -1,51 +1,35 @@
 {
-	"name": "frontend",
-	"version": "0.1.0",
-	"private": true,
-	"dependencies": {
-		"@emotion/react": "^11.7.1",
-		"@emotion/styled": "^11.6.0",
-		"@material-ui/core": "^4.12.3",
-		"@material-ui/icons": "^4.11.2",
-		"@mui/icons-material": "^5.2.5",
-		"@mui/material": "^5.2.7",
-		"@testing-library/jest-dom": "^5.16.1",
-		"@testing-library/react": "^12.1.2",
-		"@testing-library/user-event": "^13.5.0",
-		"@types/jest": "^27.4.0",
-		"@types/material-ui": "^0.21.12",
-		"@types/node": "^16.11.18",
-		"@types/react": "^17.0.38",
-		"@types/react-dom": "^17.0.11",
-		"react": "^17.0.2",
-		"react-dom": "^17.0.2",
-		"react-router-dom": "^6.2.1",
-		"react-scripts": "5.0.0",
-		"typescript": "^4.5.4",
-		"web-vitals": "^2.1.2"
-	},
-	"scripts": {
-		"start": "PORT=8080 react-scripts start",
-		"build": "react-scripts build",
-		"test": "react-scripts test",
-		"eject": "react-scripts eject"
-	},
-	"eslintConfig": {
-		"extends": [
-			"react-app",
-			"react-app/jest"
-		]
-	},
-	"browserslist": {
-		"production": [
-			">0.2%",
-			"not dead",
-			"not op_mini all"
-		],
-		"development": [
-			"last 1 chrome version",
-			"last 1 firefox version",
-			"last 1 safari version"
-		]
-	}
+  "name": "transcendence",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --port 5050",
+    "test:unit": "vitest --environment jsdom",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "pinia": "^2.0.11",
+    "vue": "^3.2.29",
+    "vue-router": "^4.0.12"
+  },
+  "devDependencies": {
+    "@rushstack/eslint-patch": "^1.1.0",
+    "@types/jsdom": "^16.2.14",
+    "@types/node": "^16.11.22",
+    "@vitejs/plugin-vue": "^2.1.0",
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "@vue/eslint-config-typescript": "^10.0.0",
+    "@vue/test-utils": "^2.0.0-rc.18",
+    "@vue/tsconfig": "^0.1.3",
+    "eslint": "^8.5.0",
+    "eslint-plugin-vue": "^8.2.0",
+    "jsdom": "^19.0.0",
+    "prettier": "^2.5.1",
+    "typescript": "~4.5.5",
+    "vite": "^2.7.13",
+    "vitest": "^0.2.5",
+    "vue-tsc": "^0.31.1"
+  }
 }
