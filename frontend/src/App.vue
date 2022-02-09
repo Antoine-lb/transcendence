@@ -12,9 +12,12 @@ import HelloWorld from "@/components/HelloWorld.vue";
       width="125"
     />
     <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/login">LogIn</RouterLink>
+      <nav class="bg-pan-left">
+        <RouterLink to="/">Accueil</RouterLink>
+        <RouterLink to="/compte">Compte</RouterLink>
+        <RouterLink to="/compte">Classement</RouterLink>
+        <RouterLink to="/compte">Jeux</RouterLink>
+        <RouterLink to="/compte">Chat</RouterLink>
       </nav>
     </div>
   </header>
@@ -24,6 +27,103 @@ import HelloWorld from "@/components/HelloWorld.vue";
 
 <style>
 @import "@/assets/base.css";
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  font-weight: normal;
+}
+
+header {
+  line-height: 1.5;
+  max-height: 100vh;
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 2rem;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: #6c3eb2;
+  transition: 0.4s;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+nav {
+  font-size: 12px;
+  text-align: center;
+  margin-top: 2rem;
+  display: inline-block;
+  margin: auto;
+  padding: 15px;
+  border-radius: 23px;
+  border: 3px solid #703ab8;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+nav a.router-link-exact-active {
+  color: var(--color-text);
+  font-size: 18px;
+}
+
+nav a.router-link-exact-active:hover {
+  background-color: transparent;
+}
+
+nav a {
+  display: inline-block;
+  padding: 0 1rem;
+  border-left: 1px solid var(--color-border);
+  font-size: 18px;
+}
+
+nav a:first-of-type {
+  border: 0;
+}
+.wrapper {
+  display: flex;
+}
+@media (min-width: 4024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+
+  header {
+    display: flex;
+    place-items: center;
+    padding-right: calc(var(--section-gap) / 2);
+  }
+
+  .logo {
+    margin: 0 2rem 0 0;
+  }
+
+  nav {
+    text-align: left;
+    margin-left: -1rem;
+    font-size: 1rem;
+
+    padding: 1rem 0;
+    margin-top: 1rem;
+  }
+}
 
 .puff-in-center {
   -webkit-animation: puff-in-center 0.7s cubic-bezier(0.47, 0, 0.745, 0.715)
@@ -73,102 +173,6 @@ import HelloWorld from "@/components/HelloWorld.vue";
     -webkit-filter: blur(0px);
     filter: blur(0px);
     opacity: 1;
-  }
-}
-
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
-}
-
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: #6c3eb2;
-  transition: 0.4s;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-  font-size: 18px;
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-  font-size: 18px;
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 4024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
-
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
   }
 }
 </style>
