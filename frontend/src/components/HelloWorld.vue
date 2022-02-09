@@ -24,6 +24,7 @@ h3 {
 
 .greetings h1,
 .greetings h3 {
+  margin: auto;
   text-align: center;
 }
 
