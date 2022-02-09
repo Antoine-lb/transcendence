@@ -6,10 +6,10 @@ networks:
 
 services:
   reverse_proxy:
-    container_name: transcendence_reverse_proxy
+    container_name: transcendance_reverse_proxy
     build:
       context: ./reverse_proxy/
-    image: transcendence/reverse_proxy
+    image: transcendance/reverse_proxy
     restart: unless-stopped
     networks:
       - net-proxy
@@ -20,23 +20,23 @@ services:
       - "${APP_PORT}:${APP_PORT}"
 
   frontend:
-    container_name: transcendence_frontend
+    container_name: transcendance_frontend
     build:
       context: ./frontend/
       dockerfile: ./docker/Dockerfile
-    image: transcendence/frontend:latest
+    image: transcendance/frontend:latest
     restart: unless-stopped
     networks:
       - net-proxy
 
   backend:
-    container_name: transcendence_backend
+    container_name: transcendance_backend
     depends_on:
       - db
     build:
       context: ./backend/
       dockerfile: ./docker/Dockerfile
-    image: transcendence/backend:latest
+    image: transcendance/backend:latest
     networks:
       - net-db
       - net-proxy
@@ -46,30 +46,23 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-      - SESSION_SECRET=${BACKEND_SESSION_SECRET}
-      - JWT_SECRET=${BACKEND_JWT_SECRET}
-      - JWT_EXPIRATION=${BACKEND_JWT_EXPIRATION}
-      - INTRA42_UID=${INTRA42_UID}
-      - INTRA42_SECRET=${INTRA42_SECRET}
-      - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
     restart: unless-stopped
 
   db:
-    container_name: transcendence_db
-    image: bitnami/postgresql:latest
+    container_name: t_db
+    image: postgres:latest
     networks:
       - net-db
-    volumes:
-      - ./database/entrypoint/:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRESQL_TIMEZONE=${POSTGRES_TZ}
-      - POSTGRESQL_LOG_TIMEZONE=${POSTGRES_TZ}
-      - TZ=${POSTGRES_TZ}
-    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/entrypoint/:/docker-entrypoint-initdb.d
+    restart: always
 
   pgadmin:
     container_name: pgadmin4_container
@@ -80,5 +73,5 @@ services:
     networks:
       - net-db
     ports:
-      - "4500:80"
+      - "5050:80"
     restart: unless-stopped
