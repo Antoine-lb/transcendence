@@ -10,11 +10,11 @@ import { User } from './user/user.entity';
     TypeOrmModule.forRoot({
 			// https://docs.nestjs.com/techniques/database
 			type: 'postgres',
-			host: 'localhost',
+			host: 'transcendence_db',
 			port: Number(5432),
 			username: 'ft_root',
 			password: 'admin',
-			database: 'db',
+			database: 'transcendence',
 			entities: [ User, ],
 			synchronize: true,
 		}),

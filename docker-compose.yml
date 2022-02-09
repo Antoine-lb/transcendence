@@ -44,6 +44,7 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_USER=${POSTGRES_USER}
+      - DATABASE_URL=postgres://ft_root:admin@db:5432/transcendence
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SESSION_SECRET=${BACKEND_SESSION_SECRET}
@@ -56,7 +57,7 @@ services:
 
   db:
     container_name: transcendence_db
-    image: bitnami/postgresql:latest
+    image: postgres:latest
     networks:
       - net-db
     volumes:
