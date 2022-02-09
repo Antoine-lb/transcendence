@@ -53,6 +53,8 @@ services:
       - INTRA42_UID=${INTRA42_UID}
       - INTRA42_SECRET=${INTRA42_SECRET}
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
+    ports:
+      - "3000:3000"
     restart: unless-stopped
 
   db:
