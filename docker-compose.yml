@@ -59,6 +59,8 @@ services:
     image: bitnami/postgresql:latest
     networks:
       - net-db
+    volumes:
+      - ./database/entrypoint/:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
