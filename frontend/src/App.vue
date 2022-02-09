@@ -11,11 +11,10 @@ import HelloWorld from "@/components/HelloWorld.vue";
       src="@/assets/logo.png"
       width="125"
     />
-
     <div class="wrapper">
       <nav>
         <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/login">LogIn</RouterLink>
       </nav>
     </div>
   </header>
@@ -117,6 +116,7 @@ nav {
 
 nav a.router-link-exact-active {
   color: var(--color-text);
+  font-size: 18px;
 }
 
 nav a.router-link-exact-active:hover {
@@ -127,6 +127,7 @@ nav a {
   display: inline-block;
   padding: 0 1rem;
   border-left: 1px solid var(--color-border);
+  font-size: 18px;
 }
 
 nav a:first-of-type {
