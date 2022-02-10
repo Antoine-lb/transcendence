@@ -37,6 +37,8 @@ services:
       context: ./backend/
       dockerfile: ./docker/Dockerfile
     image: transcendence/backend:latest
+    volumes:
+      - ./backend/src:/app/src
     networks:
       - net-db
       - net-proxy
@@ -44,7 +46,7 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_USER=${POSTGRES_USER}
-      - DATABASE_URL=postgres://ft_root:admin@db:5432/transcendence
+      - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SESSION_SECRET=${BACKEND_SESSION_SECRET}

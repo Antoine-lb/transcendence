@@ -32,3 +32,4 @@ COPY	--from=builder /app/dist/ ./dist/
 
 USER	node
 CMD		["node", "./dist/main"]
+#CMD     [ "npm", "run", "start:dev" ]
