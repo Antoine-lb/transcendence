@@ -16,18 +16,18 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend/
-      dockerfile: ./docker/Dockerfile
-    image: frontend
-    restart: unless-stopped
-    networks:
-      - net-proxy
-    ports:
-      - "8080:8080"
-      
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend/
+  #     dockerfile: ./docker/Dockerfile
+  #   image: frontend
+  #   restart: unless-stopped
+  #   networks:
+  #     - net-proxy
+  #   ports:
+  #     - "8080:8080"
+
   backend:
     container_name: backend
     depends_on:
@@ -35,10 +35,15 @@ services:
     build:
       context: ./backend/
       dockerfile: ./Dockerfile
+      target: development
     image: backend
     networks:
       - net-db
       - net-proxy
+    command: npm run start:debug
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - "3000:3000"
     environment:
@@ -55,6 +60,7 @@ services:
       - INTRA42_SECRET=${INTRA42_SECRET}
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
     restart: unless-stopped
+
 
   db:
     container_name: transcendence_db

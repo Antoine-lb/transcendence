@@ -1,32 +1,18 @@
-FROM    node:16.13.1-alpine as builder
+FROM node:12.19.0-alpine3.9 AS development
 
-WORKDIR /app
-ENV             NODE_ENV build
+WORKDIR /usr/src/app
 
-COPY    package*.json ./
-RUN             npm install -g npm@8.3.0 --silent
-RUN     npm install --silent
+COPY package*.json ./
 
-COPY    . .
-RUN             npm run build
-RUN             npm prune --production
+RUN npm install glob rimraf
 
-#       NODE WORKER
+RUN npm install --only=development
 
-FROM    node:16.13.1-alpine as worker
+COPY . .
 
-WORKDIR /home/node
-ENV             NODE_ENV production
+RUN npm run build
 
-COPY    --from=builder /app/package*.json ./
-COPY    --from=builder /app/node_modules/ ./node_modules/
-COPY    --from=builder /app/dist/ ./dist/
 
-#COPY   public/ ./public/
+FROM node:12.19.0-alpine3.9 as production
 
-#RUN            chown -R node:node ./public/
-
-EXPOSE 3000
-
-USER    node
-CMD             ["node", "./dist/main"]
+CMD ["node", "dist/main"]

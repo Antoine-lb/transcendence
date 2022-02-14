@@ -19,7 +19,7 @@ export class UsersService {
     }
 
     async findByName(username: string): Promise<UserEntity> {
-        console.log("--> find by Name : " + username)
+        console.log("---> find by Name : " + username)
         const user: UserEntity = await this.usersRepository.findOne({ username })
 		return user;
 	}
