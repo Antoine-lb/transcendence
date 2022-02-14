@@ -58,6 +58,7 @@ services:
     volumes:
       - /usr/src/app
       - ./backend/src:/app/src
+      - /usr/src/app/node_modules
     restart: unless-stopped
 
 

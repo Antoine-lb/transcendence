@@ -24,14 +24,14 @@ export class AuthController{
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
-            let auth: boolean = user.secret == null ? true: false;
+            let auth: boolean = user.secret == null ? false: false;
             
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('Token : ' + accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
             
             if (auth === false) {
-                res.redirect('/2fffa');
+                res.redirect('/2ffa');
             } else {
                 res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
             }

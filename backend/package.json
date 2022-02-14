@@ -20,6 +20,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  
   "dependencies": {
     "@nestjs/axios": "^0.0.5",
     "@nestjs/common": "^8.0.0",
@@ -43,6 +44,17 @@
     "rxjs": "^7.2.0",
     "swagger-ui-express": "^4.3.0",
     "typeorm": "^0.2.41"
+  },
+  "watch": {
+    "auth": {
+      "patterns": ["src", "auth"],
+      "extensions": "js,jsx",
+      "ignore": "src/vendor/external.min.js",
+      "quiet": true,
+      "legacyWatch": true,
+      "delay": 2500,
+      "runOnChangeOnly": false
+    }
   },
   "devDependencies": {
     "@nestjs/cli": "^8.0.0",
