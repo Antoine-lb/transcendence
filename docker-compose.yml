@@ -27,14 +27,14 @@ services:
       - net-proxy
     ports:
       - "8080:8080"
-
+      
   backend:
     container_name: backend
     depends_on:
       - db
     build:
       context: ./backend/
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./Dockerfile
     image: backend
     networks:
       - net-db

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { UserEntity } from './users/users.entity';
+import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
+import { UserController } from './users/users.controller';
 
 @Module({
   imports: [
@@ -15,12 +15,11 @@ import { User } from './user/user.entity';
 			username: 'ft_root',
 			password: 'admin',
 			database: 'transcendence',
-			entities: [ User, ],
+			entities: [ UserEntity, ],
 			synchronize: true,
 		}),
-    
-    UserModule],
-  controllers: [AppController],
-  providers: [AppService],
+    AuthModule,
+    UsersModule],
+  controllers: [UserController],
 })
 export class AppModule {}
