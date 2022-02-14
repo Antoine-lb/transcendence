@@ -30,5 +30,7 @@ COPY	--from=builder /app/dist/ ./dist/
 
 #RUN		chown -R node:node ./public/
 
+EXPOSE 3000
+
 USER	node
 CMD		["node", "./dist/main"]

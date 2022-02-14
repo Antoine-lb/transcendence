@@ -6,40 +6,41 @@ networks:
 
 services:
   reverse_proxy:
-    container_name: transcendence_reverse_proxy
+    container_name: reverse_proxy
     build:
       context: ./reverse_proxy/
-    image: transcendence/reverse_proxy
-    restart: unless-stopped
+    image: reverse_proxy
+    restart: always
     networks:
       - net-proxy
-    depends_on:
-      - backend
-      - frontend
     ports:
       - "${APP_PORT}:${APP_PORT}"
 
   frontend:
-    container_name: transcendence_frontend
+    container_name: frontend
     build:
       context: ./frontend/
       dockerfile: ./docker/Dockerfile
-    image: transcendence/frontend:latest
+    image: frontend
     restart: unless-stopped
     networks:
       - net-proxy
+    ports:
+      - "8080:8080"
 
   backend:
-    container_name: transcendence_backend
+    container_name: backend
     depends_on:
       - db
     build:
       context: ./backend/
       dockerfile: ./docker/Dockerfile
-    image: transcendence/backend:latest
+    image: backend
     networks:
       - net-db
       - net-proxy
+    ports:
+      - "3000:3000"
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
