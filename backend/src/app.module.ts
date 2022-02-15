@@ -17,6 +17,7 @@ import { UserController } from './users/users.controller';
 			database: 'transcendence',
 			entities: [ UserEntity, ],
 			synchronize: true,
+			keepConnectionAlive: true,
 		}),
     AuthModule,
     UsersModule],

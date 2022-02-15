@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 networks:
   net-db:
@@ -56,9 +56,9 @@ services:
       - INTRA42_SECRET=${INTRA42_SECRET}
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
     volumes:
-      - /usr/src/app
+      # - /usr/src/app
       - ./backend/src:/app/src
-      - /usr/src/app/node_modules
+      # - /usr/src/app/node_modules
     restart: unless-stopped
 
 
