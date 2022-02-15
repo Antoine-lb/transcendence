@@ -60,8 +60,8 @@ services:
     restart: unless-stopped
 
 
-  db:
-    container_name: transcendence_db
+  database:
+    container_name: database
     image: postgres:latest
     networks:
       - net-db
@@ -77,7 +77,7 @@ services:
     restart: always
 
   pgadmin:
-    container_name: pgadmin4_container
+    container_name: pgadmin
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
