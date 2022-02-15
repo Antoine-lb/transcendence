@@ -6,7 +6,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
 <template>
   <header>
     <img
-      alt="Vue logo"
+      alt="Invader Logo"
       class="logo puff-in-center"
       src="@/assets/logo.png"
       width="125"
@@ -44,7 +44,6 @@ header {
 .logo {
   display: block;
   margin: 0 auto 2rem;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
 a,
