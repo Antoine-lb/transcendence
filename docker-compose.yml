@@ -1,4 +1,4 @@
-version: '3.4'
+version: "3.4"
 
 networks:
   net-db:
@@ -16,21 +16,22 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
 
-  # frontend:
-  #   container_name: frontend
-  #   build:
-  #     context: ./frontend/
-  #     dockerfile: ./docker/Dockerfile
-  #   image: frontend
-  #   restart: unless-stopped
-  #   networks:
-  #     - net-proxy
-  #   ports:
-  #     - "8080:8080"
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend/
+      dockerfile: ./Dockerfile
+    image: frontend
+    restart: unless-stopped
+    networks:
+      - net-proxy
+    ports:
+      - "8080:8080"
+    command: npm run dev
   backend:
     container_name: backend
     depends_on:
-      - db
+      - database
     build:
       context: ./backend/
       dockerfile: ./Dockerfile
@@ -58,7 +59,6 @@ services:
     volumes:
       - ./backend/src:/app/src
     restart: unless-stopped
-
 
   database:
     container_name: database
