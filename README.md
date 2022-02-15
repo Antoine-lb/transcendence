@@ -2,14 +2,6 @@
 
 [link to project page](https://projects.intra.42.fr/projects/ft_transcendence)
 
-## Front-end
+## Shematic
 
-Machine Requirements:
-
-- Node
-
-How to run locally:
-
-1. `cd front-end`
-2. `npm install`
-3. `npm run dev`
+Link: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW833ctD0/edit

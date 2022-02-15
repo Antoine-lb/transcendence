@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 networks:
   net-db:
@@ -6,44 +6,47 @@ networks:
 
 services:
   reverse_proxy:
-    container_name: transcendence_reverse_proxy
+    container_name: reverse_proxy
     build:
       context: ./reverse_proxy/
-    image: transcendence/reverse_proxy
-    restart: unless-stopped
+    image: reverse_proxy
+    restart: always
     networks:
       - net-proxy
-    depends_on:
-      - backend
-      - frontend
     ports:
       - "${APP_PORT}:${APP_PORT}"
 
-  frontend:
-    container_name: transcendence_frontend
-    build:
-      context: ./frontend/
-      dockerfile: ./docker/Dockerfile
-    image: transcendence/frontend:latest
-    restart: unless-stopped
-    networks:
-      - net-proxy
-
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend/
+  #     dockerfile: ./docker/Dockerfile
+  #   image: frontend
+  #   restart: unless-stopped
+  #   networks:
+  #     - net-proxy
+  #   ports:
+  #     - "8080:8080"
   backend:
-    container_name: transcendence_backend
+    container_name: backend
     depends_on:
       - db
     build:
       context: ./backend/
-      dockerfile: ./docker/Dockerfile
-    image: transcendence/backend:latest
+      dockerfile: ./Dockerfile
+      target: development
+    image: backend
     networks:
       - net-db
       - net-proxy
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_USER=${POSTGRES_USER}
+      - DATABASE_URL=postgres://ft_root:admin@db:5432/transcendence
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SESSION_SECRET=${BACKEND_SESSION_SECRET}
@@ -52,11 +55,14 @@ services:
       - INTRA42_UID=${INTRA42_UID}
       - INTRA42_SECRET=${INTRA42_SECRET}
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
+    volumes:
+      - ./backend/src:/app/src
     restart: unless-stopped
 
-  db:
-    container_name: transcendence_db
-    image: bitnami/postgresql:latest
+
+  database:
+    container_name: database
+    image: postgres:latest
     networks:
       - net-db
     environment:
@@ -64,13 +70,14 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRESQL_TIMEZONE=${POSTGRES_TZ}
-      - POSTGRESQL_LOG_TIMEZONE=${POSTGRES_TZ}
-      - TZ=${POSTGRES_TZ}
-    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/entrypoint/:/docker-entrypoint-initdb.d
+    restart: always
 
   pgadmin:
-    container_name: pgadmin4_container
+    container_name: pgadmin
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
@@ -78,5 +85,5 @@ services:
     networks:
       - net-db
     ports:
-      - "4500:80"
+      - "5050:80"
     restart: unless-stopped
