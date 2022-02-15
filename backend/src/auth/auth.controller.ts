@@ -31,8 +31,9 @@ export class AuthController{
             await res.cookie('access_token', accessToken, {httpOnly: true});
             
             if (auth === false) {
-                res.redirect('/2ffa');
-            } else {
+                res.redirect('/2fffa');
+            } 
+            else {
                 res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
             }
         }
