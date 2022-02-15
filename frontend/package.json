@@ -2,8 +2,8 @@
   "name": "transcendence",
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite --port 8080",
-    "build": "vue-tsc --noEmit && vite build --port 8080",
+    "dev": "vite --port 8080 --host",
+    "build": "vue-tsc --noEmit && vite build --port 8080 --host",
     "preview": "vite preview --port 8080",
     "test:unit": "vitest --environment jsdom",
     "typecheck": "vue-tsc --noEmit",
