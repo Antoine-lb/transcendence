@@ -12,8 +12,8 @@ COPY	package.json ./
 RUN		npm install --silent
 
 COPY	. .
-RUN		npm run build
-RUN		npm prune --production
+RUN		npm run dev
+# RUN		npm prune --production
 
 #	NGINX WORKER CONTAINER
 
