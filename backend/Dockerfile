@@ -1,4 +1,4 @@
-docFROM node:16.13.1-alpine AS development
+FROM node:16.13.1-alpine AS development
 
 WORKDIR /app
 
