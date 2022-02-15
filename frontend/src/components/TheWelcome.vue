@@ -15,7 +15,7 @@ import SupportIcon from "./icons/IconSupport.vue";
     <template #heading>Compte utilisateur</template>
 
     Log with
-    <a target="_blank" href="https://intre.42.fr">42 Intra</a>
+    <a target="_blank" href="https://intra.42.fr">42 Intra</a>
   </WelcomeItem>
 
   <WelcomeItem>
