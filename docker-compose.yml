@@ -28,6 +28,9 @@ services:
     ports:
       - "8080:8080"
     command: npm run dev
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
   backend:
     container_name: backend
     depends_on:
