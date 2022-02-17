@@ -12,7 +12,7 @@ export class UserEntity {
   avatar?: string;
 
   @Column({ default: null })
-  secret: string;
+  public secret: string;
 
   @Column({ default: false })
   isOnline: boolean;

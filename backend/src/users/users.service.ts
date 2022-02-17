@@ -31,4 +31,10 @@ export class UsersService {
     async findAll(): Promise<UserEntity[]> {
 		return await this.usersRepository.createQueryBuilder('user_entity').getMany();
 	}
+
+    async setTwoFASecret(secret: string, id: number) {
+        return this.usersRepository.update(id, {
+          secret: secret
+        });
+      }
 }
