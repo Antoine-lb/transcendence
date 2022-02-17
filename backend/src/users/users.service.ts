@@ -36,5 +36,11 @@ export class UsersService {
         return this.usersRepository.update(id, {
           secret: secret
         });
+    }
+
+    async turnOnTwoFA(id: number) {
+        return this.usersRepository.update(id, {
+          isTwoFA: true
+        });
       }
 }

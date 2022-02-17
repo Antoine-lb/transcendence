@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Header, Res, Req, UseGuards, UnauthorizedException} from '@nestjs/common';
+import { Controller, Get, Post, Query, Header, Res, Req, UseGuards, UnauthorizedException, HttpCode} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Guard42 } from './auth.guard';
 import { Request, response, Response } from 'express';
@@ -18,7 +18,7 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/login')
         async login() {}
-    
+        
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
@@ -54,4 +54,4 @@ export class AuthController{
             } catch (e) {}
             resp.send({ isTwoFaAuthenticated, isAuthenticated, user: req.user });
         }
-}
+    }

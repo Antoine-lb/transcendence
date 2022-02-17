@@ -10,7 +10,14 @@ export class TwoFAService {
   constructor (
     private readonly usersService: UsersService
   ) {}
- 
+
+  public isTwoFACodeValid(twoFACode: string, user: UserEntity) {
+    return authenticator.verify({
+      token: twoFACode,
+      secret: user.secret
+    })
+  }
+
   public async generateTwoFASecret(user: UserEntity) {
     // génère un secret (clé publique) pour l'utilisateur
     const secret = authenticator.generateSecret();
