@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UsersService } from '../users/users.service';
 // import { UserEntity } from '../users/users.entity';
 import RequestWithUser from '../auth/requestWithUser.interface';
-import { BasicTwoFA } from './twoFA.dto';
+import { TwoFADto } from './twoFA.dto';
 import { AuthService } from 'src/auth/auth.service';
 
 @Controller('2fa')
@@ -30,22 +30,28 @@ export class TwoFAController {
 
     ) {}
  
+    // SETUP : n'est fait qu'une seule fois --- OK
   @Post('generate')
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async register(@Res() response: Response, @Req() request: RequestWithUser) {
     console.log("[2fa] >>> /generate ");
+    // console.log(request);
+    console.log("[user] >>> ", request.user);
+    console.log("[req cookies]", request.cookies);
 
     const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(request.user);
     return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
   }
   
+  // SETUP : n'est fait qu'une seule fois
   @Post('turn-on')
   @HttpCode(200)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
-    @Body() { twoFACode } : BasicTwoFA) {
+    @Body() { twoFACode } : TwoFADto) {
     console.log("[2fa] >>> /turn-on ")
+    console.log("[twoFACode] >>> ", twoFACode)
 
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
@@ -54,16 +60,19 @@ export class TwoFAController {
     if (!isCodeValid) {
       throw new UnauthorizedException('Wrong authentication code');
     }
+    console.log("CODE IS VALID - TURNING ON 2FA ON USER");
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
+    console.log(request.user)
   }
 
+  // SETUP : n'est fait qu'une seule fois
   @Post('authenticate')
   @HttpCode(200)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async authenticate(
     @Req() request: RequestWithUser,
-    @Body() { twoFACode } : BasicTwoFA
+    @Body() { twoFACode } : TwoFADto
   ) {
     console.log("[2fa] >>> /authenticate ")
     // vérifie le code recu
