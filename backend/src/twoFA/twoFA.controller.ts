@@ -43,7 +43,7 @@ export class TwoFAController {
     return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
   }
   
-  // SETUP : n'est fait qu'une seule fois
+  // SETUP : n'est fait qu'une seule fois --- OK
   @Post('turn-on')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
@@ -66,7 +66,7 @@ export class TwoFAController {
     console.log(request.user)
   }
 
-  // SETUP : n'est fait qu'une seule fois
+  // SETUP : n'est fait qu'une seule fois --- OK
   @Post('authenticate')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
@@ -87,6 +87,7 @@ export class TwoFAController {
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
     // renvoie le cookie qui contient le token dans la reponse
     request.res.setHeader('Set-Cookie', [accessTokenCookie]);
+    console.log("CODE IS VALID - AUTHENTICATION OK - returning user w/ new token with full access");
  
     return request.user;
   }

@@ -22,24 +22,21 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
+            console.log('[auth] >>> /callback')
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
-            let auth: boolean = user.secret == null ? true: false;
-            
-            // auth = false;
-
+            let auth: boolean = user.isTwoFA == false ? true: false;
+            // let auth: boolean = user.secret == null ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
-            console.log('Token : ' + accessToken)
+            console.log('[access_token] >>> ', accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
-            
-            // const accessTokenCookie = this.authService.getCookieWithToken(user.id);
-            // const {
-            //   cookie: refreshTokenCookie,
-            //   token: refreshToken
-            // } = this.authService.getCookieRefreshToken(user.id);
 
             if (auth === false) {
-                res.redirect('/api/2fa/authenticate');
+                console.log('[auth] >>> /callback')
+                if (user.secret == null)
+                    throw new UnauthorizedException('2FA enabled but secret not set');
+                return
+                // res.redirect('/api/2fa/authenticate');
             } 
             else {
                 res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
@@ -47,7 +44,7 @@ export class AuthController{
         }
 
         @Get('/status')
-        // @UseGuards(JwtAuthGuard)
+        @UseGuards(JwtAuthGuard)
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
