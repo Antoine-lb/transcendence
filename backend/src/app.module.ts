@@ -7,6 +7,7 @@ import { UserEntity } from './users/users.entity';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './users/users.controller';
+// import { PostsModule } from './posts/posts.module';
 
 @Module({
 	imports: [
@@ -25,6 +26,7 @@ import { UserController } from './users/users.controller';
 		}),
 		AuthModule,
 		TwoFAModule,
+		// PostsModule,
 		UsersModule],
 	controllers: [UserController, TwoFAController],
 	providers: [TwoFAService]

@@ -24,7 +24,7 @@ export class AuthService {
   //   return {
   //     access_token: this.jwtService.sign(payload),
   //   };
-  // }
+  // } NON USED
 
   async verifyToken(token: string) {
 		return this.jwtService.verify(token, { ignoreExpiration: false });

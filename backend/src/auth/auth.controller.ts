@@ -26,12 +26,20 @@ export class AuthController{
             if (!user) throw new UnauthorizedException();
             let auth: boolean = user.secret == null ? true: false;
             
+            // auth = false;
+
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('Token : ' + accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
             
+            // const accessTokenCookie = this.authService.getCookieWithToken(user.id);
+            // const {
+            //   cookie: refreshTokenCookie,
+            //   token: refreshToken
+            // } = this.authService.getCookieRefreshToken(user.id);
+
             if (auth === false) {
-                res.redirect('/2fa');
+                res.redirect('/api/2fa/authenticate');
             } 
             else {
                 res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
@@ -39,7 +47,7 @@ export class AuthController{
         }
 
         @Get('/status')
-        @UseGuards(JwtAuthGuard)
+        // @UseGuards(JwtAuthGuard)
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;

@@ -31,7 +31,7 @@ export class TwoFAController {
     ) {}
  
   @Post('generate')
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async register(@Res() response: Response, @Req() request: RequestWithUser) {
     console.log("[2fa] >>> /generate ");
 
@@ -41,11 +41,10 @@ export class TwoFAController {
   
   @Post('turn-on')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : BasicTwoFA) {
-    console.log("[2fa] >>> /turn-on ")
     console.log("[2fa] >>> /turn-on ")
 
     // vérifie le code recu
@@ -61,7 +60,7 @@ export class TwoFAController {
 
   @Post('authenticate')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async authenticate(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : BasicTwoFA
@@ -72,6 +71,7 @@ export class TwoFAController {
       twoFACode, request.user
     );
     if (!isCodeValid) {
+      console.log('>>> authenticate code non valide')
       throw new UnauthorizedException('Wrong authentication code');
     }
     // cree cookie qui contient le token
