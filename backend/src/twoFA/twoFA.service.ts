@@ -12,6 +12,7 @@ export class TwoFAService {
   ) {}
 
   public isTwoFACodeValid(twoFACode: string, user: UserEntity) {
+    console.log("[2fa] >>> code checking ");
     return authenticator.verify({
       token: twoFACode,
       secret: user.secret
@@ -19,6 +20,7 @@ export class TwoFAService {
   }
 
   public async generateTwoFASecret(user: UserEntity) {
+    console.log("[2fa] >>> generate secret ");
     // génère un secret (clé publique) pour l'utilisateur
     const secret = authenticator.generateSecret();
     // crée une URL unique que G.Auth utilisera
@@ -34,6 +36,7 @@ export class TwoFAService {
 
 // transforme l'URL en QRCode
   public async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
+    console.log("[2fa] >>> create qrcode ");
     return toFileStream(stream, otpauthUrl);
   }
 

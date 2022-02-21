@@ -13,8 +13,8 @@ import { UserController } from './users/users.controller';
 		TypeOrmModule.forRoot({
 			// https://docs.nestjs.com/techniques/database
 			type: 'postgres',
-			host: 'localhost',
-			// host: 'database',
+			// host: 'localhost',
+			host: 'database',
 			port: Number(5432),
 			username: 'ft_root',
 			password: 'admin',

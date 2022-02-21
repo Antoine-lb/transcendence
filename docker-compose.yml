@@ -43,7 +43,8 @@ services:
     networks:
       - net-db
       - net-proxy
-    command: npm run start:dev
+    # command: npm run start:dev
+    command: npm run test:debug
     ports:
       - "3000:3000"
     environment:

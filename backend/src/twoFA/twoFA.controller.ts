@@ -21,7 +21,7 @@ import { BasicTwoFA } from './twoFA.dto';
 import { AuthService } from 'src/auth/auth.service';
 
 @Controller('2fa')
-@UseInterceptors(ClassSerializerInterceptor)
+// @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFAController {
   constructor(
     private readonly twoFAService: TwoFAService,
@@ -33,6 +33,8 @@ export class TwoFAController {
   @Post('generate')
   @UseGuards(JwtAuthGuard)
   async register(@Res() response: Response, @Req() request: RequestWithUser) {
+    console.log("[2fa] >>> /generate ");
+
     const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(request.user);
     return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
   }
@@ -43,12 +45,17 @@ export class TwoFAController {
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : BasicTwoFA) {
+    console.log("[2fa] >>> /turn-on ")
+    console.log("[2fa] >>> /turn-on ")
+
+    // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
     if (!isCodeValid) {
       throw new UnauthorizedException('Wrong authentication code');
     }
+    // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
   }
 
@@ -59,15 +66,17 @@ export class TwoFAController {
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : BasicTwoFA
   ) {
+    console.log("[2fa] >>> /authenticate ")
+    // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
     if (!isCodeValid) {
       throw new UnauthorizedException('Wrong authentication code');
     }
- 
+    // cree cookie qui contient le token
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
- 
+    // renvoie le cookie qui contient le token dans la reponse
     request.res.setHeader('Set-Cookie', [accessTokenCookie]);
  
     return request.user;
