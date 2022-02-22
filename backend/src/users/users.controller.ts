@@ -10,6 +10,8 @@ import { diskStorage } from 'multer';
 // import path from 'path';
 import path = require('path');
 import { v4 as uuidv4 } from 'uuid';
+import { tap, map } from 'rxjs/operators'
+import { UserDto } from './users.dto';
 
 export const storage = {
   storage: diskStorage({
@@ -45,10 +47,16 @@ export class UserController {
     @Post('upload') // 'file' = valeur de la variable a envoyer dans le POST
     @UseInterceptors(FileInterceptor('file', storage))
     uploadFile(@UploadedFile() file, @Request() req): Observable<Object> {
-      const user: User = req.user;
-      console.log(user);
-      return of({imagePath: file.filename}) // of = observable
+      const user: UserEntity = req.user;
+      console.log("user : ", user);
+
+      return this.userService.updateOne(user.id, {avatar: file.filename}).pipe(
+        tap((user: UserEntity) => console.log(user)),
+        map((user:UserEntity) => ({avatar: user.avatar}))
+      )
+      // return of({imagePath: file.filename}) // of = observable
     }
+
     // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     // @Post('upload')
     // @UseInterceptors(FileInterceptor('file', storage))

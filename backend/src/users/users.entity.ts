@@ -8,7 +8,7 @@ export class UserEntity {
   @Column({unique: true, update: false, nullable: false })
   username: string;
 
-  @Column({default: null})
+  @Column({nullable: true})
   avatar?: string;
 
   @Column({ default: false })
