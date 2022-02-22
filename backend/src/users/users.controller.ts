@@ -11,7 +11,7 @@ import { diskStorage } from 'multer';
 import path = require('path');
 import { v4 as uuidv4 } from 'uuid';
 import { tap, map } from 'rxjs/operators'
-import { UserDto } from './users.dto';
+import { join } from 'path';
 
 export const storage = {
   storage: diskStorage({
@@ -57,20 +57,9 @@ export class UserController {
       // return of({imagePath: file.filename}) // of = observable
     }
 
-    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
-    // @Post('upload')
-    // @UseInterceptors(FileInterceptor('file', storage))
-    // uploadFile(@UploadedFile() file, @Request() req): Observable<Object> {
-    //     const user: User = req.user;
-
-    //     return this.userService.updateOne(user.id, {profileImage: file.filename}).pipe(
-    //         tap((user: User) => console.log(user)),
-    //         map((user:User) => ({profileImage: user.profileImage}))
-    //     )
-    // }
-
-    // @Get('profile-image/:imagename')
-    // findProfileImage(@Param('imagename') imagename, @Res() res): Observable<Object> {
-    //     return of(res.sendFile(join(process.cwd(), 'uploads/profileimages/' + imagename)));
-    // }
+    // display avatar
+    @Get('avatar/:filename')
+    findProfileImage(@Param('filename') filename, @Res() res): Observable<Object> {
+        return of(res.sendFile(join(process.cwd(), 'uploads/avatars/' + filename)));
+    }
   }
