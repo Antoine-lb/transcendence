@@ -43,4 +43,14 @@ export class FriendsController {
     async removeFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
       return await this.friendService.removeFriend(req.user, id)
     }
+
+    @Get('block/:id')
+    async blockFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
+      return await this.friendService.blockUser(req.user, id)
+    }
+
+    @Get('unlock/:id')
+    async unblockFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
+        return await this.friendService.unblockUser(req.user, id)
+      }
 }

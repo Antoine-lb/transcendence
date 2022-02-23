@@ -16,7 +16,13 @@ export class FriendRequestEntity {
     )
     receiver: UserEntity;
 
+    @Column({default: false})
+    blockedByCreator: boolean;
+
+    @Column({default: false})
+    blockedByReceiver: boolean;
+
     @Column({ type: 'enum', enum: FriendStatus, 
-    default: FriendStatus.STATUS_PENDING, nullable: false })
+    default: FriendStatus.STATUS_WAITING, nullable: false })
     status: FriendStatus;
 }
