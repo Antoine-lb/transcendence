@@ -1,6 +1,6 @@
 import { UsersService } from './users.service';
 import { UserEntity } from '../entities/users.entity';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
 import { Controller, Get, Req, UseGuards, Post, Param, Res, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
 import { ParseIntPipe, NotFoundException} from '@nestjs/common';

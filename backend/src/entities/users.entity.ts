@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
 import { FriendRequestEntity } from './friends.entity';
 
 @Entity()
@@ -9,14 +9,11 @@ export class UserEntity {
   @Column({unique: true, update: false, nullable: false })
   username: string;
 
-  @Column({nullable: true})
+  @Column({default: null})
   avatar?: string;
 
-  @Column({ default: false })
-  public isTwoFA: boolean;
-  
   @Column({ default: null })
-  public secret: string;
+  secret: string;
 
   @Column({ default: false })
   isOnline: boolean;

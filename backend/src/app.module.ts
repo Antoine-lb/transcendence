@@ -11,11 +11,10 @@ import { FriendRequestEntity } from './entities/friends.entity';
 // import { PostsModule } from './posts/posts.module';
 
 @Module({
-	imports: [
-		TypeOrmModule.forRoot({
+  imports: [
+    TypeOrmModule.forRoot({
 			// https://docs.nestjs.com/techniques/database
 			type: 'postgres',
-			// host: 'localhost',
 			host: 'database',
 			port: Number(5432),
 			username: 'ft_root',
@@ -31,4 +30,4 @@ import { FriendRequestEntity } from './entities/friends.entity';
 	controllers: [UserController, TwoFAController],
 	providers: [TwoFAService]
 })
-export class AppModule { }
+export class AppModule {}
