@@ -6,7 +6,9 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt.guard'
 import { AuthService } from './auth.service';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController{
         constructor (
@@ -25,13 +27,13 @@ export class AuthController{
             console.log('[auth] >>> /callback')
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
-            let auth: boolean = user.isTwoFA == false ? true: false;
+            let auth: boolean = user.isTwoFA == true ? true: false;
             // let auth: boolean = user.secret == null ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('[access_token] >>> ', accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
 
-            if (auth === false) {
+            if (auth === true) {
                 console.log('[auth] >>> /callback')
                 if (user.secret == null)
                     throw new UnauthorizedException('2FA enabled but secret not set');
@@ -58,5 +60,11 @@ export class AuthController{
                 }
             } catch (e) {}
             resp.send({ isTwoFaAuthenticated, isAuthenticated, user: req.user });
+        }
+
+        @Get('/logout')
+        logout(@Req() req: Request, @Res({ passthrough: true }) resp: Response) {
+            resp.clearCookie('access_token');
+            resp.status(302).redirect('/');
         }
     }
