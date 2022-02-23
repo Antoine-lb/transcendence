@@ -1,5 +1,7 @@
 <template>
-		<canvas width="750" height="585" id="game" v-on:click="ft_display" :style="display"></canvas>
+    <div class="canvas-container">
+		  <canvas width="750" height="585" id="game" ></canvas>
+    </div>
 </template>
 
 <script lang="ts">
@@ -208,4 +210,11 @@ canvas {
   align-items: center;
   justify-content: center;
 }
+
+.canvas-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 </style>
