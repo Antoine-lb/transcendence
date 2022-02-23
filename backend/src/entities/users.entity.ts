@@ -21,6 +21,15 @@ export class UserEntity {
   @Column({ default: false })
   isOnline: boolean;
 
+  @Column({ default: 0, nullable: false})
+  played: number;
+
+  @Column({ default: 0, nullable: false})
+  victory: number;
+
+  @Column({ default: 0, nullable: false})
+  defeats: number;
+
   @OneToMany(
     () => FriendRequestEntity,
     (friendRequestEntity) => friendRequestEntity.creator,

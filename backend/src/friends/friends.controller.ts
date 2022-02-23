@@ -29,27 +29,31 @@ export class FriendsController {
     }
 
     @Get('add/:id')
-    @ApiOperation({summary: 'Add (id) as a friend'})
+    @ApiOperation({summary: 'Add (id) as a friend => POST'})
     async addNewFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
       return await this.friendService.sendFriendRequest(req.user, id)
     }
 
     @Get('update/:id')
+    @ApiOperation({summary: 'Answer Request (id) friend => PUT'})
     async answerFriendRequest(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
       return await this.friendService.respondToRequest(req.user, id, FriendStatus.STATUS_ACCEPTED)
     }
 
     @Get('remove/:id')
+    @ApiOperation({summary: 'Remove (id) friend => DELETE'})
     async removeFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
       return await this.friendService.removeFriend(req.user, id)
     }
 
     @Get('block/:id')
+    @ApiOperation({summary: 'Block (id) User  => POST'})
     async blockFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
       return await this.friendService.blockUser(req.user, id)
     }
 
-    @Get('unlock/:id')
+    @Get('unblock/:id')
+    @ApiOperation({summary: 'Unblock (id) User => PUT'})
     async unblockFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
         return await this.friendService.unblockUser(req.user, id)
       }

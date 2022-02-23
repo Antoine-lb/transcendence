@@ -102,7 +102,7 @@ export class FriendsService {
         return true
     }
 
-    async removeFriend(currentUser: UserEntity, friend_id: number): Promise<boolean> {
+    async removeFriend(currentUser: UserEntity, friend_id: number): Promise<any> {
         const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
         if (!friendship)
