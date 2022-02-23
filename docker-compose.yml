@@ -16,21 +16,21 @@ services:
     ports:
       - "${APP_PORT}:${APP_PORT}"
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend/
-      dockerfile: ./Dockerfile
-    image: frontend
-    restart: unless-stopped
-    networks:
-      - net-proxy
-    ports:
-      - "8080:8080"
-    command: npm run dev
-    volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend/
+  #     dockerfile: ./Dockerfile
+  #   image: frontend
+  #   restart: unless-stopped
+  #   networks:
+  #     - net-proxy
+  #   ports:
+  #     - "8080:8080"
+  #   command: npm run dev
+  #   volumes:
+  #     - ./frontend/src:/app/src
+  #     - ./frontend/public:/app/public
   backend:
     container_name: backend
     depends_on:
@@ -43,7 +43,8 @@ services:
     networks:
       - net-db
       - net-proxy
-    command: npm run start:dev
+    # command: npm run start:dev
+    command: npm run test:debug
     ports:
       - "3000:3000"
     environment:
@@ -61,6 +62,7 @@ services:
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
     volumes:
       - ./backend/src:/app/src
+      - ./backend/uploads:/app/uploads
     restart: unless-stopped
 
   database:

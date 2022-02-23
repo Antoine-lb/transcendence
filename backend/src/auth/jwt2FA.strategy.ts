@@ -6,28 +6,32 @@ import { UsersService } from 'src/users/users.service';
 import { request } from 'express';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   constructor(private readonly usersService: UsersService) {
     super({
       ignoreExpiration: false,
       secretOrKey: 'REPLACE_THIS_SECRET',
       jwtFromRequest: (request) => {
             console.log('Request ' + request);
-            console.log('Cookies : ' + request.cookies['access_token']);
-            console.log('Cookies : ' + request.cookies.Authentication);
-            if (!request || !request.cookies) return null;
-            return request.cookies['access_token'];
+            console.log('[access_token] : ' + request.cookies['access_token']);
+            console.log('[Authentication] : ' + request.cookies.Authentication);
+            return request?.cookies?.Authentication;
         }
     })
   }
 
-  async validate(payload: any): Promise<UserEntity> {
-      console.log('[JwtStrategy]')
-      console.log('[jwt strat validate] >>> payload id ' + payload.id)
+  async validate(payload: TokenPayload): Promise<UserEntity> {
+    console.log('[Jwt2FAStrategy]');
+    console.log('[jwt strat validate] >>> payload id ' + payload.id)
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException
-    return user
-    // return { userId: payload.sub, username: payload.username };
+    if (!user.isTwoFA) {
+      return user;
+    }
+    if (payload.isTwoFAAuthenticated) {
+      return user;
+    }
+    // sinon on ne retourne rien donc on ne valide pas
   }
 }

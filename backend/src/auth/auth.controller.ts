@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Header, Res, Req, UseGuards, UnauthorizedException} from '@nestjs/common';
+import { Controller, Get, Post, Query, Header, Res, Req, UseGuards, UnauthorizedException, HttpCode} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Guard42 } from './auth.guard';
 import { Request, response, Response } from 'express';
@@ -18,20 +18,25 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/login')
         async login() {}
-    
+        
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
+            console.log('[auth] >>> /callback')
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
-            let auth: boolean = user.secret == null ? true: false;
-            
+            let auth: boolean = user.isTwoFA == false ? true: false;
+            // let auth: boolean = user.secret == null ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
-            console.log('Token : ' + accessToken)
+            console.log('[access_token] >>> ', accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
-            
+
             if (auth === false) {
-                res.redirect('/2fffa');
+                console.log('[auth] >>> /callback')
+                if (user.secret == null)
+                    throw new UnauthorizedException('2FA enabled but secret not set');
+                return
+                // res.redirect('/api/2fa/authenticate');
             } 
             else {
                 res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
@@ -54,4 +59,4 @@ export class AuthController{
             } catch (e) {}
             resp.send({ isTwoFaAuthenticated, isAuthenticated, user: req.user });
         }
-}
+    }
