@@ -7,7 +7,7 @@ import { ParseIntPipe, NotFoundException} from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import Jwt2FAGuard from 'src/auth/jwt2FA.guard';
+import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
 import { Observable, of } from 'rxjs';
 import { diskStorage } from 'multer';
 // import path from 'path';

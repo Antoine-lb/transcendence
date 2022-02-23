@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/users.entity'
 import { UserInterface } from '../entities/users.interface'
-import { BasicUser } from '../entities/users.dto'
+import { UserDto } from '../entities/users.dto'
 import { switchMap, map } from 'rxjs/operators'
 import { Observable, from } from 'rxjs';
 import { FriendRequestEntity } from '../entities/friends.entity';
@@ -14,7 +14,7 @@ export class UsersService {
     constructor(@InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>,
               @InjectRepository(FriendRequestEntity) private readonly friendRepository: Repository<FriendRequestEntity>) {}
 
-    async addUser(user: BasicUser) : Promise<UserEntity> {
+    async addUser(user: UserDto) : Promise<UserEntity> {
         const new_user= this.usersRepository.create({
             id: user.id,
             username: user.username,
@@ -38,6 +38,38 @@ export class UsersService {
 		return await this.usersRepository.createQueryBuilder().getMany();
 	}
 
+    findOne(id: number): Observable<UserInterface> {
+        return from(this.usersRepository.findOne({id})).pipe(
+            map((user: UserInterface) => {
+                const {...result} = user;
+                return result;
+            } )
+        )
+      }
+
+    updateOne(id: number, user: UserInterface): Observable<any> {
+        delete user.username;
+        // delete user.role;
+        return from(this.usersRepository.update(id, user)).pipe(
+            switchMap(() => this.findOne(id))
+        );
+      }
+  
+      updateRoleOfUser(id: number, user: UserInterface): Observable<any> {
+          return from(this.usersRepository.update(id, user));
+      }
+  
+      async setTwoFASecret(secret: string, id: number) {
+          return this.usersRepository.update(id, {
+            secret: secret
+          });
+      }
+  
+      async turnOnTwoFA(id: number) {
+          return this.usersRepository.update(id, {
+            isTwoFA: true
+          });
+        }
 
     async getPendingSentRequests(currentUser: UserEntity): Promise<UserEntity[]>{
         const query = await this.usersRepository.createQueryBuilder('u')

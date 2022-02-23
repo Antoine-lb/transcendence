@@ -1,9 +1,9 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UserEntity } from 'src/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { request } from 'express';
-import { UserEntity } from 'src/entities/users.entity';
 
 @Injectable()
 export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
@@ -15,7 +15,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
             console.log('Request ' + request);
             console.log('[access_token] : ' + request.cookies['access_token']);
             console.log('[Authentication] : ' + request.cookies.Authentication);
-            if (request.user.isTwoFA == false)
+            if (!request.user.isTwoFA)
               return request.cookies['access_token']
             return request?.cookies?.Authentication;
         }
@@ -28,7 +28,8 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException
-    if (user.isTwoFA == false) {
+    delete user.secret;
+    if (!user.isTwoFA) {
       return user;
     }
     if (payload.isTwoFAAuthenticated) {
