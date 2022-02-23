@@ -39,7 +39,7 @@ export class AuthController{
                 // res.redirect('/api/2fa/authenticate');
             } 
             else {
-                res.status(302).redirect('http://127.0.0.1:3000/api/users/profile');
+                res.status(302).redirect('http://127.0.0.1:3000/api/users/me');
             }
         }
 

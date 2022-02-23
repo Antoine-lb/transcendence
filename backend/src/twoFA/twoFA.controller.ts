@@ -3,6 +3,7 @@ import {
   Controller,
   Header,
   Post,
+  Get,
   UseInterceptors,
   Res,
   UseGuards,
