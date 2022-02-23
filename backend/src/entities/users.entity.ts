@@ -12,10 +12,10 @@ export class UserEntity {
   @Column({default: null})
   avatar?: string;
 
-  @Column({ default: false })
+  @Column({ default: false, select: false })
   public isTwoFA: boolean;
   
-  @Column({ default: null })
+  @Column({ default: null, select: false })
   public secret: string;
 
   @Column({ default: false })

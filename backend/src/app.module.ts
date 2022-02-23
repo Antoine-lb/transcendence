@@ -9,6 +9,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './users/users.controller';
 import { FriendRequestEntity } from './entities/friends.entity';
 // import { PostsModule } from './posts/posts.module';
+import { FriendsController } from './friends/friends.controller';
+import { FriendsModule } from './friends/friends.module';
 
 @Module({
   imports: [
@@ -26,8 +28,9 @@ import { FriendRequestEntity } from './entities/friends.entity';
 		}),
 		AuthModule,
 		TwoFAModule,
-		UsersModule],
-	controllers: [UserController, TwoFAController],
+		UsersModule,
+		FriendsModule],
+	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
 })
 export class AppModule {}
