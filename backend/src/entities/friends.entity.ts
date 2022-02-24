@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { UserEntity } from "./users.entity";
 import { FriendStatus } from "./friend-request-interface";
 
-@Entity('request')
+@Entity('friendship')
 export class FriendRequestEntity {
     @PrimaryGeneratedColumn()
     id: number;
