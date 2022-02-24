@@ -31,7 +31,6 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
-  
   backend:
     container_name: backend
     depends_on:
