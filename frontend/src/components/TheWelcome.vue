@@ -43,7 +43,7 @@ import { RouterLink, RouterView } from "vue-router";
 <style>
 main {
   max-width: 500px;
-  padding-top: 100px;
+  padding-top: 50px; /* Original 100px */
   margin: auto;
 }
 </style>
