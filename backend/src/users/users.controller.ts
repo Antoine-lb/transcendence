@@ -2,7 +2,8 @@ import { UsersService } from './users.service';
 import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
-import { Controller, Get, Req, UseGuards, Post, Param, Res, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards, Post, Param, Res, UseInterceptors,
+  ClassSerializerInterceptor, UploadedFile, Request } from '@nestjs/common';
 import { ParseIntPipe, NotFoundException} from '@nestjs/common';
 
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -40,6 +41,7 @@ export class UserController {
 
     
     @Get('/me')
+    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({summary: 'Return user\'s profile'})
     getUserProfile(@Req() req) {
         return req.user;
@@ -81,8 +83,17 @@ export class UserController {
     }
 
     // display avatar
-    @Get('avatar/:filename')
-    findProfileImage(@Param('filename') filename, @Res() res): Observable<Object> {
-        return of(res.sendFile(join(process.cwd(), 'uploads/avatars/' + filename)));
+    // @Get('/me/avatar/:filename')
+    // findProfileImage(@Param('filename') filename, @Res() res): Observable<Object> {
+    //     return of(res.sendFile(join(process.cwd(), 'uploads/avatars/' + filename)));
+    // }
+
+    @Get('/me/avatar')
+    async findProfileImage(@Res() res, @Request() req): Promise<any> {
+      const user = this.userService.findById(req.user.id);
+      if (!user)
+        throw new NotFoundException('User not found')
+      var filename = await join(process.cwd(), 'uploads/avatars/' + req.user.avatar)
+      return res.sendFile(filename);
     }
   }

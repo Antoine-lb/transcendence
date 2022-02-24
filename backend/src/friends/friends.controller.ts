@@ -30,11 +30,14 @@ export class FriendsController {
       return await this.friendService.getFriendsRequests(req.user)
     }
 
-    @Get('add/:id')
+    @Get('add/:username')
     @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({summary: 'Add (id) as a friend => POST'})
-    async addNewFriend(@Req() req, @Param('id', new ParseIntPipe()) id: number) {
-      return await this.friendService.sendFriendRequest(req.user, id)
+    async addNewFriend(@Req() req, @Param('username') username: string) {
+        const user: UserEntity = await this.userService.findByName(username)
+        if (!user)
+            throw new NotFoundException('User not Found !')
+      return await this.friendService.sendFriendRequest(req.user, user.id)
     }
 
     @Get('update/:id')
