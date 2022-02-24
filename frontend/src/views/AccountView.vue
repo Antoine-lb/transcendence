@@ -1,26 +1,29 @@
 <template>
-  <main>
-    <div class="about">
-      <form class="form-group">
-        <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-        <!-- <div style="display=flex">         -->
-        Would you like to enable 2FA
-        <label for="switch">Toggle</label>
-        <!-- </div> -->
-      </form>
+<main>
+  <div class="about">
+    <form class="form-group">
 
-      <a class="intra-login" href="http://localhost:3000/api/auth/login">
-        <div class="intra-login-wrapper">
-          <p>Se connecter avec</p>
-          <img
-            alt="Invader Logo"
-            class="logo-42"
-            src="@/assets/logo-42-black.png"
-          />
-        </div>
-      </a>
-    </div>
-  </main>
+    <input 
+      type="checkbox"
+      id="switch" v-on:click="toggleTwoFA" /> 
+    <!-- <div style="display=flex">         -->
+      Would you like to enable 2FA
+      <label for="switch">Toggle</label>
+    <!-- </div> -->
+    </form>
+
+    <a class="intra-login" href="/api/auth/login">
+      <div class="intra-login-wrapper">
+        <p>Se connecter avec</p>
+        <img
+          alt="Invader Logo"
+          class="logo-42"
+          src="@/assets/logo-42-black.png"
+        />
+      </div>
+    </a>
+  </div>
+</main>
 </template>
 
 <style>
