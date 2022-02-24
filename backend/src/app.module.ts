@@ -21,7 +21,7 @@ import { FriendsModule } from './friends/friends.module';
 			port: Number(5432),
 			username: 'ft_root',
 			password: 'admin',
-			database: 'transcendence',
+			database: 'transcendance',
 			entities: [UserEntity, FriendRequestEntity],
 			synchronize: true,
 			keepConnectionAlive: true,

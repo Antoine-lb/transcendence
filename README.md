@@ -1,6 +1,6 @@
-# transcendence
+# transcendance
 
-[link to project page](https://projects.intra.42.fr/projects/ft_transcendence)
+[link to project page](https://projects.intra.42.fr/projects/ft_transcendance)
 
 ## Shematic
 

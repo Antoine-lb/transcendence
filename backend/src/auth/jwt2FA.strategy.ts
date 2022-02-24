@@ -3,7 +3,6 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserEntity } from 'src/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
-import { request } from 'express';
 
 @Injectable()
 export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
@@ -24,16 +23,20 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   }
 
   async validate(payload: TokenPayload): Promise<UserEntity> {
-    console.log('[Jwt2FAStrategy]');
-    console.log('[jwt strat validate] >>> payload id ' + payload.id)
+    console.log('[Jwt2FAStrategy] >>> payload id ' + payload.id);
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
-        throw new UnauthorizedException
+    {
+      console.log("2FA validation : undefined user")
+      throw new UnauthorizedException
+    }
     // delete user.secret;
     if (!user.isTwoFA) {
+      console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
       return user;
     }
     if (payload.isTwoFAAuthenticated) {
+      console.log("2FA VALIDATION = OK")
       return user;
     }
     // sinon on ne retourne rien donc on ne valide pas

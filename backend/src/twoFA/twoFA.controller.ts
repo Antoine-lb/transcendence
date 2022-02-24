@@ -33,7 +33,7 @@ export class TwoFAController {
 
     ) {}
  
-    // SETUP : n'est fait qu'une seule fois --- OK
+    // SETUP : n'est fait qu'une seule fois
   @Post('generate')
   @UseGuards(JwtAuthGuard)
   async register(@Res() response: Response, @Req() request: RequestWithUser) {
@@ -46,7 +46,7 @@ export class TwoFAController {
     return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
   }
   
-  // SETUP : n'est fait qu'une seule fois --- OK
+  // SETUP : n'est fait qu'une seule fois
   @Post('turn-on')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
@@ -69,7 +69,16 @@ export class TwoFAController {
     console.log(request.user)
   }
 
-  // SETUP : n'est fait qu'une seule fois --- OK
+  @Post('turn-off')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async turnOffTwoFA(@Req() request: RequestWithUser) {
+    console.log("TURNING OFF 2FA ON USER");
+    await this.usersService.turnOffTwoFA(request.user.id);
+    console.log(request.user)
+  }
+
+  // EST APPELEE A CHAQUE LOGIN si 2fa est active (isTwoFA = true)
   @Post('authenticate')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)

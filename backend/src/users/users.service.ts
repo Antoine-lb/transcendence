@@ -58,6 +58,11 @@ export class UsersService {
         );
       }
   
+      async updateOneParam(id: number, user: UserInterface): Promise<any> {
+        delete user.username;
+        // delete user.role;
+        return await from(this.usersRepository.update(id, user));
+      }
       aupdateRoleOfUser(id: number, user: UserInterface): Observable<any> {
           return from(this.usersRepository.update(id, user));
       }
@@ -69,9 +74,15 @@ export class UsersService {
       }
   
       async turnOnTwoFA(id: number) {
-          return await this.usersRepository.update(id, {
-            isTwoFA: true
-          });
-        }
+        return await this.usersRepository.update(id, {
+          isTwoFA: true
+        });
+      }
+
+      async turnOffTwoFA(id: number) {
+        return await this.usersRepository.update(id, {
+          isTwoFA: false
+        });
+      }
 
 }
