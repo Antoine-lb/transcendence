@@ -12,7 +12,7 @@
     <!-- </div> -->
     </form>
 
-    <a class="intra-login" href="http://localhost:3000/api/auth/login">
+    <a class="intra-login" href="/api/auth/login">
       <div class="intra-login-wrapper">
         <p>Se connecter avec</p>
         <img

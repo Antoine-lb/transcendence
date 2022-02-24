@@ -17,9 +17,18 @@ export class AuthController{
             private readonly authService: AuthService
         ) {}
     
-        @UseGuards(Guard42)
+        // @UseGuards(Guard42)
         @Get('/login')
-        async login() {}
+        async login(@Res() res: Response, @Req() req: Request) {
+            console.log('Already Log ? ->' + req.cookies['access_token'])
+            if (req.cookies && req.cookies['access_token']) {
+                if (this.authService.verifyToken(req.cookies['access_token']))
+                    res.redirect('http://127.0.0.1/compte')
+                else
+                    res.redirect('/api/auth/callback')
+            }
+            else res.redirect('/api/auth/callback')
+        }
         
         @UseGuards(Guard42)
         @Get('/callback')
@@ -28,7 +37,6 @@ export class AuthController{
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
             let auth: boolean = user.isTwoFA == true ? true: false;
-            // let auth: boolean = user.secret == null ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('[access_token] >>> ', accessToken)
             await res.cookie('access_token', accessToken, {httpOnly: true});
@@ -41,7 +49,7 @@ export class AuthController{
                 // res.redirect('/api/2fa/authenticate');
             } 
             else {
-                res.status(302).redirect('http://127.0.0.1:3000/api/users/me');
+                res.status(302).redirect('http://127.0.0.1/compte');
             }
         }
 
