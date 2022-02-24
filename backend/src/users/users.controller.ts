@@ -64,6 +64,7 @@ export class UserController {
   }
 
     @Get()
+    @UseInterceptors(ClassSerializerInterceptor)
     async findAll(): Promise<UserEntity[]> {
       return await this.userService.findAll(); //TODO: voir si je peux return que les infos public
     }

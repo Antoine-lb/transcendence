@@ -23,12 +23,27 @@ export class FriendsController {
         return await this.friendService.getFriends(req.user)
     }
 
-    @Get('requests')
+    @Get('r_requests')
     @UseInterceptors(ClassSerializerInterceptor)
-    @ApiOperation({summary: 'Return Pending Friend Requests'})
-    async getFriendRequest(@Req() req){
-      return await this.friendService.getFriendsRequests(req.user)
+    @ApiOperation({summary: 'Return Pending Received Friend Requests'})
+    async getReceivedFriendRequest(@Req() req){
+      return await this.friendService.getFriendsRequests(req.user, true)
     }
+
+    @Get('s_requests')
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOperation({summary: 'Return Pending Sent Friend Requests'})
+    async getSentFriendRequest(@Req() req){
+      return await this.friendService.getFriendsRequests(req.user, false)
+    }
+
+    @Get('blocked')
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOperation({summary: 'Return Blocked Users Requests'})
+    async getBlockedUsers(@Req() req){
+      return await this.friendService.getBlockedUsers(req.user)
+    }
+    
 
     @Get('add/:username')
     @UseInterceptors(ClassSerializerInterceptor)

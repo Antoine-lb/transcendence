@@ -36,30 +36,40 @@ export class FriendsService {
         return await this.usersService.findManyIds(ids)
     }
 
-    async getFriendsRequests(currentUser: UserEntity): Promise<UserEntity[]> {
-        const list: UserEntity[] = []
+    async getFriendsRequests(currentUser: UserEntity, isReceived: boolean): Promise<UserEntity[]> {
+        const ids = []
+        var query = this.friendRepository.createQueryBuilder('f')
+        if (isReceived)
+            query.where('(f.receiver = :uid)', {uid: currentUser.id});
+        else
+            query.where('(f.creator = :uid)', {uid: currentUser.id});
+        query.andWhere('f.status = :status', {status: FriendStatus.STATUS_WAITING});
+        const rslt = await query.getRawMany();
 
-        var query = await this.friendRepository.createQueryBuilder('f')
-        .leftJoinAndSelect('f.creator', 'users')
-        .where('f.receiver = :uid', {uid: currentUser.id})
-        .andWhere('f.status = :status', {status: FriendStatus.STATUS_WAITING})
-        .getRawMany()
-
-        query.forEach(element => {
-            list.push(element)
-        });
-
-        query = await this.friendRepository.createQueryBuilder('f')
-        .leftJoinAndSelect('f.receiver', 'users')
-        .where('f.creator = :uid', {uid: currentUser.id})
-        .andWhere('f.status = :status', {status: FriendStatus.STATUS_WAITING})
-        .getRawMany()
-
-        query.forEach(element => {
-            list.push(element)
-        });
-        return list
+        rslt.forEach(element => {
+            if (isReceived)
+                ids.push(element.f_creatorId)
+            else
+                ids.push(element.f_receiverId)
+        })
+        return await this.usersService.findManyIds(ids)
     }
+
+    async getBlockedUsers(currentUser: UserEntity): Promise<UserEntity[]> {
+        const query = await this.friendRepository.createQueryBuilder('f')
+        .where('(f.creator = :uid OR f.receiver = :uid)', { uid: currentUser.id })
+        .andWhere('f.status = :status', { status: FriendStatus.STATUS_BLOCKED })
+        .getRawMany()
+        const ids = []
+        console.log(query)
+        query.forEach(element => {
+            if (element.f_creatorId == currentUser.id && element.f_blockedByCreator)
+                ids.push(element.f_receiverId)
+            else if (element.f_receiverId == currentUser.id && element.f_blockedByReceiver)
+                ids.push(element.f_creatorId)
+        });
+        return await this.usersService.findManyIds(ids)
+    }   
 
     async sendFriendRequest(currentUser: UserEntity, receiver_id: number) {
         const receiver: UserEntity = await this.checkFriendId(currentUser, receiver_id)
