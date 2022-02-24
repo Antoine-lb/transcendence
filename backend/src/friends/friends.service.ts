@@ -5,6 +5,7 @@ import { FriendRequestEntity } from '../entities/friends.entity';
 import { FriendStatus } from '../entities/friend-request-interface';
 import { UserEntity } from 'src/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
+import { UserDto } from 'src/entities/users.dto';
 
 @Injectable()
 export class FriendsService {

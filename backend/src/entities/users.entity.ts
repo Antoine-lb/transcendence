@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 
 @Entity()
@@ -12,10 +13,12 @@ export class UserEntity {
   @Column({default: null})
   avatar?: string;
 
-  @Column({ default: false, select: false })
+  @Exclude()
+  @Column({ default: false })
   public isTwoFA: boolean;
   
-  @Column({ default: null, select: false })
+  @Exclude()
+  @Column({ default: null })
   public secret: string;
 
   @Column({ default: false })

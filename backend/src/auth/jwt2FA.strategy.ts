@@ -13,6 +13,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       secretOrKey: 'REPLACE_THIS_SECRET',
       jwtFromRequest: (request) => {
             console.log('Request ' + request);
+            console.log('Request user' + request.user.id);
             console.log('[access_token] : ' + request.cookies['access_token']);
             console.log('[Authentication] : ' + request.cookies.Authentication);
             if (!request.user.isTwoFA)
@@ -28,7 +29,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException
-    delete user.secret;
+    // delete user.secret;
     if (!user.isTwoFA) {
       return user;
     }
