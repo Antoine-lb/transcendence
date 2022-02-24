@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 
-@Entity()
+@Entity('users')
 export class UserEntity {
   @PrimaryColumn()
   id: number;
