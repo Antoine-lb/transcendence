@@ -10,6 +10,7 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
+
   const config = new DocumentBuilder()
     .setTitle('Transcendance')
     .setDescription('API description')

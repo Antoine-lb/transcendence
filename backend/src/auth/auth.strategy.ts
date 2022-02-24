@@ -1,12 +1,12 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from "passport-42";
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 // https://github.com/pandark/passport-42
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy, 'test') {
+export class OAuth2Strategy extends PassportStrategy(Strategy, 'OAuth2') {
   constructor(private authService: AuthService) {
     super({
         clientID: '30bcae937e1524e43ad6b11e8d2ac296212d06570d3798c4705be1f2e45432f0',

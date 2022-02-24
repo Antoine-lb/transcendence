@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from './users.entity'
-import { UserInterface } from './users.interface'
-import { UserDto } from './users.dto'
+import { UserEntity } from '../entities/users.entity'
+import { UserInterface } from '../entities/users.interface'
+import { UserDto } from '../entities/users.dto'
 import { switchMap, map } from 'rxjs/operators'
 import { Observable, from } from 'rxjs';
+import { FriendRequestEntity } from '../entities/friends.entity';
+import { FriendStatus } from '../entities/friend-request-interface';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>,) {}
+    constructor(@InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>){}
 
     async addUser(user: UserDto) : Promise<UserEntity> {
         const new_user= this.usersRepository.create({
@@ -22,51 +24,54 @@ export class UsersService {
     }
 
     async findByName(username: string): Promise<UserEntity> {
-      console.log("---> find by Name : " + username)
-      const user: UserEntity = await this.usersRepository.findOne({ username })
-    return user;
-    }
+        console.log("---> find by Name : " + username)
+        const user: UserEntity = await this.usersRepository.findOne({ username })
+		return user;
+	}
 
     async findById(id: number): Promise<UserEntity> {
-    return await this.usersRepository.findOne({ id });
+		return await this.usersRepository.findOne({ id });
+	}
+
+    async findManyIds(ids: number[]): Promise<UserEntity[]> {
+        return await this.usersRepository.findByIds(ids)
     }
 
     async findAll(): Promise<UserEntity[]> {
-    return await this.usersRepository.createQueryBuilder('user_entity').getMany();
-    }
+		return await this.usersRepository.createQueryBuilder().getMany();
+	}
 
     findOne(id: number): Observable<UserInterface> {
-      return from(this.usersRepository.findOne({id})).pipe(
-          map((user: UserInterface) => {
-              const {...result} = user;
-              return result;
-          } )
-      )
-    }
-    updateOne(id: number, user: UserInterface): Observable<any> {
-      delete user.username;
-      // delete user.role;
-
-      return from(this.usersRepository.update(id, user)).pipe(
-          switchMap(() => this.findOne(id))
-      );
-    }
-
-    updateRoleOfUser(id: number, user: UserInterface): Observable<any> {
-        return from(this.usersRepository.update(id, user));
-    }
-
-    async setTwoFASecret(secret: string, id: number) {
-        return this.usersRepository.update(id, {
-          secret: secret
-        });
-    }
-
-    async turnOnTwoFA(id: number) {
-        return this.usersRepository.update(id, {
-          isTwoFA: true
-        });
+        return from(this.usersRepository.findOne({id})).pipe(
+            map((user: UserInterface) => {
+                const {...result} = user;
+                return result;
+            } )
+        )
       }
 
+    updateOne(id: number, user: UserInterface): Observable<any> {
+        delete user.username;
+        // delete user.role;
+        return from(this.usersRepository.update(id, user)).pipe(
+            switchMap(() => this.findOne(id))
+        );
+      }
   
+      aupdateRoleOfUser(id: number, user: UserInterface): Observable<any> {
+          return from(this.usersRepository.update(id, user));
+      }
+  
+      async setTwoFASecret(secret: string, id: number) {
+          return await this.usersRepository.update(id, {
+            secret: secret
+          });
+      }
+  
+      async turnOnTwoFA(id: number) {
+          return await this.usersRepository.update(id, {
+            isTwoFA: true
+          });
+        }
+
 }

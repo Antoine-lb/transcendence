@@ -1,8 +1,8 @@
 import { PassportSerializer } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 
-import { UserEntity } from '../users/users.entity';
 import { UsersService } from 'src/users/users.service';
+import { UserEntity } from 'src/entities/users.entity';
 
 /*
 	https://stackoverflow.com/questions/19948816/passport-js-error-failed-to-serialize-user-into-session

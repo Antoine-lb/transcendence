@@ -1,10 +1,13 @@
 import { UsersService } from './users.service';
-import { UserEntity } from './users.entity';
+import { UserEntity } from '../entities/users.entity';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
 import { Controller, Get, Req, UseGuards, Post, Param, Res, UseInterceptors, UploadedFile, Request } from '@nestjs/common';
+import { ParseIntPipe, NotFoundException} from '@nestjs/common';
+
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import Jwt2FAGuard from 'src/auth/jwt2FA.guard';
+import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
 import { Observable, of } from 'rxjs';
 import { diskStorage } from 'multer';
 // import path from 'path';
@@ -12,6 +15,8 @@ import path = require('path');
 import { v4 as uuidv4 } from 'uuid';
 import { tap, map } from 'rxjs/operators'
 import { join } from 'path';
+import { FriendStatus } from 'src/entities/friend-request-interface';
+import { FriendsService } from 'src/friends/friends.service';
 
 export const storage = {
   storage: diskStorage({
@@ -26,6 +31,7 @@ export const storage = {
   })
 }
 
+@ApiTags('users')
 @Controller('users')
 @UseGuards(JwtAuthGuard, Jwt2FAGuard)
 export class UserController {
@@ -33,10 +39,27 @@ export class UserController {
     ) {}
 
     
-    @Get('/profile')
+    @Get('/me')
+    @ApiOperation({summary: 'Return user\'s profile'})
     getUserProfile(@Req() req) {
         return req.user;
     }
+  
+    // @Get(':id/friends')
+    // async getFriendsId(@Param('id', new ParseIntPipe()) id: number){
+    //   const user = await this.userService.findById(id)
+    //   if (!user)
+    //     throw new NotFoundException('User not found')
+    //   return await this.friendService.getFriends(user)
+    // }
+
+    @Get(':id')
+    async getUserProfileId(@Param('id', new ParseIntPipe()) id: number) {
+      const user = await this.userService.findById(id);
+      if (!user)
+      throw new NotFoundException('User not found')
+      return user;
+  }
 
     @Get()
     async findAll(): Promise<UserEntity[]> {

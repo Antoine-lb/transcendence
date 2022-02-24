@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserEntity } from 'src/users/users.entity';
+import { UserEntity } from 'src/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { request } from 'express';
 
@@ -13,8 +13,11 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       secretOrKey: 'REPLACE_THIS_SECRET',
       jwtFromRequest: (request) => {
             console.log('Request ' + request);
+            console.log('Request user' + request.user.id);
             console.log('[access_token] : ' + request.cookies['access_token']);
             console.log('[Authentication] : ' + request.cookies.Authentication);
+            if (!request.user.isTwoFA)
+              return request.cookies['access_token']
             return request?.cookies?.Authentication;
         }
     })
@@ -26,6 +29,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException
+    // delete user.secret;
     if (!user.isTwoFA) {
       return user;
     }

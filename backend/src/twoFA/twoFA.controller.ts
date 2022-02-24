@@ -3,6 +3,7 @@ import {
   Controller,
   Header,
   Post,
+  Get,
   UseInterceptors,
   Res,
   UseGuards,
@@ -19,7 +20,9 @@ import { UsersService } from '../users/users.service';
 import RequestWithUser from '../auth/requestWithUser.interface';
 import { TwoFADto } from './twoFA.dto';
 import { AuthService } from 'src/auth/auth.service';
+import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('2FA')
 @Controller('2fa')
 // @UseInterceptors(ClassSerializerInterceptor)
 export class TwoFAController {
