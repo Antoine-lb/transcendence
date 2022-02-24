@@ -12,50 +12,7 @@
     <!-- </div> -->
     </form>
 
-    <form class="form-group">
-      <h2>LogIn</h2>
-      <input
-        v-model="emailLogin"
-        type="email"
-        class="form-control"
-        placeholder="Email"
-        required
-      />
-      <input
-        v-model="passwordLogin"
-        type="password"
-        class="form-control"
-        placeholder="Password"
-        required
-      />
-      <input type="submit" class="submit" @click="doLogin" />
-    </form>
-    <form class="form-group">
-      <h2>Créer un compte</h2>
-      <input
-        v-model="emailLogin"
-        type="name"
-        class="form-control"
-        placeholder="Name"
-        required
-      />
-      <input
-        v-model="emailLogin"
-        type="email"
-        class="form-control"
-        placeholder="Email"
-        required
-      />
-      <input
-        v-model="passwordLogin"
-        type="password"
-        class="form-control"
-        placeholder="Password"
-        required
-      />
-      <input type="submit" class="submit" @click="doLogin" />
-    </form>
-    <a class="intra-login" href="localhost:3000/api/auth/login">
+    <a class="intra-login" href="http://localhost:3000/api/auth/login">
       <div class="intra-login-wrapper">
         <p>Se connecter avec</p>
         <img
