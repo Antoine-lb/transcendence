@@ -8,23 +8,32 @@ import { switchMap, map } from 'rxjs/operators'
 import { Observable, from } from 'rxjs';
 import { FriendRequestEntity } from '../entities/friends.entity';
 import { FriendStatus } from '../entities/friend-request-interface';
+import { join } from 'path';
 
 @Injectable()
 export class UsersService {
     constructor(@InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>){}
 
     async addUser(user: UserDto) : Promise<UserEntity> {
-        const new_user= this.usersRepository.create({
+      // chech if default avatar exists
+      var filepath = await join(process.cwd(), 'images/avatar_default.png')
+      // console.log('first time avatar filepath : ', filepath)
+      const fs = require("fs");
+      if (!fs.existsSync(filepath)) {
+        throw new NotFoundException('Cannot create user - Default avatar does not exists')
+      }
+      // create user and save to bdd
+      const new_user= this.usersRepository.create({
             id: user.id,
             username: user.username,
-            avatar: user.avatar
+            avatar: filepath
         })
-        console.log('add new user : ' + new_user.username)
-        return await this.usersRepository.save(new_user);
+      console.log('add new user : ' + new_user.username)
+      return await this.usersRepository.save(new_user);
     }
 
     async findByName(username: string): Promise<UserEntity> {
-        console.log("---> find by Name : " + username)
+        // console.log("---> find by Name : " + username)
         const user: UserEntity = await this.usersRepository.findOne({ username })
 		return user;
 	}

@@ -11,10 +11,10 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       ignoreExpiration: false,
       secretOrKey: 'REPLACE_THIS_SECRET',
       jwtFromRequest: (request) => {
-            console.log('Request ' + request);
-            console.log('Request user' + request.user.id);
-            console.log('[access_token] : ' + request.cookies['access_token']);
-            console.log('[Authentication] : ' + request.cookies.Authentication);
+            // console.log('Request ' + request);
+            // console.log('Request user' + request.user.id);
+            // console.log('[access_token] : ' + request.cookies['access_token']);
+            // console.log('[Authentication] : ' + request.cookies.Authentication);
             if (!request.user.isTwoFA)
               return request.cookies['access_token']
             return request?.cookies?.Authentication;
@@ -23,14 +23,13 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   }
 
   async validate(payload: TokenPayload): Promise<UserEntity> {
-    console.log('[Jwt2FAStrategy] >>> payload id ' + payload.id);
+    // console.log('[Jwt2FAStrategy] >>> payload id ' + payload.id);
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
     {
       console.log("2FA validation : undefined user")
       throw new UnauthorizedException
     }
-    // delete user.secret;
     if (!user.isTwoFA) {
       console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
       return user;

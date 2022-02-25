@@ -33,7 +33,7 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
-            console.log('[auth] >>> /callback')
+            console.log('[auth/callback]')
             const user = await this.userService.findByName(req.user['username']);
             if (!user) throw new UnauthorizedException();
             let auth: boolean = user.isTwoFA == true ? true: false;
@@ -42,7 +42,6 @@ export class AuthController{
             await res.cookie('access_token', accessToken, {httpOnly: true});
 
             if (auth === true) {
-                console.log('[auth] >>> /callback')
                 if (user.secret == null)
                     throw new UnauthorizedException('2FA enabled but secret not set');
                 return
