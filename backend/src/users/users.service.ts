@@ -34,7 +34,7 @@ export class UsersService {
 
     async findByName(username: string): Promise<UserEntity> {
         // console.log("---> find by Name : " + username)
-        const user: UserEntity = await this.usersRepository.findOne({ username })
+      const user: UserEntity = await this.usersRepository.findOne({ username })
 		return user;
 	}
 
@@ -94,4 +94,56 @@ export class UsersService {
         });
       }
 
-}
+      async fileExists(filepath: string) { 
+        console.log('check if file exists : ', filepath)
+        const fs = require("fs");
+        if (await !fs.existsSync(filepath)) {
+          return false;
+        }
+        return true;
+      }
+
+      async deleteFile(filepath: string) {
+        console.log('deleteFile function call : ', filepath)
+        if (filepath == '/app/images/avatar_default.png') {
+          console.log('We are not deleting the default avater : ', filepath)
+          return true
+        }
+        const fs = await require("fs");
+        await fs.unlink(filepath, (err) => {
+          if (err) {
+           console.error('failed to delete file:', err);
+           return false;
+          }
+        })
+        return true
+        ;
+      }
+
+      async getFileName(filepath: string) {
+        const path = await require('path');
+        const filename = filepath;
+        return await path.parse(filename).name;
+      }
+
+      async deleteSimilarFiles(filebase: string) {
+        console.log("planning to delete similar files to : ", filebase)
+        var filename = await this.getFileName(filebase);
+        var prefix = await join(process.cwd(), 'uploads/avatars/')
+        var files: string[] = [
+          prefix + filename + '.jpg',
+          prefix + filename + '.jpeg',
+          prefix + filename + '.png',
+        ]
+        for (const file of files) {
+          console.log(file, " vs. ", (prefix + filebase))
+          if ( await this.fileExists(file) == true && (file != (prefix + filebase)))
+          {
+            console.log("ready to delete : ", file)
+            var ret = await this.deleteFile(file)
+            console.log("similar file deleted : ", file, ret)
+          }
+        }
+      }
+    }
+

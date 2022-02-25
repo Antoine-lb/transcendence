@@ -94,6 +94,8 @@ export class UserController {
         throw new NotFoundException('User not found')
       if (!file?.filename)
         throw new NotFoundException('Upload: file not valid')
+      var filenameWithoutExt = await this.userService.getFileName(file.filename)
+      await this.userService.deleteSimilarFiles(file.filename)
       console.log("(upload) user : ", user);
       console.log('(upload) file : ', file)
       var filepath = await join(process.cwd(), 'uploads/avatars/' + file.filename)
@@ -106,14 +108,10 @@ export class UserController {
       const user = this.userService.findById(req.user.id);
       if (!user)
         throw new NotFoundException('User not found')
-      var filepath = req.user.avatar
-      console.log('filepath : ', filepath)
-      // verifie que l'avatar a afficher existe
-      const fs = require("fs");
-      if (!fs.existsSync(filepath)) {
+      console.log('/me/avatar filepath : ', req.user.avatar)
+      if (await this.userService.fileExists(req.user.avatar) == false)
         throw new NotFoundException('Cannot display avatar - File does not exists')
-      }
-      return res.sendFile(filepath);
+      return res.sendFile(req.user.avatar);
     }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
@@ -122,29 +120,18 @@ export class UserController {
       const user = this.userService.findById(req.user.id);
       if (!user)
         throw new NotFoundException('User not found')
-      var filepath = req.user.avatar
-      console.log(filepath)
-      // verifie que l'avatar a supprimer existe
-      const fs = require("fs");
-      if (!fs.existsSync(filepath)) {
-        throw new NotFoundException('Not found - File does not exists')
-      }
-      // supprime l'avatar
-      await fs.unlink(filepath, (err) => {
-        if (err) {
-         console.error('failed to delete local image:', err);
-         throw new NotFoundException('failed to delete')
-        }
-       });
+      // delete l'avatar
+      if (await this.userService.fileExists(req.user.avatar) == false)
+        throw new NotFoundException('Cannot delete avatar - File does not exists')
+      if (await this.userService.deleteFile(req.user.avatar) == false)
+        throw new NotFoundException('failed to delete')
       // prepare un nouvel avatar par defaut
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found')
       var defaultpath = await join(process.cwd(), 'images/avatar_default.png')
-      // verifier que l'avatar par default existe
-      if (!fs.existsSync(defaultpath)) {
-        throw new NotFoundException('Not found - Default avatar does not exists')
-      }
+      if (await this.userService.fileExists(defaultpath) == false)
+        throw new NotFoundException('Cannot set default avatar - File does not exists')
       // update le user avec l'avatar
       await this.userService.updateOne(userEnt.id, {avatar: defaultpath})
       // redirige pour eviter une pending request
@@ -153,15 +140,15 @@ export class UserController {
 
     // route qui valide les parametres et l'enregistre dans la base de donnees
     // @Get('/me/params')
-    // async setUserParams(@Res() res, @Request() req) {
+    // async setUserParams(@Res() res, @Request() req, @Param('username') username: string) {
     //   const user = await this.userService.findById(id);
     //   if (!user)
     //     throw new NotFoundException('params : User not found')
     //   // username
 
     //   // avatar
-              // update
-              // delete && set to default
+    //           update
+    //           delete && set to default
     //   // 2fa
     //   // turnOffTwoFA
     //   // return user;
