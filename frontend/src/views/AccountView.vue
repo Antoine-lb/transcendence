@@ -1,13 +1,63 @@
+<script lang="ts">
+import { useCounterStore } from "../stores/counter";
+const counterStore = useCounterStore();
+export default {
+  // name : "Game",
+  data() {
+    return {
+      twoFA: false,
+      display: "display:on",
+      isLog: counterStore.isLog,
+    };
+  },
+  methods: {
+    toggleTwoFA() {
+      this.twoFA = !this.twoFA;
+      // if (this.twoFA)
+      // ASK BACKEND QRcode
+      console.log(this.twoFA);
+    },
+    toggleaccountDisplay() {
+      console.log(useCounterStore().$state.user);
+
+      // fetch("/api/users/me").then(function (response) {
+      //   console.log(response);
+      //   if (response.status == 200) {
+      //     response.json().then((data) => console.log(data));
+      //     useCounterStore().$state.isLog = true;
+      //   }
+      // });
+      // if (useCounterStore().$state.isLog === true)
+      //   this.display = "display:none";
+      // else this.display = "display:on";
+    },
+  },
+  created() {
+    counterStore.isLogged();
+  },
+  mounted() {},
+  // components : {
+  //   TheGame
+  // }
+};
+</script>
+
 <template>
   <main>
-    <form class="form-group">
+    {{ isLog }}
+    <form v-if="isLog === true" class="form-group">
       <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
       <!-- <div style="display=flex">         -->
       Would you like to enable 2FA
       <label for="switch">Toggle</label>
       <!-- </div> -->
     </form>
-    <div class="about" v-on:click="toggleaccountDisplay" :style="display">
+    <div
+      class="about"
+      v-if="isLog === false"
+      v-on:click="toggleaccountDisplay"
+      :style="display"
+    >
       <a class="intra-login" href="/api/auth/login">
         <div class="intra-login-wrapper">
           <p>Se connecter avec</p>
@@ -125,41 +175,3 @@ body {
   height: 5%;
 }
 </style>
-
-<script lang="ts">
-export default {
-  // name : "Game",
-  data() {
-    return {
-      twoFA: false,
-      isLog: false,
-      display: "display:on",
-    };
-  },
-  created() {
-    fetch("/api/users/me").then(function (response) {
-      console.log(response);
-      if (response.status == 200) {
-        response.json().then((data) => console.log(data));
-        // this.isLog = true;
-      }
-    });
-  },
-  methods: {
-    toggleTwoFA() {
-      this.twoFA = !this.twoFA;
-      // if (this.twoFA)
-      // ASK BACKEND QRcode
-      console.log(this.twoFA);
-    },
-    toggleaccountDisplay() {
-      this.display =
-        this.display === "display:on" ? "display:none" : "display:on";
-    },
-  },
-  mounted() {},
-  // components : {
-  //   TheGame
-  // }
-};
-</script>
