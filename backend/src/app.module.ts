@@ -11,7 +11,7 @@ import { FriendRequestEntity } from './entities/friends.entity';
 // import { PostsModule } from './posts/posts.module';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
-
+import { ChatModule } from './chat/chat.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -29,7 +29,8 @@ import { FriendsModule } from './friends/friends.module';
 		AuthModule,
 		TwoFAModule,
 		UsersModule,
-		FriendsModule],
+		FriendsModule,
+		ChatModule],
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
 })

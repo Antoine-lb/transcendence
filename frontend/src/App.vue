@@ -17,7 +17,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
         <RouterLink to="/compte">Compte</RouterLink>
         <RouterLink to="/compte">Classement</RouterLink>
         <RouterLink to="/game">Jeux</RouterLink>
-        <RouterLink to="/compte">Chat</RouterLink>
+        <RouterLink to="/chat">Chat</RouterLink>
       </nav>
     </div>
   </header>
@@ -34,6 +34,11 @@ import HelloWorld from "@/components/HelloWorld.vue";
   padding: 2rem;
 
   font-weight: normal;
+}
+
+#messages{
+ height:300px;
+ overflow-y: scroll;
 }
 
 header {

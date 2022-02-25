@@ -2,11 +2,11 @@ import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisco
 import { AuthService } from 'src/auth/auth.service';
 import { Socket, Server } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
-import { UserEntity } from 'src/users/users.entity';
+import { UserEntity } from 'src/entities/users.entity';
 import { runInThisContext } from 'vm';
 import { UnauthorizedException } from '@nestjs/common';
 
-@WebSocketGateway({cors: {origin: 'https://hoppscotch.io'}})
+@WebSocketGateway({cors: {origin: ['http://localhost']}})
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   
   @WebSocketServer()
@@ -16,7 +16,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor (private authService: AuthService, private userService: UsersService){}
  
-  async handleConnetion(socket: Socket) {
+  async handleConnection(socket: Socket) {
+    console.log('handle')
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization)
@@ -39,6 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private disconnect(socket: Socket) {
+    console.log('disconnect')
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }

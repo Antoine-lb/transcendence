@@ -11,5 +11,6 @@ COPY . .
 EXPOSE 3000
 
 RUN npm i --save-dev webpack webpack-cli webpack-node-externals ts-loader run-script-webpack-plugin
+RUN npm i --save @nestjs/websockets @nestjs/platform-socket.io
 
 RUN npm run build

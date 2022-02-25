@@ -1,11 +1,11 @@
-import { BasicUser } from "src/users/users.dto";
+import { UserDto } from "src/entities/users.dto";
 
 export interface RoomI {
 
     id?: number;
     name?: string;
     description?: String;
-    users?: BasicUser[];
+    users?: UserDto[];
     created_at?: Date;
     updated_at?: Date;
 
