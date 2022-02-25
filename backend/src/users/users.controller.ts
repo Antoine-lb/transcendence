@@ -108,6 +108,11 @@ export class UserController {
         throw new NotFoundException('User not found')
       var filepath = req.user.avatar
       console.log('filepath : ', filepath)
+      // verifie que l'avatar a afficher existe
+      const fs = require("fs");
+      if (!fs.existsSync(filepath)) {
+        throw new NotFoundException('Cannot display avatar - File does not exists')
+      }
       return res.sendFile(filepath);
     }
 
