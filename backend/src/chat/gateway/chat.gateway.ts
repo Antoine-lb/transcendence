@@ -1,47 +1,46 @@
-import { SubscribeMessage, WebSocketGateway, OnGatewayConnection, OnGatewayDisconnect, WebSocketServer} from '@nestjs/websockets';
-import { AuthService } from 'src/auth/auth.service';
-import { Socket, Server } from 'socket.io';
-import { UsersService } from 'src/users/users.service';
-import { UserEntity } from 'src/entities/users.entity';
-import { runInThisContext } from 'vm';
-import { UnauthorizedException } from '@nestjs/common';
-
-@WebSocketGateway({cors: {origin: ['http://localhost']}})
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  
-  @WebSocketServer()
-  server: Server;
-  
-  title: string[] = [];
-
-  constructor (private authService: AuthService, private userService: UsersService){}
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  OnGatewayInit,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+ } from '@nestjs/websockets';
+ import { Logger } from '@nestjs/common';
+ import { Socket, Server } from 'socket.io';
  
-  async handleConnection(socket: Socket) {
+ @WebSocketGateway({
+   cors: {
+     origin: '*',
+   },
+ })
+ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+ 
+  @WebSocketServer() server: Server;
+  private logger: Logger = new Logger('AppGateway');
+ 
+  @SubscribeMessage('msgToServer')
+  handleMessage(client: Socket, payload: string): void {
+
     console.log('handle')
-
-    try {
-      const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization)
-      const user: UserEntity = await this.userService.findById(decodedToken.user.id)
-
-      if (!user) {
-        return this.disconnect(socket);
-      }
-      else {
-        this.title.push('Value ' + Math.random().toString());
-        this.server.emit('message', this.title);
-      }
-    }
-    catch { return this.disconnect(socket); }
-    
-    console.log('On Connect');
+   this.server.emit('msgToClient', payload);
   }
-  handleDisconnect(socket: Socket) {
-    socket.disconnect();
-  }
+ 
+  afterInit(server: Server) {
+    console.log('after init')
 
-  private disconnect(socket: Socket) {
-    console.log('disconnect')
-    socket.emit('Error', new UnauthorizedException());
-    socket.disconnect();
+   this.logger.log('Init');
   }
-}
+ 
+  handleDisconnect(client: Socket) {
+    console.log('sicornnect')
+
+   this.logger.log(`Client disconnected: ${client.id}`);
+  }
+ 
+  handleConnection(client: Socket, ...args: any[]) {
+    console.log('connection')
+
+   this.logger.log(`Client connected: ${client.id}`);
+  }
+ }

@@ -1,7 +1,7 @@
 
 <template>
   <main>
-    <TheGame />
+    <TheChat />
   </main>
 </template>
 
@@ -13,11 +13,11 @@ export default {
   name : "Game",
   data () {
     return {
-      variable: "test",
+      variable: "tttest",
     }
   },
   components : {
-    TheGame
+    TheChat
   }
 
 };

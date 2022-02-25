@@ -33,7 +33,7 @@ export default {
   },
   created() {
     console.log('create1')
-    this.socket = io('/api/')
+    this.socket = io('http://localhost:3000')
     console.log(this.socket)
     this.socket.on('msgToClient', (message) => {
        console.log('create2 ' + message)
