@@ -1,29 +1,25 @@
 <template>
-<main>
-  <div class="about">
+  <main>
     <form class="form-group">
-
-    <input 
-      type="checkbox"
-      id="switch" v-on:click="toggleTwoFA" /> 
-    <!-- <div style="display=flex">         -->
+      <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
+      <!-- <div style="display=flex">         -->
       Would you like to enable 2FA
       <label for="switch">Toggle</label>
-    <!-- </div> -->
+      <!-- </div> -->
     </form>
-
-    <a class="intra-login" href="/api/auth/login">
-      <div class="intra-login-wrapper">
-        <p>Se connecter avec</p>
-        <img
-          alt="Invader Logo"
-          class="logo-42"
-          src="@/assets/logo-42-black.png"
-        />
-      </div>
-    </a>
-  </div>
-</main>
+    <div class="about" v-on:click="toggleaccountDisplay" :style="display">
+      <a class="intra-login" href="/api/auth/login">
+        <div class="intra-login-wrapper">
+          <p>Se connecter avec</p>
+          <img
+            alt="Invader Logo"
+            class="logo-42"
+            src="@/assets/logo-42-black.png"
+          />
+        </div>
+      </a>
+    </div>
+  </main>
 </template>
 
 <style>
@@ -136,7 +132,18 @@ export default {
   data() {
     return {
       twoFA: false,
+      isLog: false,
+      display: "display:on",
     };
+  },
+  created() {
+    fetch("/api/users/me").then(function (response) {
+      console.log(response);
+      if (response.status == 200) {
+        response.json().then((data) => console.log(data));
+        // this.isLog = true;
+      }
+    });
   },
   methods: {
     toggleTwoFA() {
@@ -145,7 +152,12 @@ export default {
       // ASK BACKEND QRcode
       console.log(this.twoFA);
     },
+    toggleaccountDisplay() {
+      this.display =
+        this.display === "display:on" ? "display:none" : "display:on";
+    },
   },
+  mounted() {},
   // components : {
   //   TheGame
   // }
