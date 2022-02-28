@@ -3,34 +3,32 @@ import { defineStore } from "pinia";
 export const useCounterStore = defineStore({
   id: "counter",
   state: () => ({
-    counter: 1,
-    user : {},
-    isLog: false,
-    id: undefined,
-    name: undefined,
-    isLoading: false,
-    response: {},
+    _user : {},
+    _isLog: false,
+    _twoFA: false,
+    _id: undefined,
+    _name: undefined,
+    _isLoading: false,
+    _response: {},
   }),
   getters: {
-    doubleCount: (state) => state.counter * 2,
+    twoFA: (state) => state._twoFA,
+    isLogged: (state) => state._isLog,
   },
   actions: {
-    increment() {
-      this.counter++;
-    },
-    async isLogged() {
+    async rqstLogState() {
       // await const response = 
-      this.isLoading = true;
-      this.response = await fetch("/api/users/me");
-      console.log(this.response);
-      if (this.response.status == 200) {
-        this.isLog = true;
-        const userTmp = await this.response.json();
+      this._isLoading = true;
+      this._response = await fetch("/api/users/me");
+      console.log(this._response);
+      if (this._response.status == 200) {
+        this._isLog = true;
+        const userTmp = await this._response.json();
         // this.user = this.user.target;
-        this.user = userTmp
+        this._user = userTmp
         // console.log(this.user);
       }
-      this.isLoading = false
+      this._isLoading = false
       // .then(function (response) {
         // console.log(response);
         // if (response.status == 200) {

@@ -5,21 +5,20 @@ export default {
   // name : "Game",
   data() {
     return {
-      twoFA: false,
+      twoFA: counterStore.twoFA,
       display: "display:on",
-      isLog: counterStore.isLog,
+      isLog: counterStore.isLogged,
     };
   },
   methods: {
-    toggleTwoFA() {
+    /*     toggleTwoFA() {
       this.twoFA = !this.twoFA;
       // if (this.twoFA)
       // ASK BACKEND QRcode
       console.log(this.twoFA);
-    },
+    }, */
     toggleaccountDisplay() {
-      console.log(useCounterStore().$state.user);
-
+      // console.log(useCounterStore().$state.user);
       // fetch("/api/users/me").then(function (response) {
       //   console.log(response);
       //   if (response.status == 200) {
@@ -33,7 +32,7 @@ export default {
     },
   },
   created() {
-    counterStore.isLogged();
+    counterStore.rqstLogState();
   },
   mounted() {},
   // components : {
@@ -47,7 +46,7 @@ export default {
     {{ isLog }}
     <form v-if="isLog === true" class="form-group">
       <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-      <!-- <div style="display=flex">         -->
+      <div style="display=flex">        
       Would you like to enable 2FA
       <label for="switch">Toggle</label>
       <!-- </div> -->
