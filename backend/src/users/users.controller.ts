@@ -119,29 +119,29 @@ export class UserController {
       res.redirect('/api/users/me');
     }
 
-    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
-    // @Get('/me/avatar/delete')
-    // async deleteAvatar(@Res() res, @Request() req): Promise<any> {
-    //   const user = this.userService.findById(req.user.id);
-    //   if (!user)
-    //     throw new NotFoundException('User not found')
-    //   // delete l'avatar
-    //   if (await this.userService.fileExists(req.user.avatar) == false)
-    //     throw new NotFoundException('Cannot delete avatar - File does not exists')
-    //   if (await this.userService.deleteFile(req.user.avatar) == false)
-    //     throw new NotFoundException('failed to delete')
-    //   // prepare un nouvel avatar par defaut
-    //   const userEnt: UserEntity = req.user;
-    //   if (!userEnt)
-    //     throw new NotFoundException('User not found')
-    //   var defaultpath = await join(process.cwd(), 'images/avatar_default.png')
-    //   if (await this.userService.fileExists(defaultpath) == false)
-    //     throw new NotFoundException('Cannot set default avatar - File does not exists')
-    //   // update le user avec l'avatar
-    //   await this.userService.updateOneParam(userEnt.id, {avatar: defaultpath})
-    //   // redirige pour eviter une pending request
-    //   res.redirect('/api/users/me');
-    // }
+    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @Get('/me/delete-avatar')
+    async deleteAvatar(@Res() res, @Request() req): Promise<any> {
+      const user = this.userService.findById(req.user.id);
+      if (!user)
+        throw new NotFoundException('User not found')
+      // delete l'avatar
+      if (await this.userService.fileExists(req.user.avatar) == false)
+        throw new NotFoundException('Cannot delete avatar - File does not exists')
+      if (await this.userService.deleteFile(req.user.avatar) == false)
+        throw new NotFoundException('failed to delete')
+      // prepare un nouvel avatar par defaut
+      const userEnt: UserEntity = req.user;
+      if (!userEnt)
+        throw new NotFoundException('User not found')
+      var defaultpath = await join(process.cwd(), 'images/avatar_default.png')
+      if (await this.userService.fileExists(defaultpath) == false)
+        throw new NotFoundException('Cannot set default avatar - File does not exists')
+      // update le user avec l'avatar
+      await this.userService.updateOneParam(userEnt.id, {avatar: defaultpath})
+      // redirige pour eviter une pending request
+      res.redirect('/api/users/me');
+    }
 
     // route qui valide les parametres et l'enregistre dans la base de donnees
     // @Get('/me/update-params')
