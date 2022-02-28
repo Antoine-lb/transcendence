@@ -1,5 +1,24 @@
 import { defineStore } from "pinia";
 
+function get_cookie(name){
+  return document.cookie.split(';').some(c => {
+      return c.trim().startsWith(name + '=');
+  });
+}
+
+function delete_cookie( name, path, domain ) {
+  if( get_cookie( name ) ) {
+    document.cookie = name + "=" +
+      ((path) ? ";path="+path:"")+
+      ((domain)?";domain="+domain:"") +
+      ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+  }
+}
+
+function delete_cookie1(name) {
+  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
 export const useUserStore = defineStore({
   id: "user",
   state: () => ({
@@ -24,6 +43,15 @@ export const useUserStore = defineStore({
         console.log(this._user);
       }
       this._isLoading = false
+    },
+
+    async logout() {
+      // this._isLog = false;
+      // this._user = {};
+      // delete_cookie1( "access_token" )
+      document.cookie = 'COOKIE_NAME=access_token; Max-Age=0; path=/; domain=' + location.host;
+      console.log("CALLED")
     }
   },
+
 });

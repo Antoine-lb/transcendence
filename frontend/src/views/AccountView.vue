@@ -15,15 +15,39 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
-        <h1>Bonjour {{userStore.user.username}}</h1>
-        <img :src="userStore.user.avatar"/>
-        <p>isOnline: {{userStore.user.isOnline}}</p>
-        <p>played: {{userStore.user.played}}</p>
+        <h1>Bonjour {{ userStore.user.username }}</h1>
+        <img :src="userStore.user.avatar" />
+        <p>isOnline: {{ userStore.user.isOnline }}</p>
+        <p>played: {{ userStore.user.played }}</p>
         <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
         <div style="display=flex">
           Would you like to enable 2FA
           <label for="switch">Toggle</label>
         </div> -->
+        <!--         <div class="login-container">
+          <a class="intra-login" href="/api/auth/login">
+            <div class="intra-login-wrapper">
+              <p>Se deconnecter</p>
+              <img
+                alt="Invader Logo"
+                class="logo-42"
+                src="@/assets/logo-42-black.png"
+              />
+            </div>
+          </a>
+        </div> -->
+        <div class="login-container">
+          <a class="intra-login" href="/api/auth/logout">
+            <div class="intra-login-wrapper">
+              <p>Se deconnecter</p>
+              <img
+                alt="Invader Logo"
+                class="logo-42"
+                src="@/assets/logo-42-black.png"
+              />
+            </div>
+          </a>
+        </div>
       </form>
       <div class="login-container" v-if="!userStore.isLogged">
         <a class="intra-login" href="/api/auth/login">
