@@ -21,6 +21,7 @@ function delete_cookie1(name) {
 
 export const useUserStore = defineStore({
   id: "user",
+  
   state: () => ({
     _user : {},
     _isLog: false,
