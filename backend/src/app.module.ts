@@ -12,6 +12,7 @@ import { FriendRequestEntity } from './entities/friends.entity';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
+import { RoomEntity } from './chat/model/room.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -22,7 +23,7 @@ import { ChatModule } from './chat/chat.module';
 			username: 'ft_root',
 			password: 'admin',
 			database: 'transcendence',
-			entities: [UserEntity, FriendRequestEntity],
+			entities: [UserEntity, FriendRequestEntity, RoomEntity],
 			synchronize: true,
 			keepConnectionAlive: true,
 		}),

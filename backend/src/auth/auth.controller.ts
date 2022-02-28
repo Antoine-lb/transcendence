@@ -17,7 +17,6 @@ export class AuthController{
             private readonly authService: AuthService
         ) {}
     
-        // @UseGuards(Guard42)
         @Get('/login')
         async login(@Res() res: Response, @Req() req: Request) {
             console.log('Already Log ? ->' + req.cookies['access_token'])

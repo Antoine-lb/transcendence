@@ -19,7 +19,7 @@ export class RoomEntity {
 
     @ManyToMany(() => UserEntity)
     @JoinTable()
-    users: UserEntity[]
+    user: UserEntity[]
 
     @CreateDateColumn()
     created_date: Date;

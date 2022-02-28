@@ -8,6 +8,8 @@ import {
  } from '@nestjs/websockets';
  import { Logger } from '@nestjs/common';
  import { Socket, Server } from 'socket.io';
+import { AuthService } from 'src/auth/auth.service';
+import { UsersService } from 'src/users/users.service';
  
  @WebSocketGateway({
    cors: {
@@ -16,6 +18,7 @@ import {
  })
  export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
  
+  constructor(private authService: AuthService, private userService: UsersService){}
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('AppGateway');
  
@@ -33,9 +36,9 @@ import {
   }
  
   handleDisconnect(client: Socket) {
-    console.log('sicornnect')
-
-   this.logger.log(`Client disconnected: ${client.id}`);
+    console.log('dicornnect')
+    this.logger.log(`Client disconnected: ${client.id}`);
+    client.disconnect()
   }
  
   handleConnection(client: Socket, ...args: any[]) {
