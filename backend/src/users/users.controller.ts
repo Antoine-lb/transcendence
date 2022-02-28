@@ -1,18 +1,17 @@
 import { UsersService } from './users.service';
 import { UserEntity } from '../entities/users.entity';
-import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
 import { ParseIntPipe, NotFoundException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
-import { Observable, of } from 'rxjs';
 import { diskStorage } from 'multer';
 import path = require('path');
+import { Response } from 'express';
+
 import { join } from 'path';
-import { unlink } from 'fs/promises';
-import { UserInterface } from 'src/entities/users.interface';
 
 type validMimeType = 'image/png' | 'image/jpg' | 'image/jpeg';
 export const validMimeTypes: validMimeType[] = [
@@ -84,7 +83,7 @@ export class UserController {
       console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join(process.cwd(), 'uploads/avatars/' + file.filename)
-      return await this.userService.updateOneParam(user.id, { avatar: filepath })
+      return await this.userService.updateParams(user.id, { avatar: filepath })
     }
  
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
@@ -101,7 +100,7 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     @Post('/me/update-username')
-    async updateUsername(@Res() res, @Request() req): Promise<any> {
+    async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
       if (!username)
         throw new NotFoundException('Username not received')
@@ -113,10 +112,12 @@ export class UserController {
         throw new NotFoundException('User not found 2')
       const new_username = await this.userService.usernameAddSuffix(username);
       console.log("before return : ", new_username)
-      await this.userService.updateOneParam(req.user.id, { username: new_username })
-      console.log(req.user)
-      // return req.user
-      res.redirect('/api/users/me');
+      await this.userService.updateParams(req.user.id, { username: new_username })
+      await res.send({ user: req.user });
+      // console.log(res)
+      return res
+      // ou redirige pour eviter une pending request
+      // res.redirect('/api/users/me');
     }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
@@ -138,9 +139,12 @@ export class UserController {
       if (await this.userService.fileExists(defaultpath) == false)
         throw new NotFoundException('Cannot set default avatar - File does not exists')
       // update le user avec l'avatar
-      await this.userService.updateOneParam(userEnt.id, {avatar: defaultpath})
-      // redirige pour eviter une pending request
-      res.redirect('/api/users/me');
+      await this.userService.updateParams(userEnt.id, {avatar: defaultpath})
+      await res.send({ user: req.user });
+      // console.log(res)
+      return res
+      // ou redirige pour eviter une pending request
+      // res.redirect('/api/users/me');
     }
 
     // route qui valide les parametres et l'enregistre dans la base de donnees

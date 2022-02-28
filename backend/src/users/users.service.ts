@@ -4,10 +4,6 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/users.entity'
 import { UserInterface } from '../entities/users.interface'
 import { UserDto } from '../entities/users.dto'
-import { switchMap, map } from 'rxjs/operators'
-import { Observable, from } from 'rxjs';
-import { FriendRequestEntity } from '../entities/friends.entity';
-import { FriendStatus } from '../entities/friend-request-interface';
 import { join } from 'path';
 
 @Injectable()
@@ -54,16 +50,12 @@ export class UsersService {
 
     // ############################################ update functions ############################################ 
   
-    async updateOneParam(id: number, user: UserInterface): Promise<any> {
+    async updateParams(id: number, user: UserInterface): Promise<any> {
       // delete user.username;
       // delete user.role;
       await this.usersRepository.update(id, user);
       return (this.findById(id))
     }
-    
-    // async updateRoleOfUser(id: number, user: UserInterface): Observable<any> {
-    //     return await from(this.usersRepository.update(id, user));
-    // }
 
     async setTwoFASecret(secret: string, id: number) {
         return await this.usersRepository.update(id, {

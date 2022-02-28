@@ -2,6 +2,11 @@ import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 
+export enum userStatus {
+  online,
+  offline,
+  playing,
+}
 @Entity('users')
 export class UserEntity {
   @PrimaryColumn()
