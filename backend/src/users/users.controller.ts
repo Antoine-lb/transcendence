@@ -74,13 +74,13 @@ export class UserController {
     @Post('/me/upload-avatar') // 'file' = valeur de la variable a envoyer dans le POST
     @UseInterceptors(FileInterceptor('file', uploadOptions))
     async uploadImage(@UploadedFile() file, @Request() req): Promise<any> {
-      console.log("file : ", file);
+      console.log("uploaded file : ", file);
       const user: UserEntity = req.user;
       if (!user)
         throw new NotFoundException('User not found')
       if (!file)
         throw new NotFoundException('Upload: file not valid')
-      console.log("...deleting and saving to database")
+      // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join(process.cwd(), 'uploads/avatars/' + file.filename)
       return await this.userService.updateParams(user.id, { avatar: filepath })
@@ -111,7 +111,7 @@ export class UserController {
       if (!userEntfind)
         throw new NotFoundException('User not found 2')
       const new_username = await this.userService.usernameAddSuffix(username);
-      console.log("before return : ", new_username)
+      // console.log("before return : ", new_username)
       await this.userService.updateParams(req.user.id, { username: new_username })
       await res.send({ user: req.user });
       // console.log(res)

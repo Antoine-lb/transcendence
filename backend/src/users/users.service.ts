@@ -79,7 +79,7 @@ export class UsersService {
     // ############################################ file functions ############################################ 
 
     async fileExists(filepath: string) { 
-      console.log('check if file exists : ', filepath)
+      // console.log('check if file exists : ', filepath)
       const fs = require("fs");
       if (await !fs.existsSync(filepath)) {
         return false;
@@ -117,7 +117,7 @@ export class UsersService {
         prefix + filename + '.png',
       ]
       for (const file of files) {
-        console.log(file, " vs. ", (prefix + filebase))
+        // console.log(file, " vs. ", (prefix + filebase))
         if ( await this.fileExists(file) == true && (file != (prefix + filebase)))
           var ret = await this.deleteFile(file)
       }
@@ -138,7 +138,7 @@ export class UsersService {
       var to_check = username
       for (let index = 1; ; index++) {
         if (await this.usernameExists(to_check) == false) {
-          console.log("return : ", to_check)
+          // console.log("return : ", to_check)
           return to_check;
         }
         to_check = username + "_" + index.toString()
