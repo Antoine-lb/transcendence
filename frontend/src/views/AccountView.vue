@@ -1,78 +1,48 @@
 <script lang="ts">
-import { useCounterStore } from "../stores/counter";
-const counterStore = useCounterStore();
+import { useUserStore } from "../stores/userStore";
+
 export default {
-  // name : "Game",
-  data() {
-    return {
-      twoFA: counterStore.twoFA,
-      display: "display:on",
-      isLog: counterStore.isLogged,
-    };
+  setup() {
+    const userStore = useUserStore();
+    userStore.requestLogState();
+    return { userStore };
   },
-  methods: {
-    /*     toggleTwoFA() {
-      this.twoFA = !this.twoFA;
-      // if (this.twoFA)
-      // ASK BACKEND QRcode
-      console.log(this.twoFA);
-    }, */
-    toggleaccountDisplay() {
-      // console.log(useCounterStore().$state.user);
-      // fetch("/api/users/me").then(function (response) {
-      //   console.log(response);
-      //   if (response.status == 200) {
-      //     response.json().then((data) => console.log(data));
-      //     useCounterStore().$state.isLog = true;
-      //   }
-      // });
-      // if (useCounterStore().$state.isLog === true)
-      //   this.display = "display:none";
-      // else this.display = "display:on";
-    },
-  },
-  created() {
-    counterStore.rqstLogState();
-  },
-  mounted() {},
-  // components : {
-  //   TheGame
-  // }
 };
 </script>
 
 <template>
   <main>
-    {{ isLog }}
-    <form v-if="isLog === true" class="form-group">
-      <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-      <div style="display=flex">        
-      Would you like to enable 2FA
-      <label for="switch">Toggle</label>
-      <!-- </div> -->
-    </form>
-    <div
-      class="about"
-      v-if="isLog === false"
-      v-on:click="toggleaccountDisplay"
-      :style="display"
-    >
-      <a class="intra-login" href="/api/auth/login">
-        <div class="intra-login-wrapper">
-          <p>Se connecter avec</p>
-          <img
-            alt="Invader Logo"
-            class="logo-42"
-            src="@/assets/logo-42-black.png"
-          />
-        </div>
-      </a>
+    <div v-if="userStore.isLoading">Loading...</div>
+    <div v-if="!userStore.isLoading">
+      <form v-if="userStore.isLogged" class="form-group">
+        <h1>Bonjour {{userStore.user.username}}</h1>
+        <img :src="userStore.user.avatar"/>
+        <p>isOnline: {{userStore.user.isOnline}}</p>
+        <p>played: {{userStore.user.played}}</p>
+        <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
+        <div style="display=flex">
+          Would you like to enable 2FA
+          <label for="switch">Toggle</label>
+        </div> -->
+      </form>
+      <div class="login-container" v-if="!userStore.isLogged">
+        <a class="intra-login" href="/api/auth/login">
+          <div class="intra-login-wrapper">
+            <p>Se connecter avec</p>
+            <img
+              alt="Invader Logo"
+              class="logo-42"
+              src="@/assets/logo-42-black.png"
+            />
+          </div>
+        </a>
+      </div>
     </div>
   </main>
 </template>
 
 <style>
-.about {
+.login-container {
   padding-top: 50px;
   display: flex;
 }
@@ -166,11 +136,4 @@ label:active:after {
 }
 
 /*  centering */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* height: 100vh; origin*/
-  height: 5%;
-}
 </style>
