@@ -1,20 +1,16 @@
 import { UsersService } from './users.service';
 import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
-
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
 import { ParseIntPipe, NotFoundException} from '@nestjs/common';
-
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
 import { Observable, of } from 'rxjs';
 import { diskStorage } from 'multer';
 import path = require('path');
-import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
-// import * as fs from 'fs'
 import { unlink } from 'fs/promises';
 
 type validMimeType = 'image/png' | 'image/jpg' | 'image/jpeg';
@@ -24,14 +20,17 @@ export const validMimeTypes: validMimeType[] = [
   'image/jpeg',
 ];
 
+export const imageFileFilter = (req, file, cb) => {
+  const allowedMimeTypes: validMimeType[] = validMimeTypes;
+  const fileSize = parseInt(req.headers['content-length']);
+  if (allowedMimeTypes.includes(file.mimetype) == true && (fileSize < 500000))
+    cb(null, true)
+  else
+    cb(null, false)
+};
+
 // for front : enctype="multipart/form-data"
-export const storage = {
-  limits: {
-    fields: 50,	  // Max number of non-file fields	(default Infinity)
-    fileSize: 50000,	// = 49 Ko = 0.49 Mo For multipart forms, the max file size (in bytes) 	(default Infinity)
-    files: 1,	    // For multipart forms, the max number of file fields	(default Infinity)
-    parts: 50,	    // For multipart forms, the max number of parts (fields + files)	(default Infinity)
-  },
+export const uploadOptions = {
   storage: diskStorage({
       destination: './uploads/avatars',
       filename: (req, file, cb) => {
@@ -40,13 +39,7 @@ export const storage = {
           cb(null, `${filename}${extension}`)
       }
   }),
-  fileFilter: (req, file, cb) => {
-    const allowedMimeTypes: validMimeType[] = validMimeTypes;
-    if (allowedMimeTypes.includes(file.mimetype) == true)
-      cb(null, true)
-    else
-      cb(null, false)
-  }
+  fileFilter: imageFileFilter
 }
 
 @ApiTags('users')
@@ -63,14 +56,6 @@ export class UserController {
     getUserProfile(@Req() req) {
         return req.user;
     }
-  
-    // @Get(':id/friends')
-    // async getFriendsId(@Param('id', new ParseIntPipe()) id: number){
-    //   const user = await this.userService.findById(id)
-    //   if (!user)
-    //     throw new NotFoundException('User not found')
-    //   return await this.friendService.getFriends(user)
-    // }
 
     @Get(':id')
     async getUserProfileId(@Param('id', new ParseIntPipe()) id: number) {
@@ -87,17 +72,16 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     @Post('upload') // 'file' = valeur de la variable a envoyer dans le POST
-    @UseInterceptors(FileInterceptor('file', storage))
+    @UseInterceptors(FileInterceptor('file', uploadOptions))
     async uploadImage(@UploadedFile() file, @Request() req): Promise<any> {
+      console.log("file : ", file);
       const user: UserEntity = req.user;
       if (!user)
         throw new NotFoundException('User not found')
-      if (!file?.filename)
+      if (!file)
         throw new NotFoundException('Upload: file not valid')
-      var filenameWithoutExt = await this.userService.getFileName(file.filename)
+      console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
-      console.log("(upload) user : ", user);
-      console.log('(upload) file : ', file)
       var filepath = await join(process.cwd(), 'uploads/avatars/' + file.filename)
       return await this.userService.updateOne(user.id, {avatar: filepath})
     }
