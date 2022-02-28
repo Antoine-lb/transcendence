@@ -27,15 +27,15 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
     {
-      console.log("2FA validation : undefined user")
+      // console.log("2FA validation : undefined user")
       throw new UnauthorizedException
     }
     if (!user.isTwoFA) {
-      console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
+      // console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
       return user;
     }
     if (payload.isTwoFAAuthenticated) {
-      console.log("2FA VALIDATION = OK")
+      // console.log("2FA VALIDATION = OK")
       return user;
     }
     // sinon on ne retourne rien donc on ne valide pas
