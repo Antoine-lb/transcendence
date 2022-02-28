@@ -79,7 +79,8 @@ export class UsersService {
 
     async turnOffTwoFA(id: number) {
       return await this.usersRepository.update(id, {
-        isTwoFA: false
+        isTwoFA: false,
+        secret: null
       });
     }
 

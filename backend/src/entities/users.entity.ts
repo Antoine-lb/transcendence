@@ -13,7 +13,7 @@ export class UserEntity {
   @Column({default: null})
   avatar?: string;
 
-  @Exclude()
+  // @Exclude()
   @Column({ default: false })
   public isTwoFA: boolean;
   
