@@ -3,8 +3,6 @@
   <h1 align="center">Transcendance</h1>
 </p>
 
-# 👾 Transcendance 👾
-
 [link to project page](https://projects.intra.42.fr/projects/ft_transcendance)
 
 ## Shematic
