@@ -11,5 +11,5 @@ Link: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW83
 
 
 
-  <img src="https://i.stack.imgur.com/JCyEB.png">
+  <img src="https://raw.githubusercontent.com/Antoine-lb/transcendence/7aa3c8f01b4c26d7fc82f4f11551d14442940a68/frontend/src/assets/waves.svg">
 
