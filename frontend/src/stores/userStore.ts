@@ -35,8 +35,8 @@ export const useUserStore = defineStore({
   },
   actions: {
     async requestLogState() {
-      this._isLoading = true;
-      this._response = await fetch("/api/users/me");
+      this._isLoading = false;
+      this._response = await fetch("http://localhost:3000/api/users/me");
       if (this._response.status == 200) {
         this._isLog = true;
         const userTmp = await this._response.json();
