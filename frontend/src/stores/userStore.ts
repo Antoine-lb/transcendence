@@ -41,6 +41,7 @@ export const useUserStore = defineStore({
         this._isLog = true;
         const userTmp = await this._response.json();
         this._user = userTmp
+        console.log(userTmp);
         console.log(this._user);
       }
       this._isLoading = false

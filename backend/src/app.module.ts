@@ -24,7 +24,7 @@ import { MulterModule } from '@nestjs/platform-express';
 			port: Number(5432),
 			username: 'ft_root',
 			password: 'admin',
-			database: 'transcendence',
+			database: 'transcendance',
 			entities: [UserEntity, FriendRequestEntity, RoomEntity],
 			synchronize: true,
 			keepConnectionAlive: true,
