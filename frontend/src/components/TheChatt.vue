@@ -1,5 +1,12 @@
 <script lang="ts">
 import { io } from "socket.io-client";
+
+export function tokenGetter() {
+
+  return localStorage.getItem()
+  
+}
+
 export default {
   name : "Chat",
   data() {
@@ -33,15 +40,17 @@ export default {
   },
   created() {
     console.log('create1')
-    this.socket = io('http://localhost:3000')
+    this.socket = io('http://localhost:3000', {
+    extraHeaders: {
+      "access_token": localStorage.getItem('access_token')
+    }});
+
     console.log(this.socket)
     this.socket.on('msgToClient', (message) => {
-       console.log('create2 ' + message)
-      this.receivedMessage(message)
-      console.log('create3 ' + message)
+    this.receivedMessage(message)
     })
  }
-};
+}
 </script>
 <template>
     <div class="container">

@@ -38,6 +38,7 @@ export class AuthController{
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('[access_token] >>> ', accessToken)
+            
             await res.cookie('access_token', accessToken, {httpOnly: true});
 
             if (auth === true) {

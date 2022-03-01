@@ -41,10 +41,12 @@ export class UserController {
 
     
     @Get('/me')
-    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({summary: 'Return user\'s profile'})
-    getUserProfile(@Req() req) {
-        return req.user;
+    async getUserProfile(@Req() req, @Res() res) {
+      const cookies: string = req.cookies['access_token'];
+
+        await res.send({ user: req.user, access_token: cookies});
+        return res
     }
   
     // @Get(':id/friends')
