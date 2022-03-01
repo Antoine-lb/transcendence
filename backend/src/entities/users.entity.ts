@@ -4,18 +4,23 @@ import { FriendRequestEntity } from './friends.entity';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { userInfo } from 'os';
 
+export enum userStatus {
+  online,
+  offline,
+  playing,
+}
 @Entity('users')
 export class UserEntity {
   @PrimaryColumn()
   id: number;
 
-  @Column({unique: true, update: false, nullable: false })
+  @Column({unique: true, nullable: false })
   username: string;
 
   @Column({default: null})
   avatar?: string;
 
-  @Exclude()
+  // @Exclude()
   @Column({ default: false })
   public isTwoFA: boolean;
   

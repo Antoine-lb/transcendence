@@ -1,33 +1,72 @@
+<script lang="ts">
+import { useUserStore } from "../stores/userStore";
+
+export default {
+  setup() {
+    const userStore = useUserStore();
+    userStore.requestLogState();
+    return { userStore };
+  },
+};
+</script>
+
 <template>
-<main>
-  <div class="about">
-    <form class="form-group">
-
-    <input 
-      type="checkbox"
-      id="switch" v-on:click="toggleTwoFA" /> 
-    <!-- <div style="display=flex">         -->
-      Would you like to enable 2FA
-      <label for="switch">Toggle</label>
-    <!-- </div> -->
-    </form>
-
-    <a class="intra-login" href="http://localhost:3000/api/auth/login">
-      <div class="intra-login-wrapper">
-        <p>Se connecter avec</p>
-        <img
-          alt="Invader Logo"
-          class="logo-42"
-          src="@/assets/logo-42-black.png"
-        />
+  <main>
+    <div v-if="userStore.isLoading">Loading...</div>
+    <div v-if="!userStore.isLoading">
+      <form v-if="userStore.isLogged" class="form-group">
+        <h1>Bonjour {{ userStore.user.username }}</h1>
+        <img :src="userStore.user.avatar" />
+        <p>isOnline: {{ userStore.user.isOnline }}</p>
+        <p>played: {{ userStore.user.played }}</p>
+        <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
+        <div style="display=flex">
+          Would you like to enable 2FA
+          <label for="switch">Toggle</label>
+        </div> -->
+        <!--         <div class="login-container">
+          <a class="intra-login" href="/api/auth/login">
+            <div class="intra-login-wrapper">
+              <p>Se deconnecter</p>
+              <img
+                alt="Invader Logo"
+                class="logo-42"
+                src="@/assets/logo-42-black.png"
+              />
+            </div>
+          </a>
+        </div> -->
+        <div class="login-container">
+          <a class="intra-login" href="http://localhost:3000/api/auth/logout">
+            <div class="intra-login-wrapper">
+              <p>Se deconnecter</p>
+              <img
+                alt="Invader Logo"
+                class="logo-42"
+                src="@/assets/logo-42-black.png"
+              />
+            </div>
+          </a>
+        </div>
+      </form>
+      <div class="login-container" v-if="!userStore.isLogged">
+        <a class="intra-login" href="http://localhost:3000/api/auth/login">
+          <div class="intra-login-wrapper">
+            <p>Se connecter avec</p>
+            <img
+              alt="Invader Logo"
+              class="logo-42"
+              src="@/assets/logo-42-black.png"
+            />
+          </div>
+        </a>
       </div>
-    </a>
-  </div>
-</main>
+    </div>
+  </main>
 </template>
 
 <style>
-.about {
+.login-container {
   padding-top: 50px;
   display: flex;
 }
@@ -121,33 +160,4 @@ label:active:after {
 }
 
 /*  centering */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* height: 100vh; origin*/
-  height: 5%;
-}
 </style>
-
-<script lang="ts">
-export default {
-  // name : "Game",
-  data() {
-    return {
-      twoFA: false,
-    };
-  },
-  methods: {
-    toggleTwoFA() {
-      this.twoFA = !this.twoFA;
-      // if (this.twoFA)
-      // ASK BACKEND QRcode
-      console.log(this.twoFA);
-    },
-  },
-  // components : {
-  //   TheGame
-  // }
-};
-</script>

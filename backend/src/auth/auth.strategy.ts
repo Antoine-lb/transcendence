@@ -20,11 +20,11 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'OAuth2') {
     const user  = {
         id: profile.id,
         username: profile.username,
-        avatar: profile.photos[0].value
     };
+    
     // CHECK IF BANNED
     // FIND USER IN REPO or ADD
-    console.log('TOKEN:' + accessToken)
+    // console.log('TOKEN:' + accessToken)
     return this.authService.checkUser(user)
   }
 }

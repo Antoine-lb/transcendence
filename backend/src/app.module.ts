@@ -13,6 +13,8 @@ import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
 import { RoomEntity } from './chat/model/room.entity';
+import { MulterModule } from '@nestjs/platform-express';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -31,7 +33,9 @@ import { RoomEntity } from './chat/model/room.entity';
 		TwoFAModule,
 		UsersModule,
 		FriendsModule,
-		ChatModule],
+		ChatModule,
+		MulterModule
+	],
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
 })
