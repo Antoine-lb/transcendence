@@ -6,19 +6,6 @@
 
 Link: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW833ctD0/edit
 
-<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    div {
-      color: white;
-      font: 18px serif;
-      height: 100%;
-      overflow: auto;
-    }
-  </style>
-
-  <polygon points="5,5 195,10 185,185 10,195" />
-
-  <!-- Common use case: embed HTML text into SVG -->
   <foreignObject x="20" y="20" width="160" height="160">
     <!--
       In the context of SVG embedded in an HTML document, the XHTML
@@ -32,4 +19,3 @@ Link: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW83
       erat volutpat.
     </div>
   </foreignObject>
-</svg>
