@@ -15,9 +15,9 @@ import HelloWorld from "@/components/HelloWorld.vue";
       <nav class="bg-pan-left">
         <RouterLink to="/">Accueil</RouterLink>
         <RouterLink to="/compte">Compte</RouterLink>
-        <RouterLink to="/compte">Classement</RouterLink>
+        <!-- <RouterLink to="/compte">Classement</RouterLink> -->
         <RouterLink to="/game">Jeux</RouterLink>
-        <RouterLink to="/compte">Chat</RouterLink>
+        <!-- <RouterLink to="/compte">Chat</RouterLink> -->
       </nav>
     </div>
   </header>
