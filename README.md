@@ -5,6 +5,12 @@
   <h1 align="center">Transcendance</h1>
 </p>
 
+## How to run
+1. Clone repo
+2. `docker-compose up --build`, this step may take a while (make sure docker is running on the machine)
+3. Access `localhost` to see the front-end
+
+## Links
 - Shematic: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW833ctD0/edit
 - [link to project page](https://projects.intra.42.fr/projects/ft_transcendance)
 
