@@ -1,4 +1,4 @@
-# transcendance
+# 👾 Transcendance 👾
 
 [link to project page](https://projects.intra.42.fr/projects/ft_transcendance)
 
