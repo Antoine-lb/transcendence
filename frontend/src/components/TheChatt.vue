@@ -1,12 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
 
-export function tokenGetter() {
-
-  return localStorage.getItem()
-  
-}
-
 export default {
   name : "Chat",
   data() {
