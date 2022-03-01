@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://github.com/Antoine-lb/transcendence/blob/main/frontend/src/assets/logo.png?raw=true" width="100">
-  <h1>Transcendance</h1>
+  <h1 align="center">Transcendance</h1>
 </p>
 
 # 👾 Transcendance 👾
