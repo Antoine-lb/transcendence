@@ -28,7 +28,7 @@ export class TwoFAService {
     // génère un secret (clé publique) pour l'utilisateur
     const secret = authenticator.generateSecret();
     // crée une URL unique que G.Auth utilisera
-    const otpauthUrl = authenticator.keyuri(user.username, "transcendence", secret); // TODO = A AUTOMATISER
+    const otpauthUrl = authenticator.keyuri(user.username, "transcendance", secret); // TODO = A AUTOMATISER
     // sauvegarde le secret dans la base de données
     await this.usersService.setTwoFASecret(secret, user.id);
  

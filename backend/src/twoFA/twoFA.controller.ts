@@ -33,29 +33,26 @@ export class TwoFAController {
 
     ) {}
  
-    // SETUP : n'est fait qu'une seule fois --- OK
+  // SETUP : n'est fait qu'une seule fois
   @Post('generate')
   @UseGuards(JwtAuthGuard)
   async register(@Res() response: Response, @Req() request: RequestWithUser) {
-    console.log("[2fa] >>> /generate ");
-    // console.log(request);
-    console.log("[user] >>> ", request.user);
-    console.log("[req cookies]", request.cookies);
+    console.log("___ generate 2fa qrcode ___ ")
+    // console.log("[user] >>> ", request.user);
+    // console.log("[req cookies]", request.cookies);
 
     const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(request.user);
     return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
   }
   
-  // SETUP : n'est fait qu'une seule fois --- OK
+  // SETUP : n'est fait qu'une seule fois
   @Post('turn-on')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto) {
-    console.log("[2fa] >>> /turn-on ")
-    console.log("[twoFACode] >>> ", twoFACode)
-
+    console.log("___ turn-on 2fa ___ ", twoFACode)
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
@@ -69,7 +66,16 @@ export class TwoFAController {
     console.log(request.user)
   }
 
-  // SETUP : n'est fait qu'une seule fois --- OK
+  @Post('turn-off')
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  async turnOffTwoFA(@Req() request: RequestWithUser) {
+    console.log("___ turn-off 2fa ___ ")
+    await this.usersService.turnOffTwoFA(request.user.id);
+    console.log(request.user)
+  }
+
+  // EST APPELEE A CHAQUE LOGIN si 2fa est active (isTwoFA = true)
   @Post('authenticate')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
@@ -77,7 +83,7 @@ export class TwoFAController {
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto
   ) {
-    console.log("[2fa] >>> /authenticate ")
+    console.log("___ 2fa authenticate (login) ___ ", twoFACode)
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user

@@ -43,15 +43,15 @@ services:
     networks:
       - net-db
       - net-proxy
-    command: npm run start:dev
-    # command: npm run test:debug
+    # command: npm run start:dev
+    command: npm run test:debug
     ports:
       - "3000:3000"
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_USER=${POSTGRES_USER}
-      - DATABASE_URL=postgres://ft_root:admin@db:5432/transcendence
+      - DATABASE_URL=postgres://ft_root:admin@db:5432/transcendance
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
       - SESSION_SECRET=${BACKEND_SESSION_SECRET}

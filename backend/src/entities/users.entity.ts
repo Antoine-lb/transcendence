@@ -2,18 +2,23 @@ import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 
+export enum userStatus {
+  online,
+  offline,
+  playing,
+}
 @Entity('users')
 export class UserEntity {
   @PrimaryColumn()
   id: number;
 
-  @Column({unique: true, update: false, nullable: false })
+  @Column({unique: true, nullable: false })
   username: string;
 
   @Column({default: null})
   avatar?: string;
 
-  @Exclude()
+  // @Exclude()
   @Column({ default: false })
   public isTwoFA: boolean;
   
