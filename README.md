@@ -13,5 +13,5 @@ Link: https://docs.google.com/drawings/d/1oIKyRnz47QdDII6D6_MJfrURqUz5tdGkDoiW83
   <a href="#">Link 2</a> |
   <a href="#">Link 3</a>
   <br><br>
-  <img src="http://s.4cdn.org/image/title/105.gif">
+  <img src="https://github.com/Antoine-lb/transcendence/blob/main/frontend/src/assets/logo.png?raw=true">
 </p>
