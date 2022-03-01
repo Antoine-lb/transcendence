@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Antoine-lb/transcendence/7aa3c8f01b4c26d7fc82f4f11551d14442940a68/frontend/src/assets/waves.svg">
+<img src="https://raw.githubusercontent.com/Antoine-lb/transcendence/97613c9896538ce474637fd7da04475407802e1c/frontend/src/assets/waves-up.svg">
 
 <p align="center">
   <img src="https://github.com/Antoine-lb/transcendence/blob/main/frontend/src/assets/logo.png?raw=true" width="100">
