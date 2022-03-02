@@ -40,6 +40,7 @@ export class AuthController{
             console.log('[access_token] >>> ', accessToken)
             
             await res.cookie('access_token', accessToken, {httpOnly: true});
+            
 
             if (auth === true) {
                 if (user.secret == null)

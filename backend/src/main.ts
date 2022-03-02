@@ -6,10 +6,12 @@ import * as cookieParser from 'cookie-parser';
 declare const module: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {cors: true});
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
+
+
 
   const config = new DocumentBuilder()
     .setTitle('Transcendance')
@@ -18,6 +20,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+  var cors = require('cors');    
+  app.use(cors({credentials: true, origin: 'http://127.0.0.1'}));
+  app.enableCors();
 
   await app.listen(3000);
   if (module.hot) {

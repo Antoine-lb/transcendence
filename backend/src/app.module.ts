@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { TwoFAModule } from './twoFA/twoFA.module';
 import { TwoFAController } from './twoFA/twoFA.controller';
@@ -14,6 +14,7 @@ import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
 import { RoomEntity } from './chat/model/room.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { testMiddleware } from './middleware/test-middleware';
 
 @Module({
   imports: [
@@ -39,4 +40,10 @@ import { MulterModule } from '@nestjs/platform-express';
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
 })
-export class AppModule {}
+	export class AppModule implements NestModule {
+		configure(consumer: MiddlewareConsumer) {
+		  consumer
+			.apply(testMiddleware)
+			.forRoutes('*');
+		}
+}
