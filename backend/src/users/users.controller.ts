@@ -54,6 +54,9 @@ export class UserController {
     @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({summary: 'Return user\'s profile'})
     getUserProfile(@Req() req) {
+      console.log("__dirname : ", __dirname)
+      console.log("process.cwd() : ", process.cwd())
+      console.log("req.user : ", req.user)
         return req.user;
     }
 
@@ -82,7 +85,8 @@ export class UserController {
         throw new NotFoundException('Upload: file not valid')
       // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
-      var filepath = await join(process.cwd(), 'uploads/avatars/' + file.filename)
+      var filepath = await join(process.cwd(), 'public/uploads/' + file.filename)
+      console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
  
@@ -92,7 +96,7 @@ export class UserController {
       const user= this.userService.findById(req.user.id);
       if (!user)
         throw new NotFoundException('User not found')
-      console.log('/me/avatar filepath : ', req.user.avatar)
+      console.log('(/me/avatar) filepath : ', req.user.avatar)
       if (await this.userService.fileExists(req.user.avatar) == false)
         throw new NotFoundException('Cannot display avatar - File does not exists')
       return res.sendFile(req.user.avatar);
@@ -135,7 +139,7 @@ export class UserController {
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found')
-      var defaultpath = await join(process.cwd(), 'images/avatar_default.png')
+      var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
       if (await this.userService.fileExists(defaultpath) == false)
         throw new NotFoundException('Cannot set default avatar - File does not exists')
       // update le user avec l'avatar

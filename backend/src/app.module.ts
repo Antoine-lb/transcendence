@@ -12,6 +12,9 @@ import { FriendRequestEntity } from './entities/friends.entity';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
+// import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -26,12 +29,16 @@ import { MulterModule } from '@nestjs/platform-express';
 			entities: [UserEntity, FriendRequestEntity],
 			synchronize: true,
 			keepConnectionAlive: true,
-		}),
-		AuthModule,
-		TwoFAModule,
-		UsersModule,
-		FriendsModule,
-		MulterModule
+	}),
+	AuthModule,
+	TwoFAModule,
+	UsersModule,
+	FriendsModule,
+	MulterModule,
+	ServeStaticModule.forRoot({
+		rootPath: join(__dirname, '..', '../public'),
+		serveRoot: '/public/' //last slash was important
+	}),
 	],
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]

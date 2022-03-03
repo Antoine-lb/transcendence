@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
+import { join } from 'path';
 
 declare const module: any;
 
@@ -10,7 +11,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
-
   const config = new DocumentBuilder()
     .setTitle('Transcendance')
     .setDescription('API description')

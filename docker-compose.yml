@@ -62,7 +62,7 @@ services:
       - INTRA42_CALLBACK_URL=${INTRA42_CALLBACK_URL}
     volumes:
       - ./backend/src:/app/src
-      - ./backend/uploads:/app/uploads
+      - ./backend/public:/app/public
     restart: unless-stopped
 
   database:

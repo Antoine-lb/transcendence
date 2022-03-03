@@ -14,8 +14,10 @@ export class UsersService {
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
-      var filepath = await join(process.cwd(), 'images/avatar_default.png')
+      console.log("___add/create user")
+      var filepath = await join(process.cwd(), 'public/avatar_default.png')
       const fs = require("fs");
+      console.log("default path : ", filepath)
       if (!fs.existsSync(filepath)) {
         throw new NotFoundException('Cannot create user - Default avatar does not exists')
       }
@@ -88,7 +90,7 @@ export class UsersService {
     }
 
     async deleteFile(filepath: string) {
-      if (filepath == '/app/images/avatar_default.png') {
+      if (filepath == '/app/public/avatar_default.png') {
         return true
       }
       const fs = await require("fs");
@@ -110,7 +112,7 @@ export class UsersService {
 
     async deleteSimilarFiles(filebase: string) {
       var filename = await this.getFileName(filebase);
-      var prefix = await join(process.cwd(), 'uploads/avatars/')
+      var prefix = await join(process.cwd(), 'public/uploads/')
       var files: string[] = [
         prefix + filename + '.jpg',
         prefix + filename + '.jpeg',
