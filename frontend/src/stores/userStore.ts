@@ -30,9 +30,8 @@ export const useUserStore = defineStore({
         if (this._response.status == 200) {
           this._isLog = true;
           const userTmp = await this._response.json();
-          this._user = userTmp
-          console.log(userTmp);
-          console.log(this._user);
+          this._user = userTmp.user
+          this._user.access_token = userTmp.access_token
         }      
       } catch (error) {
         console.error(error);
@@ -40,5 +39,6 @@ export const useUserStore = defineStore({
       this._isLoading = false
     },
   },
-
 });
+
+

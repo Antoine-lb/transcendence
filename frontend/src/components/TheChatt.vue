@@ -12,6 +12,9 @@ export default {
       socket: null
     };
   },
+  props: {
+    user: Object
+  },
   methods: {
     sendMessage() {
       if(this.validateInput()) {
@@ -33,10 +36,9 @@ export default {
     }
   },
   created() {
-    console.log('create1')
     this.socket = io('http://localhost:3000', {
     extraHeaders: {
-      "access_token": localStorage.getItem('access_token')
+      "access_token": this.user.access_token
     }});
 
     console.log(this.socket)
