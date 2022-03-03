@@ -8,12 +8,10 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './users/users.controller';
 import { FriendRequestEntity } from './entities/friends.entity';
-// import { PostsModule } from './posts/posts.module';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
-// import { ServeStaticModule } from '@nestjs/serve-static/dist/serve-static.module';
 import { join } from 'path';
 
 @Module({
@@ -35,10 +33,6 @@ import { join } from 'path';
 	UsersModule,
 	FriendsModule,
 	MulterModule,
-	ServeStaticModule.forRoot({
-		rootPath: join(__dirname, '..', '../public'),
-		serveRoot: '/public/' //last slash was important
-	}),
 	],
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
