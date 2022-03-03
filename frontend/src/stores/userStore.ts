@@ -13,6 +13,7 @@ export const useUserStore = defineStore({
     isLogged: (state) => state._isLog,
     isLoading: (state) => state._isLoading,
     user: (state) => state._user,
+    avatarUrl: (state) => `http://localhost:3000${state._user.avatar}`,
   },
   actions: {
     async requestLogState() {

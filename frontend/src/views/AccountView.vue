@@ -14,6 +14,7 @@ export default {
     TheWelcome
   }
 };
+
 </script>
 
 <template>
@@ -22,7 +23,8 @@ export default {
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
         <h1>Bonjour {{ userStore.user.username }}</h1>
-        <img :src="userStore.user.avatar" />
+        <img :src=userStore.avatarUrl />
+        <p>isOnline: {{ userStore.user.avatar }}</p>
         <p>isOnline: {{ userStore.user.isOnline }}</p>
         <p>played: {{ userStore.user.played }}</p>
         <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
