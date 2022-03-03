@@ -22,11 +22,11 @@ export class AuthController{
             console.log('Already Log ? ->' + req.cookies['access_token'])
             if (req.cookies && req.cookies['access_token']) {
                 if (this.authService.verifyToken(req.cookies['access_token']))
-                    res.redirect('http://127.0.0.1/compte')
+                    res.status(302).redirect('http://127.0.0.1')
                 else
-                    res.redirect('/api/auth/callback')
+                    res.status(302).redirect('/api/auth/callback')
             }
-            else res.redirect('/api/auth/callback')
+            else res.status(302).redirect('/api/auth/callback')
         }
         
         @UseGuards(Guard42)
@@ -49,7 +49,7 @@ export class AuthController{
                 // res.redirect('/api/2fa/authenticate');
             } 
             else {
-                res.status(302).redirect('http://127.0.0.1/compte');
+                res.status(302).redirect('http://127.0.0.1');
             }
         }
 
@@ -73,6 +73,6 @@ export class AuthController{
         @Get('/logout')
         logout(@Req() req: Request, @Res({ passthrough: true }) resp: Response) {
             resp.clearCookie('access_token');
-            resp.status(302).redirect('/');
+            resp.status(302).redirect('http://127.0.0.1')
         }
     }

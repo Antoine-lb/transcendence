@@ -12,7 +12,6 @@ export class testMiddleware implements NestMiddleware {
         res.header('Access-Control-Allow-Credentials', 'true');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers: Origin, Content-Type, Accept, Authorization, X-Request-With, Set-Cookie, Cookie, Bearer');
-
         next();
     }
 }

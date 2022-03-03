@@ -54,7 +54,4 @@ export class UserEntity {
 
   @ManyToMany(() => RoomEntity, room => room.user)
   rooms: RoomEntity[]
-
-
-
 }
