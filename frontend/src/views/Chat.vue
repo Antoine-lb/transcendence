@@ -32,7 +32,7 @@ export default {
         <TheChat :user="userStore.user"/>
       </div>
       <div v-if="!userStore.isLogged" class="form-group">
-        <p>You have to be logged to see the chat</p>
+        <p>Vous devez être connecté pour voir le chat</p>
       </div>
     </div>
   </main>
