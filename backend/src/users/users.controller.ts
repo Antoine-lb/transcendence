@@ -32,7 +32,7 @@ export const imageFileFilter = (req, file, cb) => {
 // for front : enctype="multipart/form-data"
 export const uploadOptions = {
   storage: diskStorage({
-      destination: './uploads/avatars',
+      destination: './public/uploads',
       filename: (req, file, cb) => {
           const filename: string = req.user.id;
           const extension: string = path.parse(file.originalname).ext;
@@ -85,7 +85,8 @@ export class UserController {
         throw new NotFoundException('Upload: file not valid')
       // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
-      var filepath = await join(process.cwd(), 'public/uploads/' + file.filename)
+      var filepath = await join('/public/uploads/' + file.filename)
+      // var filepath = await join(process.cwd(), 'public/uploads/' + file.filename)
       console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
@@ -131,19 +132,23 @@ export class UserController {
       if (!user)
         throw new NotFoundException('User not found')
       // delete l'avatar
-      if (await this.userService.fileExists(req.user.avatar) == false)
-        throw new NotFoundException('Cannot delete avatar - File does not exists')
-      if (await this.userService.deleteFile(req.user.avatar) == false)
+      const avatar_path: string = join(process.cwd(), req.user.avatar)
+      if (await this.userService.fileExists(avatar_path) == false)
+        throw new NotFoundException('Cannot delete avatar - File ' + avatar_path + ' does not exists')
+      if (await this.userService.deleteFile(avatar_path) == false)
         throw new NotFoundException('failed to delete')
       // prepare un nouvel avatar par defaut
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found')
+      var defaultfile = await join('/public/avatar_default.png')
       var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
+      console.log("defaultpath : ", defaultpath)
+      console.log("defaultfile : ", defaultfile)
       if (await this.userService.fileExists(defaultpath) == false)
         throw new NotFoundException('Cannot set default avatar - File does not exists')
       // update le user avec l'avatar
-      await this.userService.updateParams(userEnt.id, {avatar: defaultpath})
+      await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
       await res.send({ user: req.user });
       // console.log(res)
       return res
