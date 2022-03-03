@@ -1,6 +1,8 @@
 import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
+import { RoomEntity } from 'src/chat/model/room.entity';
+import { userInfo } from 'os';
 
 export enum userStatus {
   online,
@@ -50,4 +52,6 @@ export class UserEntity {
   )
   receivedFriendRequests: FriendRequestEntity[];
 
+  @ManyToMany(() => RoomEntity, room => room.user)
+  rooms: RoomEntity[]
 }

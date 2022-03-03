@@ -9,7 +9,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 declare const module: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {cors: true});
 
   app.setGlobalPrefix('api');
   app.use(cookieParser());
@@ -21,6 +21,9 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
+  var cors = require('cors');
+  app.use(cors({credentials: true, origin: 'http://127.0.0.1:8080'}));
 
   await app.listen(3000);
   if (module.hot) {

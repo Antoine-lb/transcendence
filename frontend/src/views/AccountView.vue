@@ -1,5 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
+import TheWelcome from "@/components/TheWelcome.vue";
+
 
 export default {
   setup() {
@@ -7,6 +9,10 @@ export default {
     userStore.requestLogState();
     return { userStore };
   },
+  
+  components : {
+    TheWelcome
+  }
 };
 
 </script>
@@ -39,7 +45,7 @@ export default {
           </a>
         </div> -->
         <div class="login-container">
-          <a class="intra-login" href="/api/auth/logout">
+          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
               <p>Se deconnecter</p>
               <img
@@ -51,17 +57,21 @@ export default {
           </a>
         </div>
       </form>
-      <div class="login-container" v-if="!userStore.isLogged">
-        <a class="intra-login" href="/api/auth/login">
-          <div class="intra-login-wrapper">
-            <p>Se connecter avec</p>
-            <img
-              alt="Invader Logo"
-              class="logo-42"
-              src="@/assets/logo-42-black.png"
-            />
-          </div>
-        </a>
+      <div v-if="!userStore.isLogged">
+        <TheWelcome />
+        <div class="login-container">
+          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
+            <div class="intra-login-wrapper">
+              <p>Se connecter avec</p>
+              <img
+                alt="Invader Logo"
+                class="logo-42"
+                src="@/assets/logo-42-black.png"
+              />
+            </div>
+          </a>
+        </div>
+
       </div>
     </div>
   </main>

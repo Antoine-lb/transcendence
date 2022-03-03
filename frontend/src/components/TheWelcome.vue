@@ -15,8 +15,7 @@ import { RouterLink, RouterView } from "vue-router";
     </template>
     <template #heading>Compte utilisateur</template>
 
-    Log with
-    <RouterLink to="/compte">42 Intra</RouterLink>
+    Log with 42 Intra
 
     <!-- <a target="_blank" href="https://intra.42.fr">42 Intra</a> -->
   </WelcomeItem>

@@ -1,24 +1,5 @@
 import { defineStore } from "pinia";
 
-function get_cookie(name){
-  return document.cookie.split(';').some(c => {
-      return c.trim().startsWith(name + '=');
-  });
-}
-
-function delete_cookie( name, path, domain ) {
-  if( get_cookie( name ) ) {
-    document.cookie = name + "=" +
-      ((path) ? ";path="+path:"")+
-      ((domain)?";domain="+domain:"") +
-      ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
-  }
-}
-
-function delete_cookie1(name) {
-  document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-}
-
 export const useUserStore = defineStore({
   id: "user",
   
@@ -37,23 +18,28 @@ export const useUserStore = defineStore({
   actions: {
     async requestLogState() {
       this._isLoading = true;
-      this._response = await fetch("/api/users/me");
-      if (this._response.status == 200) {
-        this._isLog = true;
-        const userTmp = await this._response.json();
-        this._user = userTmp
-        console.log(this._user);
+      try {
+        this._response = await fetch("http://127.0.0.1:3000/api/users/me", {
+          method: "GET",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache': 'no-cache'
+          },
+          credentials: 'include'
+        })
+        if (this._response.status == 200) {
+          this._isLog = true;
+          const userTmp = await this._response.json();
+          this._user = userTmp.user
+          this._user.access_token = userTmp.access_token
+        }      
+      } catch (error) {
+        console.error(error);
       }
       this._isLoading = false
     },
-
-    async logout() {
-      // this._isLog = false;
-      // this._user = {};
-      // delete_cookie1( "access_token" )
-      document.cookie = 'COOKIE_NAME=access_token; Max-Age=0; path=/; domain=' + location.host;
-      console.log("CALLED")
-    }
   },
-
 });
+
+
