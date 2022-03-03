@@ -5,17 +5,6 @@ networks:
   net-proxy:
 
 services:
-  reverse_proxy:
-    container_name: reverse_proxy
-    build:
-      context: ./reverse_proxy/
-    image: reverse_proxy
-    restart: always
-    networks:
-      - net-proxy
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-
   frontend:
     container_name: frontend
     build:

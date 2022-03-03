@@ -22,7 +22,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   var cors = require('cors');
-  app.use(cors({credentials: true, origin: 'http://127.0.0.1'}));
+  app.use(cors({credentials: true, origin: 'http://127.0.0.1:8080'}));
 
   await app.listen(3000);
   if (module.hot) {
