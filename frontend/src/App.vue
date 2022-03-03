@@ -14,10 +14,8 @@ import HelloWorld from "@/components/HelloWorld.vue";
     <div class="wrapper">
       <nav class="bg-pan-left">
         <RouterLink to="/">Accueil</RouterLink>
-        <RouterLink to="/compte">Compte</RouterLink>
-        <!-- <RouterLink to="/compte">Classement</RouterLink> -->
-        <RouterLink to="/game">Jeux</RouterLink>
         <RouterLink to="/chat">Chat</RouterLink>
+        <RouterLink to="/game">Jeux</RouterLink>
       </nav>
     </div>
   </header>
