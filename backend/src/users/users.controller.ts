@@ -48,13 +48,16 @@ export const uploadOptions = {
 export class UserController {
   constructor( private readonly userService: UsersService
     ) {}
-
     
     @Get('/me')
-    @UseInterceptors(ClassSerializerInterceptor)
     @ApiOperation({summary: 'Return user\'s profile'})
-    getUserProfile(@Req() req) {
-        return req.user;
+    async getUserProfile(@Req() req, @Res() res) {
+
+      const cookies: string = req.cookies['access_token'];
+
+      console.log(cookies)
+      await res.send({ user: req.user, access_token: cookies});
+      return res
     }
 
     @Get(':id')
