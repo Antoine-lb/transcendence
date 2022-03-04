@@ -1,17 +1,26 @@
 <script lang="ts">
 import { io } from "socket.io-client";
+import { useUserStore } from "../stores/userStore";
 
 export default {
+
   name: "Chat",
   data() {
     return {
-      title: "Nestjs Websockets Chat",
+      title: "Chat Room",
       name: "",
       text: "",
       messages: [],
       socket: null,
+      userStore: useUserStore()
     };
   },
+  // setup() {
+  //   const userStore = useUserStore();
+  //   userStore.requestLogState();
+  //   return { userStore };
+  // },
+
   props: {
     user: Object,
   },
@@ -19,7 +28,7 @@ export default {
     sendMessage() {
       if (this.validateInput()) {
         const message = {
-          name: this.name,
+          name: this.userStore.user.username,
           text: this.text,
         };
         this.socket.emit("msgToServer", message);
@@ -27,16 +36,14 @@ export default {
       }
     },
     receivedMessage(message) {
-      console.log("--------");
-      console.log(message);
+      console.log(this.userStore.user.username);
 
-      if (message.length) {
+      if (!Array.isArray(message)) {
         this.messages.push(message);
       }
-      console.log("--------");
     },
     validateInput() {
-      return this.name.length > 0 && this.text.length > 0;
+      return this.text.length > 0;
     },
   },
   created() {
@@ -44,7 +51,7 @@ export default {
       transportOptions: {
         polling: {
           extraHeaders: {
-            Authorization: "hello=world",
+            Authorization: this.user.access_token,
           },
         },
       },
@@ -53,9 +60,13 @@ export default {
     this.socket = io("http://127.0.0.1:3000", options);
 
     console.log(this.socket);
-    this.socket.on("msgToClient", (message) => {
-      this.receivedMessage(message);
-    });
+
+    // function whenMessageReceived(message) {
+    //   this.receivedMessage(message);
+    // }
+    // this.socket.on("msgToClient", whenMessageReceived);
+
+    this.socket.on("msgToClient", (message) => this.receivedMessage(message));
   },
 };
 </script>
@@ -67,13 +78,6 @@ export default {
         <br />
         <div id="status"></div>
         <div id="chat">
-          <input
-            type="text"
-            v-model="name"
-            id="username"
-            class="form-control"
-            placeholder="Enter name..."
-          />
           <br />
           <div class="card">
             <div id="messages" class="card-block">
