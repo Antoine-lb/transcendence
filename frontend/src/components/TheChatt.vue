@@ -2,78 +2,103 @@
 import { io } from "socket.io-client";
 
 export default {
-  name : "Chat",
+  name: "Chat",
   data() {
     return {
-      title: 'Nestjs Websockets Chat',
-      name: '',
-      text: '',
+      title: "Nestjs Websockets Chat",
+      name: "",
+      text: "",
       messages: [],
-      socket: null
+      socket: null,
     };
   },
   props: {
-    user: Object
+    user: Object,
   },
   methods: {
     sendMessage() {
-      if(this.validateInput()) {
+      if (this.validateInput()) {
         const message = {
-        name: this.name,
-        text: this.text
-      }
-      console.log('send ' + message)
-      this.socket.emit('msgToServer', message)
-      this.text = ''
+          name: this.name,
+          text: this.text,
+        };
+        this.socket.emit("msgToServer", message);
+        this.text = "";
       }
     },
     receivedMessage(message) {
-      console.log(message)
-      this.messages.push('received ' + message)
+      console.log("--------");
+      console.log(message);
+
+      if (message.length) {
+        this.messages.push(message);
+      }
+      console.log("--------");
     },
     validateInput() {
-      return this.name.length > 0 && this.text.length > 0
-    }
+      return this.name.length > 0 && this.text.length > 0;
+    },
   },
   created() {
-    this.socket = io('http://localhost:3000', {
-    extraHeaders: {
-      "access_token": this.user.access_token
-    }});
+    const options = {
+      transportOptions: {
+        polling: {
+          extraHeaders: {
+            Authorization: "hello=world",
+          },
+        },
+      },
+    };
 
-    console.log(this.socket)
-    this.socket.on('msgToClient', (message) => {
-    this.receivedMessage(message)
-    })
- }
-}
+    this.socket = io("http://127.0.0.1:3000", options);
+
+    console.log(this.socket);
+    this.socket.on("msgToClient", (message) => {
+      this.receivedMessage(message);
+    });
+  },
+};
 </script>
 <template>
-    <div class="container">
-            <div class="row">
-                <div class="col-md-6 offset-md-3 col-sm-12">
-                    <h1 class="text-center">{{ title }}</h1>
-                    <br>
-                    <div id="status"></div>
-                    <div id="chat">
-                        <input type="text" v-model="name" id="username" class="form-control" placeholder="Enter name...">
-                        <br>
-                        <div class="card">
-                            <div id="messages" class="card-block">
-                                <ul>
-                                    <li v-for="message of messages">{{ message.name }}: {{ message.text }}</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <br>
-                        <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
-                        <br>
-                        <button id="send" class="btn" @click.prevent="sendMessage">Send</button>
-                    </div>
-                </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 offset-md-3 col-sm-12">
+        <h1 class="text-center">{{ title }}</h1>
+        <br />
+        <div id="status"></div>
+        <div id="chat">
+          <input
+            type="text"
+            v-model="name"
+            id="username"
+            class="form-control"
+            placeholder="Enter name..."
+          />
+          <br />
+          <div class="card">
+            <div id="messages" class="card-block">
+              <ul>
+                <li v-for="message of messages">
+                  {{ message?.name }}: {{ message?.text }}
+                </li>
+              </ul>
             </div>
+          </div>
+          <br />
+          <textarea
+            id="textarea"
+            class="form-control"
+            v-model="text"
+            placeholder="Enter message..."
+          ></textarea>
+          <br />
+          <button id="send" class="btn" @click.prevent="sendMessage">
+            Send
+          </button>
+        </div>
+      </div>
     </div>
-  
+  </div>
 </template>
 
 <style>

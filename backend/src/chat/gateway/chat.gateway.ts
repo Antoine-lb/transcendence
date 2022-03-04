@@ -25,7 +25,7 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('msgToServer')
   handleMessage(client: Socket, payload: string): void {
 
-    console.log('handle')
+    console.log(payload)
    this.server.emit('msgToClient', payload);
   }
  
@@ -43,28 +43,28 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
  
   async handleConnection(client: Socket, ...args: any[]) {
 
-    try {
-      console.log('check token')
-      console.log(client.handshake.headers.access_token)
+    // try {
+    //   console.log('check token')
+    //   console.log(client.handshake.headers.access_token)
 
-      const decodedToken = await this.authService.verifyToken(client.handshake.headers.authorization);
-      const user = await this.userService.findById(decodedToken.user.id);
-      if (!user) {
-        return this.disconnect(client);
-      }
-      else {
-        console.log('logged!!!')
+      // const decodedToken = await this.authService.verifyToken(client.handshake.headers.Authorization);
+    //   const user = await this.userService.findById(decodedToken.user.id);
+    //   if (!user) {
+    //     return this.disconnect(client);
+    //   }
+    //   else {
+    //     console.log('logged!!!')
         this.server.emit('msgToClient', args)
-      }
-    }
-    catch {
-      console.log('Unvailable client TOKEN')
+    //   }
+    // }
+    // catch {
+    //   console.log('Unvailable client TOKEN')
 
-      return this.disconnect(client);
+    //   return this.disconnect(client);
 
-    }
+    // }
     
-    console.log('connection')
+    // console.log('connection')
 
    this.logger.log(`Client connected: ${client.id}`);
   }
