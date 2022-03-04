@@ -3,7 +3,6 @@ import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 
 export default {
-
   name: "Chat",
   data() {
     return {
@@ -12,7 +11,7 @@ export default {
       text: "",
       messages: [],
       socket: null,
-      userStore: useUserStore()
+      userStore: useUserStore(),
     };
   },
   // setup() {
@@ -38,7 +37,7 @@ export default {
     receivedMessage(message) {
       console.log(this.userStore.user.username);
 
-      if (!Array.isArray(message)) {
+      if (message) {
         this.messages.push(message);
       }
     },
@@ -47,18 +46,12 @@ export default {
     },
   },
   created() {
-    const options = {
-      transportOptions: {
-        polling: {
-          extraHeaders: {
-            Authorization: this.user.access_token,
-          },
-        },
+
+    this.socket = io("http://127.0.0.1:3000", {
+      extraHeaders: {
+        Authorization:  this.user.access_token
       },
-    };
-
-    this.socket = io("http://127.0.0.1:3000", options);
-
+    });
     console.log(this.socket);
 
     // function whenMessageReceived(message) {
