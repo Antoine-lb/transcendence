@@ -44,6 +44,9 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
+    getMyRooms() {
+      return this.socket.fromEvent
+    }
   },
   created() {
 
