@@ -36,6 +36,23 @@ export class FriendsService {
         return await this.usersService.findManyIds(ids)
     }
 
+    async getBlockedFriends(currentUser: UserEntity): Promise<UserEntity[]> {
+        const query = await this.friendRepository.createQueryBuilder('f')
+        .where('(f.creator = :uid OR f.receiver = :uid)', { uid: currentUser.id })
+        .andWhere('f.status = :status', { status: FriendStatus.STATUS_BLOCKED })
+        .getRawMany()
+        const ids = []
+        query.forEach(element => {
+            if (element.f_receiverId == currentUser.id)
+                ids.push(element.f_creatorId)
+            else
+                ids.push(element.f_receiverId)
+        });
+
+        return await this.usersService.findManyIds(ids)
+    }
+
+
     async getFriendsRequests(currentUser: UserEntity): Promise<UserEntity[]> {
         const list: UserEntity[] = []
 
