@@ -138,7 +138,7 @@ export default {
         >
           <p class="username">{{ friend.username }}</p>
           <div>
-            <button v-on:click="() => removeFriend(friend.id)">
+            <button class="button" v-on:click="() => removeFriend(friend.id)">
               Supprimer l'amitié
             </button>
             <button v-on:click="() => blockFriend(friend.id)">Bloquer</button>
@@ -161,6 +161,7 @@ export default {
             <i>en attente de réponse...</i>
           </p>
           <button
+            class="button"
             v-if="pendingReq.f_creatorId !== userStore.user.id"
             v-on:click="() => acceptPendingRequest(pendingReq.f_creatorId)"
           >
@@ -172,8 +173,13 @@ export default {
 
     <h1>Ajouter un ami</h1>
     <form @submit.prevent="addFriend">
-      <input type="text" v-model="addFriendUsername" placeholder="username" />
-      <input type="submit" value="Submit" />
+      <input
+        class="input-username"
+        type="text"
+        v-model="addFriendUsername"
+        placeholder="Username"
+      />
+      <input class="button" type="submit" value="Ajouter" />
     </form>
 
     <br />
@@ -221,7 +227,7 @@ export default {
   color: #703ab8;
 }
 
-button {
+.button {
   background-color: #703ab8;
   border: none;
   color: white;
@@ -233,13 +239,22 @@ button {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-left: 10px;
 }
-button:hover {
+.button:hover {
   background-color: white;
   color: #703ab8;
 }
 
 h1 {
   margin-top: 40px;
+}
+
+.input-username {
+  color: #703ab8;
+  border: 3px solid #703ab8;
+  padding: 10px;
+  border-radius: 13px;
+  font-weight: bold;
+  font-size: 18px;
 }
 </style>
 
