@@ -8,7 +8,6 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './users/users.controller';
 import { FriendRequestEntity } from './entities/friends.entity';
-// import { PostsModule } from './posts/posts.module';
 import { FriendsController } from './friends/friends.controller';
 import { FriendsModule } from './friends/friends.module';
 import { ChatModule } from './chat/chat.module';
