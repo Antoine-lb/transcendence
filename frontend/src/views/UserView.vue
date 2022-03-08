@@ -42,8 +42,7 @@ export default {
           this.user = await response.json();
           console.log("this.user", this.user);
           this.userNotFound = false;
-        }
-        if (response.status == 404) {
+        } else {
           this.userNotFound = true;
           console.log("user not found");
         }
