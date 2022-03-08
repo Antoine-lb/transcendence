@@ -166,12 +166,16 @@ export default {
           v-for="friend in friendList"
           v-bind:key="friend.username"
         >
-          <p class="username">{{ friend.username }}</p>
+          <a class="username" :href="'/user/' + friend.id">{{
+            friend.username
+          }}</a>
           <div>
             <button class="button" v-on:click="() => removeFriend(friend.id)">
               Supprimer l'amitié
             </button>
-            <button v-on:click="() => blockFriend(friend.id)">Bloquer</button>
+            <button class="button" v-on:click="() => blockFriend(friend.id)">
+              Bloquer
+            </button>
           </div>
         </div>
       </div>
@@ -186,7 +190,9 @@ export default {
           v-for="pendingReq in pendingFriendList"
           v-bind:key="pendingReq.users_username"
         >
-          <p class="username">{{ pendingReq.users_username }}</p>
+          <a class="username" :href="'/user/' + pendingReq.users_id">{{
+            pendingReq.users_username
+          }}</a>
           <p v-if="pendingReq.f_creatorId === userStore.user.id">
             <i>en attente de réponse...</i>
           </p>
@@ -210,8 +216,9 @@ export default {
           v-for="blockedFriend in blockedFriendList"
           v-bind:key="blockedFriend.username"
         >
-          <p class="username">{{ blockedFriend.username }}</p>
-
+          <a class="username" :href="'/user/' + blockedFriend.id">{{
+            blockedFriend.username
+          }}</a>
           <button
             class="button"
             v-on:click="() => unblockFriend(blockedFriend.id)"
