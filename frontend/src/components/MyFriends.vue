@@ -18,6 +18,7 @@ export default {
       loading: false,
       friendList: [],
       pendingFriendList: [],
+      blockedFriendList: [],
       addFriendUsername: "",
     };
   },
@@ -26,10 +27,14 @@ export default {
     return { userStore };
   },
   created() {
-    this.fetchFriends();
-    this.fetchPendingFriends();
+    this.fetchAllData();
   },
   methods: {
+    fetchAllData: function () {
+      this.fetchFriends();
+      this.fetchPendingFriends();
+      this.fetchBlockedFriends();
+    },
     fetchFriends: async function () {
       this.loading = true;
       try {
@@ -59,6 +64,21 @@ export default {
       }
       this.loading = false;
     },
+    fetchBlockedFriends: async function () {
+      this.loading = true;
+      try {
+        const response = await fetchWithHeaders(
+          "http://127.0.0.1:3000/api/friends/blocked"
+        );
+        if (response.status == 200) {
+          this.blockedFriendList = await response.json();
+          console.log("this.blockedFriendList", this.blockedFriendList);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      this.loading = false;
+    },
     acceptPendingRequest: async function (id) {
       this.loading = true;
       try {
@@ -66,8 +86,7 @@ export default {
           `http://127.0.0.1:3000/api/friends/update/${id}`
         );
         if (response.status == 200) {
-          this.fetchFriends();
-          this.fetchPendingFriends();
+          this.fetchAllData();
         }
       } catch (error) {
         console.error(error);
@@ -81,8 +100,7 @@ export default {
           `http://127.0.0.1:3000/api/friends/remove/${id}`
         );
         if (response.status == 200) {
-          this.fetchFriends();
-          this.fetchPendingFriends();
+          this.fetchAllData();
         }
       } catch (error) {
         console.error(error);
@@ -96,8 +114,21 @@ export default {
           `http://127.0.0.1:3000/api/friends/block/${id}`
         );
         if (response.status == 200) {
-          this.fetchFriends();
-          this.fetchPendingFriends();
+          this.fetchAllData();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      this.loading = false;
+    },
+    unblockFriend: async function (id) {
+      this.loading = true;
+      try {
+        const response = await fetchWithHeaders(
+          `http://127.0.0.1:3000/api/friends/unblock/${id}`
+        );
+        if (response.status == 200) {
+          this.fetchAllData();
         }
       } catch (error) {
         console.error(error);
@@ -111,8 +142,7 @@ export default {
           `http://127.0.0.1:3000/api/friends/add/${this.addFriendUsername}`
         );
         if (response.status == 200) {
-          this.fetchFriends();
-          this.fetchPendingFriends();
+          this.fetchAllData();
         }
       } catch (error) {
         console.error(error);
@@ -169,18 +199,39 @@ export default {
           </button>
         </div>
       </div>
-    </div>
 
-    <h1>Ajouter un ami</h1>
-    <form @submit.prevent="addFriend">
-      <input
-        class="input-username"
-        type="text"
-        v-model="addFriendUsername"
-        placeholder="Username"
-      />
-      <input class="button" type="submit" value="Ajouter" />
-    </form>
+      <h1>Amis bloqués</h1>
+      <div>
+        <p v-if="!blockedFriendList.length">
+          Vous n'avez pas de demandes d'amis bloqués
+        </p>
+        <div
+          class="request"
+          v-for="blockedFriend in blockedFriendList"
+          v-bind:key="blockedFriend.username"
+        >
+          <p class="username">{{ blockedFriend.username }}</p>
+
+          <button
+            class="button"
+            v-on:click="() => unblockFriend(blockedFriend.id)"
+          >
+            Débloquer
+          </button>
+        </div>
+      </div>
+
+      <h1>Ajouter un ami</h1>
+      <form @submit.prevent="addFriend">
+        <input
+          class="input-username"
+          type="text"
+          v-model="addFriendUsername"
+          placeholder="Username"
+        />
+        <input class="button" type="submit" value="Ajouter" />
+      </form>
+    </div>
 
     <br />
     <br />
@@ -198,6 +249,12 @@ export default {
 <code>
 <h3>/api/friends/requests</h3>
 {{ pendingFriendList }}
+</code>
+<hr/>
+
+<code>
+<h3>/api/friends/blocked</h3>
+{{ blockedFriendList }}
 </code>
 <hr/>
 
