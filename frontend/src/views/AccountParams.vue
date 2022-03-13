@@ -14,7 +14,7 @@ export default {
   data () {
     return {
       name: null,
-      // username: this.userStore.user.username,
+      file: '',
       errors: [],
     }
   },
@@ -32,18 +32,17 @@ export default {
       this.$router.go('/account');
     },
     checkForm: function (e) {
-      console.log(this.userStore.user.access_token)
       if (this.name)
       {
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
+          this.goToAccount();
           console.log("res : ", res)
         })
         .catch(err => {
           console.log("err : ", err)
         });
-        this.goToAccount();
         return true;
       }
       this.errors = [];
@@ -51,7 +50,25 @@ export default {
         this.errors.push('Name required.');
       }
       // e.preventDefault();
-    }
+    },
+    handleFileUpload(event){
+      this.file = event.target.files[0];
+    },
+    submitFile(){
+      let formData = new FormData();
+      formData.append('file', this.file);
+      axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
+      .then(async res => {
+          this.goToAccount();
+          console.log("res : ", res)
+        })
+      .catch(err => {
+          console.log("FAILURE : ", err)
+          // console.log("FAILURE_res : ", res)
+          // console.log("FAILURE message : ", err.message)
+          
+        });
+    },
   },
 };
 
@@ -63,7 +80,6 @@ export default {
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
         <h1>Bonjour {{ userStore.user.username }}</h1>
-        <!-- <h1>Bonjour {{ this.username }}</h1> -->
         <p>Avatar:</p>
         <img :src=userStore.avatarUrl />
         <p>2FA: {{ userStore.user.isTwoFA }}</p>
@@ -77,10 +93,13 @@ export default {
             Update your username :
             <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
             <button type="submit" @click="checkForm()" >Submit</button>
-          </p>  
+          </p>
+          <p>
+            Update your avatar :
+            <input type="file" @change="handleFileUpload( $event )"/>
+            <button v-on:click="submitFile()">Submit</button>
+          </p>
         {{ this.name }}
-
-        <!-- <p><input type="file" name="file1"> -->
 
         <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
         <div style="display=flex">
