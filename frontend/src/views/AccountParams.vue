@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import axios from "axios";
 // import PopperVue from '@soldeplata/popper-vue';
 
 
@@ -10,13 +11,46 @@ export default {
     userStore.requestLogState();
     return { userStore };
   },
+  data () {
+    return {
+      name: null,
+      // username: this.userStore.user.username,
+      errors: [],
+    }
+  },
+  watch: {
+
+  },
+  computed: {
+
+  },
   components : {
-    // PopperVue,
     TheWelcome
   },
   methods: {
-    goToAccount(){
-      this.$router.go("/account");
+    goToAccount() {
+      this.$router.go('/account');
+    },
+    checkForm: function (e) {
+      console.log(this.userStore.user.access_token)
+      if (this.name)
+      {
+        const token = this.userStore.user.access_token
+        axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
+        .then(async res => {
+          console.log("res : ", res)
+        })
+        .catch(err => {
+          console.log("err : ", err)
+        });
+        this.goToAccount();
+        return true;
+      }
+      this.errors = [];
+      if (!this.name) {
+        this.errors.push('Name required.');
+      }
+      // e.preventDefault();
     }
   },
 };
@@ -27,17 +61,24 @@ export default {
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
-      <form v-if="userStore.isLogged" class="form-group">
+      <div v-if="userStore.isLogged" class="form-group">
         <h1>Bonjour {{ userStore.user.username }}</h1>
-        <!-- @Post('/me/update-username') (=> req.body.username) => envoyer une variable "username" dans le body -->
-        <p>Username: {{ userStore.user.username }}</p>
+        <!-- <h1>Bonjour {{ this.username }}</h1> -->
         <p>Avatar:</p>
         <img :src=userStore.avatarUrl />
         <p>2FA: {{ userStore.user.isTwoFA }}</p>
-        <form @submit="goToAccount()" action="http://127.0.0.1:3000/api/users/me/update-username" method="post" enctype="application/x-www-form-urlencoded">
-        <p>Update your username : <input type="text" name="username" :value=userStore.user.username>
-        <button type="submit" >Submit</button> </p>  
-        </form>
+        <p v-if="errors.length">
+        <b>Please correct the following error(s):</b>
+          <ul>
+            <li v-for="error in errors"> {{ error }}</li>
+          </ul>
+        </p>
+          <p>
+            Update your username :
+            <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
+            <button type="submit" @click="checkForm()" >Submit</button>
+          </p>  
+        {{ this.name }}
 
         <!-- <p><input type="file" name="file1"> -->
 
@@ -70,7 +111,7 @@ export default {
             </div>
           </a>
         </div>
-      </form>
+      </div>
       <div v-if="!userStore.isLogged">
         <TheWelcome />
         <div class="login-container">

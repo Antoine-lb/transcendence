@@ -107,6 +107,7 @@ export class UserController {
     @Post('/me/update-username')
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
+      console.log('/me/update-username')
       if (!username)
         throw new NotFoundException('Username not received')
       const userEnt: UserEntity = req.user;
@@ -117,11 +118,14 @@ export class UserController {
         throw new NotFoundException('User not found 2')
       const new_username = await this.userService.usernameAddSuffix(username);
       await this.userService.updateParams(req.user.id, { username: new_username })
+
       // await res.send(await this.userService.findById(req.user.id));
-      // return await res
+      await res.send({ user: await this.userService.findById(req.user.id), access_token: req.cookies['access_token']});
+      return res
+
       // ou redirige pour eviter une pending request
       // res.redirect('/api/users/me');
-      await res.redirect('http://127.0.0.1:8080/account')
+      // await res.redirect('http://127.0.0.1:8080/account')
     }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
