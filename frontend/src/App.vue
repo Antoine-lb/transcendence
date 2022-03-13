@@ -16,6 +16,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
         <RouterLink to="/">Accueil</RouterLink>
         <RouterLink to="/chat">Chat</RouterLink>
         <RouterLink to="/game">Jeux</RouterLink>
+        <RouterLink to="/account">Compte</RouterLink>
       </nav>
     </div>
   </header>

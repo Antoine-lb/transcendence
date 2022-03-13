@@ -116,13 +116,12 @@ export class UserController {
       if (!userEntfind)
         throw new NotFoundException('User not found 2')
       const new_username = await this.userService.usernameAddSuffix(username);
-      // console.log("before return : ", new_username)
       await this.userService.updateParams(req.user.id, { username: new_username })
-      await res.send({ user: req.user });
-      // console.log(res)
-      return res
+      // await res.send(await this.userService.findById(req.user.id));
+      // return await res
       // ou redirige pour eviter une pending request
       // res.redirect('/api/users/me');
+      await res.redirect('http://127.0.0.1:8080/account')
     }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
