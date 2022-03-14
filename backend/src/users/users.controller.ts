@@ -3,7 +3,7 @@ import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
-import { ParseIntPipe, NotFoundException} from '@nestjs/common';
+import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
@@ -82,11 +82,12 @@ export class UserController {
       if (!user)
         throw new NotFoundException('User not found')
       if (!file)
-        throw new NotFoundException('Upload: file not valid')
+      {
+        throw new UnsupportedMediaTypeException('Upload: file not valid')
+      }
       // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join('/public/uploads/' + file.filename)
-      // var filepath = await join(process.cwd(), 'public/uploads/' + file.filename)
       console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }

@@ -55,19 +55,43 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
+      console.log("submitFile : ", this.file);
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
           this.goToAccount();
           console.log("res : ", res)
-        })
+      })
       .catch(err => {
-          console.log("FAILURE : ", err)
-          // console.log("FAILURE_res : ", res)
-          // console.log("FAILURE message : ", err.message)
-          
-        });
+        var statusCode = err.message.split(' ').slice(-1);
+        if (isNaN(Number(statusCode)) == false)
+          statusCode = parseInt(statusCode);
+        else
+          statusCode = 500;
+        this.errors = [];
+        if (statusCode == 415)
+        {
+          // this.errors.push('Unsupported mime type.');
+          this.errors.push('Unsupported mime type or Payload too large.');
+        }
+        else  if (statusCode == 413)
+        {
+          this.errors = [];
+          this.errors.push('Payload too large.');
+        }
+        console.log("FAILURE : ", err)
+        console.log("statusCode : ", statusCode)
+        // console.log("err.statusCode : ", err.statusCode)
+        // console.log("err.error : ", err.error)
+        console.log("err.message : ", err.message)
+        // console.log("err.name : ", err.name)
+        // console.log("err.getResponse() : ", err.getResponse())
+        // console.log("err.getStatus() : ", err.getStatus())
+        // console.log("FAILURE_res : ", res)
+        // console.log("FAILURE message : ", err.message)
+        
+      });
     },
   },
 };
