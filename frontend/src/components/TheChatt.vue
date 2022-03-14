@@ -44,8 +44,13 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
-    getMyRooms() {
-      return this.socket.fromEvent
+    createRooms() {
+        let room = {};
+        this.socket.emit('createRoom', room);
+    },
+    getMyRooms(rooms) {
+      console.log(rooms)
+      return this.socket.on('rooms');
     }
   },
   created() {
@@ -55,14 +60,14 @@ export default {
         Authorization:  this.user.access_token
       },
     });
-    console.log(this.socket);
+    console.log('fronent socket -><>' + this.socket);
 
     // function whenMessageReceived(message) {
     //   this.receivedMessage(message);
     // }
     // this.socket.on("msgToClient", whenMessageReceived);
 
-    this.socket.on("msgToClient", (message) => this.receivedMessage(message));
+    this.socket.on("rooms", (rooms) => this.getMyRooms(rooms));
   },
 };
 </script>

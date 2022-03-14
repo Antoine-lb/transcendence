@@ -13,13 +13,14 @@ import { UsersService } from 'src/users/users.service';
 import { runInThisContext } from 'vm';
 import { RoomService } from '../service/room-service/room/room.service';
 import { RoomI } from '..//model/room.interface';
+import { RoomEntity } from '../model/room.entity';
  
  @WebSocketGateway({
    cors: {
      origin: '*',
    },
  })
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
  
   constructor(private authService: AuthService, private userService: UsersService, private roomSerice: RoomService){}
   @WebSocketServer() server: Server;
@@ -39,6 +40,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         return this.disconnect(client);
       }
       else {
+
+        console.log(user)
         client.data.user = user;
         const rooms = this.roomSerice.getRoomForUser(user.id, { page: 1, limit: 10 })
         
@@ -51,11 +54,10 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       console.log("catched")
       return this.disconnect(client);
     }
-
   }
    
   @SubscribeMessage('createRoom')
-  async onCreateRoom(client: Socket, room: RoomI): Promise<RoomI> {
+  async onCreateRoom(client: Socket, room: RoomEntity): Promise<RoomI> {
     return this.roomSerice.createRoom(room, client.data.user)
   }
  
