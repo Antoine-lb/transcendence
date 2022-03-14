@@ -1,6 +1,6 @@
 
 <script lang="ts">
-import TheChat from "@/components/TheChatt.vue";
+import TheChat from "@/components/TheChat.vue";
 import { useUserStore } from "../stores/userStore";
 
 
