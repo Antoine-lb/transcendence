@@ -22,6 +22,13 @@ export class FriendsController {
     async getFriends(@Req() req) {
         return await this.friendService.getFriends(req.user)
     }
+  
+    @Get('blocked')
+    @UseInterceptors(ClassSerializerInterceptor)
+    @ApiOperation({summary: 'Get list of blocked friends'})
+    async getBlockedFriends(@Req() req) {
+        return await this.friendService.getBlockedFriends(req.user)
+    }
 
     @Get('requests')
     @UseInterceptors(ClassSerializerInterceptor)
