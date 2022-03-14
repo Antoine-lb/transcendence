@@ -36,6 +36,27 @@ export class FriendsService {
         return await this.usersService.findManyIds(ids)
     }
 
+    async getBlockedFriends(currentUser: UserEntity): Promise<UserEntity[]> {
+        const query = await this.friendRepository.createQueryBuilder('f')
+        .where('(f.creator = :uid OR f.receiver = :uid)', { uid: currentUser.id })
+        .andWhere('f.status = :status', { status: FriendStatus.STATUS_BLOCKED })
+        .getRawMany()
+        const ids = []
+        query.forEach(element => {
+            if (element.f_receiverId == currentUser.id) {
+                if (element.f_blockedByReceiver)
+                    ids.push(element.f_creatorId)
+            }
+            else {
+                if (element.f_blockedByCreator)
+                    ids.push(element.f_receiverId)
+            }
+        });
+
+        return await this.usersService.findManyIds(ids)
+    }
+
+
     async getFriendsRequests(currentUser: UserEntity): Promise<UserEntity[]> {
         const list: UserEntity[] = []
 
@@ -116,16 +137,13 @@ export class FriendsService {
     async blockUser(currentUser: UserEntity, friend_id: number){
         const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
-        if (!friendship) {
-            const friend_request: FriendRequestEntity = new FriendRequestEntity();
-            friend_request.creator = currentUser
-            friend_request.receiver = receiver
-            friend_request.status = FriendStatus.STATUS_BLOCKED
-            friend_request.blockedByCreator = true
-            this.friendRepository.save(friend_request)
-        }
-        else if (friendship.blockedByCreator == false) {
+        if (currentUser.id == friendship.creator.id) {
             friendship.blockedByCreator = true
+            friendship.status = FriendStatus.STATUS_BLOCKED
+            this.friendRepository.save(friendship)
+        }
+        else if (currentUser.id == friendship.receiver.id) {
+            friendship.blockedByReceiver = true
             friendship.status = FriendStatus.STATUS_BLOCKED
             this.friendRepository.save(friendship)
         }
@@ -136,9 +154,14 @@ export class FriendsService {
         const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
         if (friendship) {
-            friendship.blockedByCreator = false
-            if (friendship.blockedByReceiver == false)
-                await this.friendRepository.delete(friendship.id)
+            if (currentUser.id == friendship.creator.id) {
+                friendship.blockedByCreator = false
+            }
+            else if (currentUser.id == friendship.receiver.id) {
+                friendship.blockedByReceiver = false
+            }
+            friendship.status = FriendStatus.STATUS_ACCEPTED
+            this.friendRepository.save(friendship)
         }
     }
 

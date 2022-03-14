@@ -1,40 +1,41 @@
-
 <script lang="ts">
-import TheChat from "@/components/TheChatt.vue";
+import MyFriends from "../components/MyFriends.vue";
 import { useUserStore } from "../stores/userStore";
 
-
 export default {
-  name : "Game",
-  data () {
-    return {
-      variable: "tttest",
-    }
+  name: "Friends",
+  data() {
+    return { count: 0, friends: [] };
   },
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
+
     return { userStore };
   },
   components : {
-    TheChat
+    MyFriends,
   }
-
 };
+
 </script>
 
 <template>
+
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
-        <TheChat :user="userStore.user"/>
+      <div v-if="userStore.isLogged">
+        <MyFriends />
       </div>
-      <div v-if="!userStore.isLogged" class="form-group">
-        <p>Vous devez être connecté pour voir le chat</p>
+      <div v-if="!userStore.isLogged">
+        <p>Vous devez être connecté pour voir vos amis</p>
       </div>
     </div>
   </main>
 </template>
 
+<style>
+
+</style>
