@@ -17,6 +17,9 @@ export class RoomService {
     
     async createRoom(room: RoomI, creator: UserEntity): Promise<RoomI>{
         const newRoom = await this.addCreatorToRoom(room, creator);
+
+
+        console.log('room created' + newRoom)
         return this.roomRepository.save(newRoom);
     }
 

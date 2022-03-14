@@ -47,8 +47,14 @@ export default {
       return this.text.length > 0;
     },
     createRooms() {
+
+        const user1 = {
+          id: 55818,
+        }
+  
         let room = {
-          id: 2
+          name: "ROOM1",
+          users: [user1]
         };
         console.log('createRooms with params: ', room)
         this.socket.emit('createRoom', room);

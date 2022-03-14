@@ -15,7 +15,7 @@ export class RoomEntity {
     description: string;
 
     @Column({nullable: true})
-    password: string; // hashed password 
+    password: string; // hashed password
 
     @ManyToMany(() => UserEntity)
     @JoinTable()

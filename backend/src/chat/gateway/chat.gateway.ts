@@ -36,7 +36,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user) {
-        console.log("no user")
         return this.disconnect(client);
       }
       else {
@@ -68,7 +67,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private disconnect(client: Socket) {
-    // client.emit('Error', new UnauthorizedException());
+    client.emit('Error', new UnauthorizedException());
     client.disconnect();
   }
 }
