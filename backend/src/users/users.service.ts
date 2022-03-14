@@ -139,12 +139,18 @@ export class UsersService {
       if (!username)
         throw new NotFoundException('Cannot update username - please try again later')
       var to_check = username
-      for (let index = 1; ; index++) {
+      var suffix : string = to_check.split('_').pop();
+      var index = 1;
+      var name = username.split('_').slice(0, -1).join('_')
+      if (isNaN(Number(suffix)) == false)
+        index = parseInt(suffix);
+      else
+        name = username;
+      for (; ; index++) {
         if (await this.usernameExists(to_check) == false) {
-          // console.log("return : ", to_check)
           return to_check;
         }
-        to_check = username + "_" + index.toString()
+        to_check = name + "_" + index.toString()
       }
     }
 
