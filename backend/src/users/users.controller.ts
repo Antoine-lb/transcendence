@@ -3,7 +3,7 @@ import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
-import { ParseIntPipe, NotFoundException} from '@nestjs/common';
+import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
@@ -23,8 +23,12 @@ export const validMimeTypes: validMimeType[] = [
 export const imageFileFilter = (req, file, cb) => {
   const allowedMimeTypes: validMimeType[] = validMimeTypes;
   const fileSize = parseInt(req.headers['content-length']);
-  if (allowedMimeTypes.includes(file.mimetype) == true && (fileSize < 500000))
+  if (allowedMimeTypes.includes(file.mimetype) == true)
+  {
+    if (fileSize > 500000)
+      return cb(new PayloadTooLargeException(''));
     cb(null, true)
+  }
   else
     cb(null, false)
 };
@@ -82,11 +86,12 @@ export class UserController {
       if (!user)
         throw new NotFoundException('User not found')
       if (!file)
-        throw new NotFoundException('Upload: file not valid')
+      {
+        throw new UnsupportedMediaTypeException('Upload: file not valid')
+      }
       // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join('/public/uploads/' + file.filename)
-      // var filepath = await join(process.cwd(), 'public/uploads/' + file.filename)
       console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
@@ -107,6 +112,7 @@ export class UserController {
     @Post('/me/update-username')
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
+      console.log('/me/update-username')
       if (!username)
         throw new NotFoundException('Username not received')
       const userEnt: UserEntity = req.user;
@@ -116,13 +122,15 @@ export class UserController {
       if (!userEntfind)
         throw new NotFoundException('User not found 2')
       const new_username = await this.userService.usernameAddSuffix(username);
-      // console.log("before return : ", new_username)
       await this.userService.updateParams(req.user.id, { username: new_username })
-      await res.send({ user: req.user });
-      // console.log(res)
+
+      // await res.send(await this.userService.findById(req.user.id));
+      await res.send({ user: await this.userService.findById(req.user.id), access_token: req.cookies['access_token']});
       return res
+
       // ou redirige pour eviter une pending request
       // res.redirect('/api/users/me');
+      // await res.redirect('http://127.0.0.1:8080/account')
     }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
