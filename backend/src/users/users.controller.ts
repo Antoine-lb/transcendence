@@ -3,7 +3,7 @@ import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
-import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException} from '@nestjs/common';
+import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
@@ -23,8 +23,12 @@ export const validMimeTypes: validMimeType[] = [
 export const imageFileFilter = (req, file, cb) => {
   const allowedMimeTypes: validMimeType[] = validMimeTypes;
   const fileSize = parseInt(req.headers['content-length']);
-  if (allowedMimeTypes.includes(file.mimetype) == true && (fileSize < 500000))
+  if (allowedMimeTypes.includes(file.mimetype) == true)
+  {
+    if (fileSize > 500000)
+      return cb(new PayloadTooLargeException(''));
     cb(null, true)
+  }
   else
     cb(null, false)
 };

@@ -71,26 +71,14 @@ export default {
           statusCode = 500;
         this.errors = [];
         if (statusCode == 415)
+          this.errors.push('Unsupported mime type.');
+        else if (statusCode == 413)
         {
-          // this.errors.push('Unsupported mime type.');
-          this.errors.push('Unsupported mime type or Payload too large.');
-        }
-        else  if (statusCode == 413)
-        {
-          this.errors = [];
           this.errors.push('Payload too large.');
         }
-        console.log("FAILURE : ", err)
-        console.log("statusCode : ", statusCode)
-        // console.log("err.statusCode : ", err.statusCode)
-        // console.log("err.error : ", err.error)
-        console.log("err.message : ", err.message)
-        // console.log("err.name : ", err.name)
-        // console.log("err.getResponse() : ", err.getResponse())
-        // console.log("err.getStatus() : ", err.getStatus())
-        // console.log("FAILURE_res : ", res)
-        // console.log("FAILURE message : ", err.message)
-        
+        // console.log("FAILURE : ", err)
+        // console.log("statusCode : ", statusCode)
+        // console.log("err.message : ", err.message)
       });
     },
   },
@@ -104,8 +92,8 @@ export default {
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
         <h1>Bonjour {{ userStore.user.username }}</h1>
-        <p>Avatar:</p>
-        <img :src=userStore.avatarUrl />
+        <!-- <p>Avatar:</p> -->
+        <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
         <p>2FA: {{ userStore.user.isTwoFA }}</p>
         <p v-if="errors.length">
         <b>Please correct the following error(s):</b>
