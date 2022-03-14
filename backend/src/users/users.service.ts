@@ -14,16 +14,19 @@ export class UsersService {
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
-      var filepath = await join(process.cwd(), 'images/avatar_default.png')
+      console.log("___add/create user")
+      var defaultfile = await join('/public/avatar_default.png')
+      var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
       const fs = require("fs");
-      if (!fs.existsSync(filepath)) {
+      console.log("default path : ", defaultpath)
+      if (!fs.existsSync(defaultpath)) {
         throw new NotFoundException('Cannot create user - Default avatar does not exists')
       }
       // create user and save to bdd
       const new_user= this.usersRepository.create({
             id: user.id,
             username: user.username,
-            avatar: filepath
+            avatar: defaultfile
       })
       console.log('...saving new user : ' + new_user.username)
       return await this.usersRepository.save(new_user);
@@ -88,7 +91,7 @@ export class UsersService {
     }
 
     async deleteFile(filepath: string) {
-      if (filepath == '/app/images/avatar_default.png') {
+      if (filepath == '/app/public/avatar_default.png') {
         return true
       }
       const fs = await require("fs");
@@ -110,7 +113,7 @@ export class UsersService {
 
     async deleteSimilarFiles(filebase: string) {
       var filename = await this.getFileName(filebase);
-      var prefix = await join(process.cwd(), 'uploads/avatars/')
+      var prefix = await join(process.cwd(), 'public/uploads/')
       var files: string[] = [
         prefix + filename + '.jpg',
         prefix + filename + '.jpeg',
