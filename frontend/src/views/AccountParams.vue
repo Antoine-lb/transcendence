@@ -81,6 +81,34 @@ export default {
         // console.log("err.message : ", err.message)
       });
     },
+    enable2FA() {
+      console.log("enable2FA()")
+      const token = this.userStore.user.access_token
+      axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
+      .then(async res => {
+        // this.goToAccount();
+          this.qrcode = res.data;
+          console.log("generate success : ", res)
+          // console.log("res.data : ", res.data)
+      })
+      .catch(err => {
+        console.log("generate error : ", err)
+      });
+      return true;      
+    },
+    // hexToBase64(str : string) {
+    //   return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
+    // },
+    // getImg() {
+    //   console.log("getImg")
+    //   var img = document.createElement('img');
+    //   // img.src = 'data:image/jpeg;base64,' + btoa('your-binary-data');
+    //   img.src = 'data:image/jpeg;base64,' + hexToBase64(this.qrcode);
+    //   document.body.appendChild(img);
+    //   // var img : string = 'data:image/png;base64,' + btoa(binary)
+    //   // console.log("img : ", img)
+    //   return img
+    // }
   },
 };
 
@@ -94,13 +122,35 @@ export default {
         <h1>Bonjour {{ userStore.user.username }}</h1>
         <!-- <p>Avatar:</p> -->
         <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
-        <p>2FA: {{ userStore.user.isTwoFA }}</p>
+        <!-- <p>2FA: {{ userStore.user.isTwoFA }}</p> -->
         <p v-if="errors.length">
         <b>Please correct the following error(s):</b>
           <ul>
             <li v-for="error in errors"> {{ error }}</li>
           </ul>
         </p>
+        <div v-if="!userStore.user.isTwoFA">
+            <button type="submit" @click="enable2FA()">Enable 2-factor authentication</button>
+            {{ this.qrcode }}
+           <div v-if="this.qrcode">
+            <p>{{ this.qrcode.substring(0, 100) }}</p>
+            QRCODE
+            <!-- <img src=data:image/png;base64,${this.qrcode} /> -->
+            <!-- <img src=getImg /> -->
+            <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
+            <!-- <img [src]="getImg(this.qrcode)"> -->
+            <!-- <img src=getImg(this.qrcode) /> -->
+            <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
+            <!-- <img src=getImg(this.qrcode) /> -->
+            <!-- <img id="preview" src=""> -->
+            <!-- <img :src=this.qrcode /> -->
+          </div>
+
+            <!-- Enable 2-factor authentication -->
+        </div>
+        <div v-else>
+          2FA ON
+        </div>
           <p>
             Update your username :
             <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
