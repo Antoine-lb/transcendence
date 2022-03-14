@@ -6,20 +6,20 @@ import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, CreateDateColumn
 export class RoomEntity {
     
     @PrimaryGeneratedColumn()
-    id: Number;
+    id: number;
 
     @Column()
-    name: String;
+    name: string;
 
     @Column({nullable: true})
-    description: String;
+    description: string;
 
     @Column({nullable: true})
-    password: string; // hashed password 
+    password: string; // hashed password
 
     @ManyToMany(() => UserEntity)
     @JoinTable()
-    user: UserEntity[]
+    users: UserEntity[]
 
     @CreateDateColumn()
     created_date: Date;
