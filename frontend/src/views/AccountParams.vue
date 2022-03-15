@@ -14,6 +14,7 @@ export default {
   data () {
     return {
       name: null,
+      code: null,
       file: '',
       errors: [],
     }
@@ -86,19 +87,18 @@ export default {
       const token = this.userStore.user.access_token
       axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
       .then(async res => {
-        // this.goToAccount();
           this.qrcode = res.data;
-          console.log("generate success : ", res)
-          // console.log("res.data : ", res.data)
+          console.log(this.qrcode)
+          // console.log("generate success : ", res)
       })
       .catch(err => {
         console.log("generate error : ", err)
       });
       return true;      
     },
-    // hexToBase64(str : string) {
-    //   return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
-    // },
+    hexToBase64(str : string) {
+      return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
+    },
     // getImg() {
     //   console.log("getImg")
     //   var img = document.createElement('img');
@@ -109,6 +109,37 @@ export default {
     //   // console.log("img : ", img)
     //   return img
     // }
+    turnOn2fa() {
+     if (this.code)
+      {
+        const token = this.userStore.user.access_token
+        axios.post("http://127.0.0.1:3000/api/users/me/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token }} )
+        .then(async res => {
+          // this.goToAccount();
+          console.log("turn-on success : ", res)
+        })
+        .catch(err => {
+          console.log("turn-on error : ", err)
+        });
+        return true;
+      }
+      this.errors = [];
+      if (!this.code) {
+        this.errors.push('Code required.');
+      }
+    },
+    turnOff2fa() {
+        const token = this.userStore.user.access_token
+        axios.post("http://127.0.0.1:3000/api/users/me/turn-off", { withCredentials: true, headers: { 'access_token' : token }} )
+        .then(async res => {
+          // this.goToAccount();
+          console.log("turn-off success : ", res)
+        })
+        .catch(err => {
+          console.log("turn-off error : ", err)
+        });
+        return true;
+    },
   },
 };
 
@@ -131,25 +162,28 @@ export default {
         </p>
         <div v-if="!userStore.user.isTwoFA">
             <button type="submit" @click="enable2FA()">Enable 2-factor authentication</button>
-            {{ this.qrcode }}
-           <div v-if="this.qrcode">
+            <!-- this.qrcode : {{ this.qrcode }} -->
+          <div v-if="this.qrcode">
             <p>{{ this.qrcode.substring(0, 100) }}</p>
             QRCODE
-            <!-- <img src=data:image/png;base64,${this.qrcode} /> -->
+
+            <img src=data:image/png;base64,${this.qrcode} />
             <!-- <img src=getImg /> -->
             <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
             <!-- <img [src]="getImg(this.qrcode)"> -->
             <!-- <img src=getImg(this.qrcode) /> -->
-            <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
-            <!-- <img src=getImg(this.qrcode) /> -->
             <!-- <img id="preview" src=""> -->
             <!-- <img :src=this.qrcode /> -->
+            <p>
+              Please enter 2fa code below :
+              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <button type="submit" @click="turnOn2fa()" >Submit</button>
+            </p>
           </div>
-
-            <!-- Enable 2-factor authentication -->
         </div>
         <div v-else>
-          2FA ON
+          2-factor authentication is activated
+          <button type="submit" @click="turnOff2fa()">Disable 2-factor authentication</button>
         </div>
           <p>
             Update your username :
@@ -161,25 +195,7 @@ export default {
             <input type="file" @change="handleFileUpload( $event )"/>
             <button v-on:click="submitFile()">Submit</button>
           </p>
-        {{ this.name }}
 
-        <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-        <div style="display=flex">
-          Would you like to enable 2FA
-          <label for="switch">Toggle</label>
-        </div> -->
-        <!--         <div class="login-container">
-          <a class="intra-login" href="/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div> -->
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
