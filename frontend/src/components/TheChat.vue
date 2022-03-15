@@ -67,9 +67,9 @@ export default {
         name: this.newRoomName,
         users: [],
       };
-      this.newRoomUsers = this.newRoomUsers.split(/[ ,]+/);
-      console.log(this.newRoomUsers);
-      this.newRoomUsers.forEach((userAsked) => {
+      let tmpNewRoomUsers = this.newRoomUsers.split(/[ ,]+/);
+      console.log(tmpNewRoomUsers);
+      tmpNewRoomUsers.forEach((userAsked) => {
         let exist = false;
         this.friendList.forEach((validUser) => {
           if (userAsked === validUser.username) {
@@ -162,7 +162,10 @@ export default {
     <!-- CHAT ROOM -->
     <div class="row">
       <div class="col-md-6 offset-md-3 col-sm-12">
-        <h1 class="text-center">{{ title }}</h1>
+        <h1 class="text-center">
+          {{ title }}
+          <span v-if="showRooms == true"> : {{ this.selectedRoom }} </span>
+        </h1>
         <br />
 
         <div id="status"></div>
