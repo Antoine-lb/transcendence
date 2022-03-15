@@ -25,8 +25,8 @@ export default {
       socket: null,
       userStore: useUserStore(),
       newRoomName: null,
-      newRoomUsers: [],
-      // friendList: [],
+      newRoomUsers: null,
+      friendList: [],
     };
   },
   // setup() {
@@ -60,27 +60,28 @@ export default {
       return this.text.length > 0;
     },
     createRooms() {
-      let exist = false;
       let room = {
-        name: "ROOM1",
+        name: this.newRoomName,
         users: [],
       };
-      this.friendList.forEach((element) => {
-        if (this.newRoomUsers === element.username) {
-          console.log(element.username + " added");
-          room.users.push(element.id);
-          exist = true;
-        }
+      this.newRoomUsers = this.newRoomUsers.split(/[ ,]+/);
+      console.log(this.newRoomUsers);
+      this.newRoomUsers.forEach((userAsked) => {
+        let exist = false;
+        this.friendList.forEach((validUser) => {
+          if (userAsked === validUser.username) {
+            console.log(validUser.username + " added");
+            room.users.push({ id: validUser.id });
+            exist = true;
+          }
+        });
+        if (!exist) alert(userAsked + "don't exist");
       });
-      if (!exist) {
-        alert("don't exist");
-        return;
-      }
-      console.log("createRooms with params: ", room);
+      // console.log("createRooms with params: ", room);
       this.socket.emit("createRoom", room);
     },
     getMyRooms(rooms) {
-      console.log(rooms);
+      // console.log(rooms);
       return this.socket.on("rooms");
     },
   },
@@ -90,7 +91,7 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    console.log("frontend socket -><>" + this.socket);
+    // console.log("frontend socket -><>" + this.socket);
 
     this.loading = true;
     try {
@@ -104,25 +105,29 @@ export default {
       console.error(error);
     }
     this.loading = false;
-    console.log(this.friendList);
+    // console.log(this.friendList);
 
     // function whenMessageReceived(message) {
     //   this.receivedMessage(message);
     // }
     // this.socket.on("msgToClient", whenMessageReceived);
 
-    // this.socket.on("rooms", (rooms) => this.getMyRooms(rooms));
+    this.socket.on("rooms", (rooms) => console.log("rooms :", rooms));
   },
 };
 </script>
 <template>
   <div class="container">
-    <h1>Ajouter un ami</h1>
+    <h1>Créer un salon</h1>
     <form @submit.prevent="createRooms">
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <input type="text" v-model="newRoomUsers" placeholder="Room Users" />
       <input class="button" type="submit" value="Ajouter" />
     </form>
+    <h1>Salons Disponibles</h1>
+    <ul>
+      <li>test list</li>
+    </ul>
     <div class="row">
       <div class="col-md-6 offset-md-3 col-sm-12">
         <h1 class="text-center">{{ title }}</h1>
@@ -157,10 +162,37 @@ export default {
   </div>
 </template>
 
-<style>
+<style scoped>
 main {
   max-width: 500px;
   padding-top: 50px; /* Original 100px */
   margin: auto;
+}
+
+input {
+  color: #703ab8;
+  border: 3px solid #703ab8;
+  padding: 10px;
+  border-radius: 13px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+input[type="submit"] {
+  background-color: #703ab8;
+  border: none;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 13px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  display: block;
+}
+input[type="submit"]:hover {
+  background-color: white;
+  color: #703ab8;
 }
 </style>

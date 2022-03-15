@@ -40,10 +40,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       else {
 
-        console.log(user)
         client.data.user = user;
         const rooms = this.roomSerice.getRoomForUser(user.id, { page: 1, limit: 10 })
-        
+        console.log("rooms:", rooms)
         // Only emit rooms to the specific connected client
         return this.server.to(client.id).emit('rooms', rooms)
         // this.server.emit('msgToClient', payload);
