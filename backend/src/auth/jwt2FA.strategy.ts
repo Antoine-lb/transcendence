@@ -28,7 +28,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     if (!user)
     {
       // console.log("2FA validation : undefined user")
-      throw new UnauthorizedException
+      throw new UnauthorizedException('Jwt 2fa Strategy')
     }
     if (!user.isTwoFA) {
       // console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")

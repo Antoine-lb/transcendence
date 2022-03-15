@@ -34,7 +34,7 @@ export class AuthController{
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
             console.log('[auth/callback]')
             const user = await this.userService.findByName(req.user['username']);
-            if (!user) throw new UnauthorizedException();
+            if (!user) throw new UnauthorizedException('User does not exists');
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('[access_token] >>> ', accessToken)
