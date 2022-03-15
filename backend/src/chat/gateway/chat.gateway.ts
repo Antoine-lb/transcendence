@@ -31,8 +31,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const decodedToken = await this.authService.verifyToken(client.handshake.headers.authorization);
 
-      console.log(decodedToken)
-      
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user) {
@@ -41,15 +39,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       else {
 
         client.data.user = user;
-        const rooms = this.roomSerice.getRoomForUser(user.id, { page: 1, limit: 10 })
-        console.log("rooms:", rooms)
+        const rooms = await this.roomSerice.getRoomForUser(user.id, { page: 1, limit: 10 })
+        
         // Only emit rooms to the specific connected client
         return this.server.to(client.id).emit('rooms', rooms)
-        // this.server.emit('msgToClient', payload);
       }
     }
     catch {
-      console.log("catched")
       return this.disconnect(client);
     }
   }
@@ -60,7 +56,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
  
   handleDisconnect(client: Socket) {
-    console.log('dicornnect')
     this.logger.log(`Client disconnected: ${client.id}`);
     client.disconnect()
   }
