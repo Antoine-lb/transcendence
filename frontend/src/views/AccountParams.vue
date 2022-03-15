@@ -78,9 +78,6 @@ export default {
         {
           this.errors.push('Payload too large.');
         }
-        // console.log("FAILURE : ", err)
-        // console.log("statusCode : ", statusCode)
-        // console.log("err.message : ", err.message)
       });
     },
     hexToBase64(str : string) {
@@ -91,12 +88,7 @@ export default {
       const token = this.userStore.user.access_token
       axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
       .then(async res => {
-          this.qrcode = res.data;
-          this.img = "data:image/png;base64," + this.hexToBase64(this.qrcode);
-          // this.img = "data:image/png;base64," + btoa(this.qrcode); // "DOMException: String contains an invalid character"
-          console.log("this.qrcode ", this.qrcode)
-          console.log("this.img ", this.img)
-          // console.log("generate success : ", res)
+          this.img = res.data.img_src;
       })
       .catch(err => {
         console.log("generate error : ", err)
@@ -109,10 +101,10 @@ export default {
         const token = this.userStore.user.access_token
         console.log(token)
         console.log(this.userStore.user)
-        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'Authentication' : token }} )
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'Authentication' : token } } )
         .then(async res => {
-          // this.goToAccount();
           console.log("turn-on success : ", res)
+          this.goToAccount();
         })
         .catch(err => {
           console.log("turn-on error : ", err)
@@ -128,8 +120,8 @@ export default {
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
-          // this.goToAccount();
           console.log("turn-off success : ", res)
+          this.goToAccount();
         })
         .catch(err => {
           console.log("turn-off error : ", err)
@@ -156,17 +148,9 @@ export default {
         </p>
         <div v-if="!userStore.user.isTwoFA">
             <button type="submit" @click="generateQrCode()">Enable 2-factor authentication</button>
-          <div v-if="this.qrcode">
-            <p>{{ this.qrcode.substring(0, 100) }}</p>
-            QRCODE
-
-            <!-- <img src=data:image/png;base64,${this.qrcode} /> -->
-            <!-- <img src="{{ this.img }}" /> -->
-            <!-- <img src={{ this.img }} /> -->
-            <!-- <img [src]="this.img" /> -->
-            <!-- <img :src=this.img /> -->
-            <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
-            <!-- <img :src=this.qrcode /> -->
+          <div v-if="this.img">
+            <!-- <p>{{ this.img.substring(0, 100) }}</p> -->
+            <img :src="img" />
             <p>
               Please enter 2fa code below :
               <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
