@@ -83,10 +83,6 @@ export default {
       // console.log("createRooms with params: ", room);
       this.socket.emit("createRoom", room);
     },
-    getMyRooms(rooms) {
-      // console.log(rooms);
-      return this.socket.on("rooms");
-    },
     updateSelected(selectedItem) {
       console.log(selectedItem.name);
       this.selectedRoom = selectedItem.name;
@@ -99,8 +95,6 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    // console.log("frontend socket -><>" + this.socket);
-
     this.loading = true;
     try {
       const response = await fetchWithHeaders(
