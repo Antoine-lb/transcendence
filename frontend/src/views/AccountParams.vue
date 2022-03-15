@@ -107,7 +107,9 @@ export default {
      if (this.code)
       {
         const token = this.userStore.user.access_token
-        axios.post("http://127.0.0.1:3000/api/users/me/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token }} )
+        console.log(token)
+        console.log(this.userStore.user)
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'Authentication' : token }} )
         .then(async res => {
           // this.goToAccount();
           console.log("turn-on success : ", res)
@@ -124,7 +126,7 @@ export default {
     },
     turnOff2fa() {
         const token = this.userStore.user.access_token
-        axios.post("http://127.0.0.1:3000/api/users/me/turn-off", { withCredentials: true, headers: { 'access_token' : token }} )
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           // this.goToAccount();
           console.log("turn-off success : ", res)
@@ -162,7 +164,7 @@ export default {
             <!-- <img src="{{ this.img }}" /> -->
             <!-- <img src={{ this.img }} /> -->
             <!-- <img [src]="this.img" /> -->
-            <img :src=this.img />
+            <!-- <img :src=this.img /> -->
             <!-- <img src="data:image/png;base64,{{hexToBase64(this.qrcode)}}"> -->
             <!-- <img :src=this.qrcode /> -->
             <p>
