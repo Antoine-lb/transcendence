@@ -24,9 +24,12 @@ export default {
       messages: [],
       socket: null,
       userStore: useUserStore(),
+      myRooms: null,
       newRoomName: null,
       newRoomUsers: null,
       friendList: [],
+      showRooms: false,
+      selectedRoom: {},
     };
   },
   // setup() {
@@ -75,7 +78,7 @@ export default {
             exist = true;
           }
         });
-        if (!exist) alert(userAsked + "don't exist");
+        if (!exist) alert(userAsked + " don't exist");
       });
       // console.log("createRooms with params: ", room);
       this.socket.emit("createRoom", room);
@@ -83,6 +86,11 @@ export default {
     getMyRooms(rooms) {
       // console.log(rooms);
       return this.socket.on("rooms");
+    },
+    updateSelected(selectedItem) {
+      console.log(selectedItem.name);
+      this.selectedRoom = selectedItem.name;
+      this.showRooms = true;
     },
   },
   async created() {
@@ -112,7 +120,10 @@ export default {
     // }
     // this.socket.on("msgToClient", whenMessageReceived);
 
-    this.socket.on("rooms", (rooms) => console.log("rooms :", rooms));
+    this.socket.on("rooms", (rooms) => {
+      console.log("rooms created :", rooms);
+      this.myRooms = rooms.items;
+    });
   },
 };
 </script>
@@ -124,10 +135,31 @@ export default {
       <input type="text" v-model="newRoomUsers" placeholder="Room Users" />
       <input class="button" type="submit" value="Ajouter" />
     </form>
+
     <h1>Salons Disponibles</h1>
-    <ul>
-      <li>test list</li>
-    </ul>
+    <div class="list-group" v-if="showRooms == false">
+      <ul>
+        <li
+          class="list-group-item list-group-item-action"
+          @click="updateSelected(room)"
+          v-for="(room, index) in this.myRooms"
+          :key="index"
+        >
+          {{ room?.name }}
+        </li>
+      </ul>
+    </div>
+
+    <div v-else>
+      <button class="btn btn-primary" @click="showRooms = false">
+        Go back
+      </button>
+      <p>
+        You have choosen
+        <span class="highlight">{{ this.selectedRoom }}</span>
+      </p>
+    </div>
+    <!-- CHAT ROOM -->
     <div class="row">
       <div class="col-md-6 offset-md-3 col-sm-12">
         <h1 class="text-center">{{ title }}</h1>
@@ -194,5 +226,21 @@ input[type="submit"] {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+/* POUR LES SALONS */
+.list-group-item {
+  /* display: block; */ /* remove dot */
+  text-decoration: none;
+  /* margin: 1em 0.2em; */
+  color: #4a4a4a;
+}
+
+.list-group-item:hover {
+  color: red;
+}
+
+.highlight {
+  color: blue;
 }
 </style>
