@@ -64,9 +64,9 @@ export default {
         name: this.newRoomName,
         users: [],
       };
-      this.newRoomUsers = this.newRoomUsers.split(/[ ,]+/);
-      console.log(this.newRoomUsers);
-      this.newRoomUsers.forEach((userAsked) => {
+      let tmpRoomUser = this.newRoomUsers.split(/[ ,]+/);
+      console.log(tmpRoomUser);
+      tmpRoomUser.forEach((userAsked) => {
         let exist = false;
         this.friendList.forEach((validUser) => {
           if (userAsked === validUser.username) {
@@ -105,12 +105,6 @@ export default {
       console.error(error);
     }
     this.loading = false;
-    // console.log(this.friendList);
-
-    // function whenMessageReceived(message) {
-    //   this.receivedMessage(message);
-    // }
-    // this.socket.on("msgToClient", whenMessageReceived);
 
     this.socket.on("rooms", (rooms) => console.log("rooms :", rooms));
   },
