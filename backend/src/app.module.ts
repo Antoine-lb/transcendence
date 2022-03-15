@@ -14,6 +14,7 @@ import { ChatModule } from './chat/chat.module';
 import { RoomEntity } from './chat/model/room.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { testMiddleware } from './middleware/test-middleware';
+import { ConnectedUserEntity } from './chat/model/connected.user.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { testMiddleware } from './middleware/test-middleware';
 			username: 'ft_root',
 			password: 'admin',
 			database: 'transcendance',
-			entities: [UserEntity, FriendRequestEntity, RoomEntity],
+			entities: [UserEntity, FriendRequestEntity, RoomEntity, ConnectedUserEntity],
 			synchronize: true,
 			keepConnectionAlive: true,
 		}),
