@@ -57,22 +57,23 @@ export class TwoFAController {
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
+    console.log(request.user)
     if (!isCodeValid) {
       throw new ImATeapotException('Wrong authentication 2fa turn-on code');
     }
     console.log("CODE IS VALID - TURNING ON 2FA ON USER");
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
-    console.log(request.user)
   }
 
   @Post('turn-off')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  async turnOffTwoFA(@Req() request: RequestWithUser) {
+  async turnOffTwoFA(
+    @Req() request: RequestWithUser) {
     console.log("___ turn-off 2fa ___ ")
-    await this.usersService.turnOffTwoFA(request.user.id);
     console.log(request.user)
+    await this.usersService.turnOffTwoFA(request.user.id);
   }
 
   // EST APPELEE A CHAQUE LOGIN si 2fa est active (isTwoFA = true)
