@@ -5,6 +5,7 @@ import { UserEntity } from 'src/entities/users.entity';
 import { UsersService } from 'src/users/users.service';
 import { request } from 'express';
 
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly usersService: UsersService) {
@@ -12,23 +13,31 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       ignoreExpiration: false,
       secretOrKey: 'REPLACE_THIS_SECRET',
       jwtFromRequest: (request) => {
-            // console.log('Request ' + request);
-            // console.log('Cookies : ' + request.cookies['access_token']);
-            // console.log('Cookies : ' + request.cookies.access_token_2fa);
-            if (!request || !request.cookies) return null;
+            // var token = request.cookies['access_token'];
+            // console.log('[JwtStrategy] 1) super (constructor) >>> access_token : ');
+            // if (token)
+            //   console.log(token.slice(0, 15) + "..." + token.substr(-15));
+            // else
+            //   console.log(token);
+            // token = request.cookies['access_token_2fa'];
+            // console.log('[JwtStrategy] 1) super (constructor) >>> access_token_2fa : ');
+            // if (token)
+            //   console.log(token.slice(0, 15) + "..." + token.substr(-15));
+            // else
+            //   console.log(token);
+            if (!request || !request.cookies)
+              return null;
             return request.cookies['access_token'];
         }
     })
   }
 
   async validate(payload: any): Promise<UserEntity> {
-    // console.log('[JwtStrategy] >>> payload id ' + payload.id)
+    // console.log('[JwtStrategy] 2) validate >>> payload id ' + payload.id)
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException('JwtStrategy')
     // console.log("JWT NORMAL STRATEGY VALIDATED")
     return user
-
-    // return { userId: payload.sub, username: payload.username };
   }
 }

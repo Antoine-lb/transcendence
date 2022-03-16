@@ -11,7 +11,7 @@ import { FriendStatus } from 'src/entities/friend-request-interface';
 
 @ApiTags('friends')
 @Controller('friends')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, Jwt2FAGuard)
 export class FriendsController {
     constructor( private readonly userService: UsersService,
         private readonly friendService: FriendsService) {}
