@@ -39,7 +39,7 @@ export class AuthService {
       // secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       // expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
     });
-    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=800000`;
-    // return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
+    return `access_token_2fa=${token}; HttpOnly; Path=/; Max-Age=800000`;
+    // return `access_token_2fa=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
   }
 }

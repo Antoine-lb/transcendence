@@ -101,7 +101,7 @@ export default {
         const token = this.userStore.user.access_token
         console.log(token)
         console.log(this.userStore.user)
-        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'Authentication' : token } } )
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
         .then(async res => {
           console.log("turn-on success : ", res)
           this.goToAccount();
@@ -118,7 +118,8 @@ export default {
     },
     turnOff2fa() {
         const token = this.userStore.user.access_token
-        axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { withCredentials: true, headers: { 'access_token' : token }} )
+        console.log(this.userStore.user)
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           console.log("turn-off success : ", res)
           this.goToAccount();

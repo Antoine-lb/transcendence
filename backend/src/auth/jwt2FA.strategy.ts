@@ -14,10 +14,10 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
             // console.log('Request ' + request);
             // console.log('Request user' + request.user.id);
             // console.log('[access_token] : ' + request.cookies['access_token']);
-            // console.log('[Authentication] : ' + request.cookies.Authentication);
+            // console.log('[access_token_2fa] : ' + request.cookies.access_token_2fa);
             if (!request.user.isTwoFA)
               return request.cookies['access_token']
-            return request?.cookies?.Authentication;
+            return request?.cookies?.access_token_2fa;
         }
     })
   }
