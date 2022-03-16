@@ -33,6 +33,9 @@ export default {
     goToAccount() {
       this.$router.go('/account');
     },
+    pushToLog2fa() {
+      this.$router.push('/log2fa');
+    },
     checkForm: function (e) {
       if (this.name)
       {
@@ -104,7 +107,7 @@ export default {
         axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
         .then(async res => {
           console.log("turn-on success : ", res)
-          this.goToAccount();
+          this.pushToLog2fa();
         })
         .catch(err => {
           console.log("turn-on error : ", err)

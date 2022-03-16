@@ -38,7 +38,7 @@ export default {
         axios.post("http://127.0.0.1:3000/api/2fa/authenticate", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           console.log("log2fa authenticate success : ", res)
-          this.goToAccount();
+          this.$router.push('/');
         })
         .catch(err => {
           console.log("log2fa authenticate error : ", err)
