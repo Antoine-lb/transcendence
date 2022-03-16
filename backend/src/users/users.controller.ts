@@ -48,7 +48,7 @@ export const uploadOptions = {
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(JwtAuthGuard, Jwt2FAGuard)
+@UseGuards(JwtAuthGuard)
 export class UserController {
   constructor( private readonly userService: UsersService
     ) {}
@@ -77,7 +77,7 @@ export class UserController {
       return await this.userService.findAll(); //TODO: voir si je peux return que les infos public
     }
 
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @UseGuards(JwtAuthGuard)
     @Post('/me/upload-avatar') // 'file' = valeur de la variable a envoyer dans le POST
     @UseInterceptors(FileInterceptor('file', uploadOptions))
     async uploadImage(@UploadedFile() file, @Request() req): Promise<any> {
@@ -96,7 +96,7 @@ export class UserController {
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
  
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @UseGuards(JwtAuthGuard)
     @Get('/me/avatar')
     async findProfileImage(@Res() res, @Request() req): Promise<any> {
       const user= this.userService.findById(req.user.id);
@@ -108,7 +108,7 @@ export class UserController {
       return res.sendFile(req.user.avatar);
     }
 
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @UseGuards(JwtAuthGuard)
     @Post('/me/update-username')
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
@@ -133,7 +133,7 @@ export class UserController {
       // await res.redirect('http://127.0.0.1:8080/account')
     }
 
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @UseGuards(JwtAuthGuard)
     @Get('/me/delete-avatar')
     async deleteAvatar(@Res() res, @Request() req): Promise<any> {
       const user = this.userService.findById(req.user.id);

@@ -12,10 +12,9 @@ export class AuthService {
     ) {}
 
   async checkUser(user: UserDto): Promise<UserEntity> {
-    const is_user = await this.usersService.findByName(user.username)
+    const is_user = await this.usersService.findById(user.id)
     if (!is_user)
       return await this.usersService.addUser(user)
-    // console.log(is_user)
     return is_user;
   }
 
