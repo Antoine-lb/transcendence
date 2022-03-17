@@ -38,15 +38,12 @@ export class AuthController{
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             console.log('[access_token] >>> ', accessToken)
-            
             await res.cookie('access_token', accessToken, {httpOnly: true});
-            
 
             if (auth === true) {
                 if (user.secret == null)
                     throw new UnauthorizedException('2FA enabled but secret not set');
-                return
-                // res.redirect('/api/2fa/authenticate');
+                res.redirect('http://127.0.0.1:8080/log2fa');
             } 
             else {
                 res.status(302).redirect('http://127.0.0.1:8080');
@@ -58,7 +55,7 @@ export class AuthController{
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
-        
+            console.log('___ /auth/status')
             try {
                 if (req.cookies.access_token) {
                     let payload: any = await this.authService.verifyToken(req.cookies.access_token);
