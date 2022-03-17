@@ -19,7 +19,6 @@ export class AuthController{
     
         @Get('/login')
         async login(@Res() res: Response, @Req() req: Request) {
-            console.log('Already Log ? ->' + req.cookies['access_token'])
             if (req.cookies && req.cookies['access_token']) {
                 if (this.authService.verifyToken(req.cookies['access_token']))
                     res.status(302).redirect('http://127.0.0.1:8080')
@@ -37,7 +36,7 @@ export class AuthController{
             if (!user) throw new UnauthorizedException('User does not exists');
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
-            console.log('[access_token] >>> ', accessToken)
+            
             await res.cookie('access_token', accessToken, {httpOnly: true});
 
             if (auth === true) {

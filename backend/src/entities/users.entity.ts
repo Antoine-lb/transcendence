@@ -52,6 +52,6 @@ export class UserEntity {
   )
   receivedFriendRequests: FriendRequestEntity[];
 
-  @ManyToMany(() => RoomEntity, room => room.user)
+  @ManyToMany(() => RoomEntity, room => room.users)
   rooms: RoomEntity[]
 }
