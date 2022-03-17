@@ -22,11 +22,11 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
-        <h1>Bonjour {{ userStore.user.username }}</h1>
+        <h1>Bienvenue {{ userStore.user.username }}</h1>
         <img :src=userStore.avatarUrl />
-        <p>isOnline: {{ userStore.user.avatar }}</p>
-        <p>isOnline: {{ userStore.user.isOnline }}</p>
-        <p>played: {{ userStore.user.played }}</p>
+        <!-- <p>isOnline: {{ userStore.user.avatar }}</p> -->
+        <!-- <p>isOnline: {{ userStore.user.isOnline }}</p> -->
+        <!-- <p>played: {{ userStore.user.played }}</p> -->
         <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
         <div style="display=flex">
           Would you like to enable 2FA
