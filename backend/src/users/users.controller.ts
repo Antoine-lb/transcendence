@@ -10,7 +10,6 @@ import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
 import { diskStorage } from 'multer';
 import path = require('path');
 import { Response } from 'express';
-
 import { join } from 'path';
 
 type validMimeType = 'image/png' | 'image/jpg' | 'image/jpeg';
@@ -56,10 +55,7 @@ export class UserController {
     @Get('/me')
     @ApiOperation({summary: 'Return user\'s profile'})
     async getUserProfile(@Req() req, @Res() res) {
-
       const cookies: string = req.cookies['access_token'];
-
-      console.log(cookies)
       await res.send({ user: req.user, access_token: cookies});
       return res
     }
