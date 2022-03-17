@@ -14,7 +14,9 @@ export default {
   data () {
     return {
       name: null,
+      code: null,
       file: '',
+      img: '',
       errors: [],
     }
   },
@@ -30,6 +32,9 @@ export default {
   methods: {
     goToAccount() {
       this.$router.go('/account');
+    },
+    pushToLog2fa() {
+      this.$router.push('/log2fa');
     },
     checkForm: function (e) {
       if (this.name)
@@ -76,10 +81,56 @@ export default {
         {
           this.errors.push('Payload too large.');
         }
-        // console.log("FAILURE : ", err)
-        // console.log("statusCode : ", statusCode)
-        // console.log("err.message : ", err.message)
       });
+    },
+    hexToBase64(str : string) {
+      return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
+    },
+    generateQrCode() {
+      console.log("generateQrCode()")
+      const token = this.userStore.user.access_token
+      axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
+      .then(async res => {
+          this.img = res.data.img_src;
+      })
+      .catch(err => {
+        console.log("generate error : ", err)
+      });
+      return true;      
+    },
+    turnOn2fa() {
+     if (this.code)
+      {
+        const token = this.userStore.user.access_token
+        console.log(token)
+        console.log(this.userStore.user)
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
+        .then(async res => {
+          console.log("turn-on success : ", res)
+          this.pushToLog2fa();
+        })
+        .catch(err => {
+          console.log("turn-on error : ", err)
+        });
+        return true;
+      }
+      this.errors = [];
+      if (!this.code) {
+        this.errors.push('Code required.');
+      }
+    },
+    turnOff2fa() {
+        const token = this.userStore.user.access_token
+        console.log(this.userStore.user)
+        axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
+        .then(async res => {
+          console.log("turn-off success : ", res)
+          this.goToAccount();
+        })
+        .catch(err => {
+          console.log("turn-off error : ", err)
+        });
+        return true;
     },
   },
 };
@@ -92,15 +143,29 @@ export default {
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
         <h1>Bonjour {{ userStore.user.username }}</h1>
-        <!-- <p>Avatar:</p> -->
         <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
-        <p>2FA: {{ userStore.user.isTwoFA }}</p>
         <p v-if="errors.length">
         <b>Please correct the following error(s):</b>
           <ul>
             <li v-for="error in errors"> {{ error }}</li>
           </ul>
         </p>
+        <div v-if="!userStore.user.isTwoFA">
+            <button type="submit" @click="generateQrCode()">Enable 2-factor authentication</button>
+          <div v-if="this.img">
+            <!-- <p>{{ this.img.substring(0, 100) }}</p> -->
+            <img :src="img" />
+            <p>
+              Please enter 2fa code below :
+              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <button type="submit" @click="turnOn2fa()" >Submit</button>
+            </p>
+          </div>
+        </div>
+        <div v-else>
+          2-factor authentication is activated
+          <button type="submit" @click="turnOff2fa()">Disable 2-factor authentication</button>
+        </div>
           <p>
             Update your username :
             <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
@@ -111,25 +176,7 @@ export default {
             <input type="file" @change="handleFileUpload( $event )"/>
             <button v-on:click="submitFile()">Submit</button>
           </p>
-        {{ this.name }}
 
-        <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-        <div style="display=flex">
-          Would you like to enable 2FA
-          <label for="switch">Toggle</label>
-        </div> -->
-        <!--         <div class="login-container">
-          <a class="intra-login" href="/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div> -->
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
