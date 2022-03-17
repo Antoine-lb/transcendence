@@ -12,10 +12,9 @@ export class AuthService {
     ) {}
 
   async checkUser(user: UserDto): Promise<UserEntity> {
-    const is_user = await this.usersService.findByName(user.username)
+    const is_user = await this.usersService.findById(user.id)
     if (!is_user)
       return await this.usersService.addUser(user)
-    // console.log(is_user)
     return is_user;
   }
 
@@ -27,11 +26,13 @@ export class AuthService {
   // } NON USED
 
   async verifyToken(token: string) {
+		console.log('___ verifyToken()')
 		return this.jwtService.verify(token, { ignoreExpiration: false });
 	}
 
   // ajoute un arg a get token to know whether it's a 2fa token
   public getCookieWithToken(id: number, isTwoFAAuthenticated = false) {
+		console.log('___ getCookieWithToken()')
     const payload: TokenPayload = { id, isTwoFAAuthenticated };
     const token = this.jwtService.sign(payload, {
       secret: 'REPLACE_THIS_SECRET',
@@ -39,7 +40,7 @@ export class AuthService {
       // secret: this.configService.get('JWT_ACCESS_TOKEN_SECRET'),
       // expiresIn: `${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}s`
     });
-    return `Authentication=${token}; HttpOnly; Path=/; Max-Age=800000`;
-    // return `Authentication=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
+    return `access_token_2fa=${token}; HttpOnly; Path=/; Max-Age=800000`;
+    // return `access_token_2fa=${token}; HttpOnly; Path=/; Max-Age=${this.configService.get('JWT_ACCESS_TOKEN_EXPIRATION_TIME')}`;
   }
 }
