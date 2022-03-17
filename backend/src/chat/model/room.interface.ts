@@ -4,7 +4,6 @@ export interface RoomI {
 
     id?: number;
     name?: string;
-    description?: string;
     users?: UserDto[];
     created_at?: Date;
     updated_at?: Date;

@@ -19,8 +19,13 @@ export class RoomService {
         const newRoom = await this.addCreatorToRoom(room, creator);
 
 
-        console.log('room created' + newRoom)
         return this.roomRepository.save(newRoom);
+    }
+
+    async getRoom(roomID: number): Promise<RoomI> {
+        return this.roomRepository.findOne(roomID, {
+            relations: ['users']
+        })
     }
 
     async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {

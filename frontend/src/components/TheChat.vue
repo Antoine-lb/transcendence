@@ -32,35 +32,38 @@ export default {
       selectedRoom: {},
     };
   },
-  // setup() {
-  //   const userStore = useUserStore();
-  //   userStore.requestLogState();
-  //   return { userStore };
-  // },
-
   props: {
     user: Object,
   },
   methods: {
-    sendMessage() {
+    sendMessage(selectedItems) {
       if (this.validateInput()) {
         const message = {
-          name: this.userStore.user.username,
+          user: this.userStore.user,
           text: this.text,
+          room: selectedItems,
         };
-        this.socket.emit("msgToServer", message);
+        this.socket.emit("addMessage", message);
         this.text = "";
       }
     },
     receivedMessage(message) {
-      console.log(this.userStore.user.username);
-
-      if (message) {
-        this.messages.push(message);
-      }
+        this.server.on("messageAdded", message);
     },
     validateInput() {
       return this.text.length > 0;
+    },
+    joinedRoom(room) {
+      console.log('joined room')
+      this.socket.emit("joinRoom", room);
+      console.log('after emit')
+
+    },
+    leaveRoom(room) {
+
+      this.socket.emit("leaveRoom", room);
+      this.showRooms = false;
+      this.selectedItems = {};
     },
     createRooms() {
       let room = {
@@ -68,7 +71,6 @@ export default {
         users: [],
       };
       let tmpNewRoomUsers = this.newRoomUsers.split(/[ ,]+/);
-      console.log(tmpNewRoomUsers);
       tmpNewRoomUsers.forEach((userAsked) => {
         let exist = false;
         this.friendList.forEach((validUser) => {
@@ -80,14 +82,15 @@ export default {
         });
         if (!exist) alert(userAsked + " don't exist");
       });
-      // console.log("createRooms with params: ", room);
       this.socket.emit("createRoom", room);
     },
     updateSelected(selectedItem) {
-      console.log(selectedItem.name);
+      console.log(selectedItem);
       this.selectedRoom = selectedItem.name;
       this.showRooms = true;
+      this.joinedRoom(selectedItem);
     },
+
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -109,8 +112,8 @@ export default {
     this.loading = false;
 
     this.socket.on("rooms", (rooms) => {
-      console.log("rooms created :", rooms);
       this.myRooms = rooms.items;
+      console.log(this.myRooms);
     });
   },
 };
@@ -139,7 +142,7 @@ export default {
     </div>
 
     <div v-else>
-      <button class="btn btn-primary" @click="showRooms = false">
+      <button class="btn btn-primary" @click="leaveRoom(selectedRoom)">
         Go back
       </button>
       <p>
@@ -176,7 +179,7 @@ export default {
             placeholder="Enter message..."
           ></textarea>
           <br />
-          <button id="send" class="btn" @click.prevent="sendMessage">
+          <button id="send" class="btn" @click.prevent="sendMessage(selectedItems)">
             Send
           </button>
         </div>

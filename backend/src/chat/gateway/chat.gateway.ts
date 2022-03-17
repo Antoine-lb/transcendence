@@ -13,9 +13,13 @@ import { UsersService } from 'src/users/users.service';
 import { runInThisContext } from 'vm';
 import { RoomService } from '../service/room-service/room.service';
 import { RoomI } from '..//model/room.interface';
+import { MessageI } from '..//model/message.interface';
+import { JoinedRoomI } from '..//model/joined-room.interface';
 import { RoomEntity } from '../model/room.entity';
 import { ConnectedUserService } from '../service/connected-user/connected-user.service';
 import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
+import { JoinedRoomService } from '../service/joined-room/joined-room.service';
+import { MessageService } from '../service/message/message.service';
  
 
  @WebSocketGateway({
@@ -23,18 +27,27 @@ import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
      origin: '*',
    },
  })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
  
    constructor(
      private authService: AuthService,
      private userService: UsersService,
      private roomSerice: RoomService,
-     private connectedUserService: ConnectedUserService
+     private connectedUserService: ConnectedUserService,
+     private joinedRoomService: JoinedRoomService,
+     private messageService: MessageService,
     ) { }
   
    
    
-  @WebSocketServer() server: Server;
+   @WebSocketServer() server: Server;
+   
+   async onModuleInit() {
+     await this.connectedUserService.deleteAll();
+     await this.joinedRoomService.deleteAll();
+   }
+
+
  
   async handleConnection(socket: Socket, payload: string) {
 
@@ -54,7 +67,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // Save connection to DB 
         await this.connectedUserService.create({ socketID: socket.id, user });
 
-
         // Only emit rooms to the specific connected client
         return this.server.to(socket.id).emit('rooms', rooms)
       }
@@ -65,7 +77,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
    
   @SubscribeMessage('createRoom')
-  async onCreateRoom(socket: Socket, room: RoomEntity) {
+  async onCreateRoom(socket: Socket, room: RoomI) {
+
     const createRoom: RoomI = await this.roomSerice.createRoom(room, socket.data.user);
 
     for (const user of createRoom.users) {
@@ -77,7 +90,43 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
   }
- 
+   
+  @SubscribeMessage('joinRoom')
+  async onJoinRoom(socket: Socket, room: RoomI) {
+    
+    // Find previous Room Messages
+    const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
+    // Save Connection to Room in DB
+    await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
+    // Send Last Message to User
+    await this.server.to(socket.id).emit('messages', messages);
+  }
+   
+  @SubscribeMessage('leaveRoom')
+  async onLeaveRoom(socket: Socket, room: RoomI) {
+
+    // Remove connection for Joined Room
+    await this.joinedRoomService.deleteBySocketID(socket.id);
+  }
+   
+  @SubscribeMessage('addMessage')
+  async onAddMessage(socket: Socket, message: MessageI) {
+
+
+    const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
+
+    console.log(createdMessage);
+
+    const room: RoomI = await this.roomSerice.getRoom(createdMessage.room.id);
+
+    const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+    // Send New Message to all joineds Users (online on the room)
+    for (const user of joinedUsers) {
+      await this.server.to(user.socketID).emit('messageAdded', createdMessage);
+    }
+  }
+     
+   
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
     await this.connectedUserService.deleteBySocketID(socket.id);
@@ -88,4 +137,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }
-}
+   
+ async afterInit() {}
+   
+ }
+

@@ -1,5 +1,5 @@
 import { UserEntity } from "src/entities/users.entity";
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class ConnectedUserEntity {
@@ -10,7 +10,7 @@ export class ConnectedUserEntity {
     @Column()
     socketID: string;
 
-    @OneToOne(() => UserEntity)
+    @ManyToOne(() => UserEntity, user => user.connections)
     @JoinColumn()
     user: UserEntity;
 
