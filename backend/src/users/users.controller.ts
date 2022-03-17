@@ -47,7 +47,7 @@ export const uploadOptions = {
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, Jwt2FAGuard)
 export class UserController {
   constructor( private readonly userService: UsersService
     ) {}
