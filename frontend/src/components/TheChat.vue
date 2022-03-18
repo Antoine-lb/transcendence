@@ -50,10 +50,17 @@ export default {
         this.text = "";
       }
     },
-    receivedMessage(message) {
+      receivedMessage(message) {
 
-        console.log('received message');
-        this.server.on("messageAdded", message);
+        console.log('received old message');
+        console.log(message);
+        this.messages.push(message);
+    },
+    receivedOldMessages(message) {
+
+        console.log('received old message');
+        console.log(message);
+        // this.messages.push(message);
     },
     validateInput() {
       return this.text.length > 0;
@@ -115,6 +122,13 @@ export default {
 
     this.socket.on("rooms", (rooms) => {
       this.myRooms = rooms.items;
+    });
+
+    this.socket.on('messageAdded', (message) => {
+      this.receivedMessage(message)
+    });
+    this.socket.on('messages', (message) => {
+      this.receivedOldMessages(message)
     });
   },
 };
