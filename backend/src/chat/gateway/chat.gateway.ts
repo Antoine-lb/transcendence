@@ -105,6 +105,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('leaveRoom')
   async onLeaveRoom(socket: Socket, room: RoomI) {
 
+    console.log(room);
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
   }
@@ -115,13 +116,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
 
-    console.log(createdMessage);
 
     const room: RoomI = await this.roomSerice.getRoom(createdMessage.room.id);
 
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
     // Send New Message to all joineds Users (online on the room)
     for (const user of joinedUsers) {
+      console.log('ici');
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
   }

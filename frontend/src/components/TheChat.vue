@@ -30,40 +30,43 @@ export default {
       friendList: [],
       showRooms: false,
       selectedRoom: {},
+      room: {},
     };
   },
   props: {
     user: Object,
   },
   methods: {
-    sendMessage(selectedItems) {
+    sendMessage() {
+
+      console.log(this.room);
       if (this.validateInput()) {
         const message = {
           user: this.userStore.user,
           text: this.text,
-          room: selectedItems,
+          room: this.room,
         };
         this.socket.emit("addMessage", message);
         this.text = "";
       }
     },
     receivedMessage(message) {
+
+        console.log('received message');
         this.server.on("messageAdded", message);
     },
     validateInput() {
       return this.text.length > 0;
     },
     joinedRoom(room) {
-      console.log('joined room')
+      this.room = room;
       this.socket.emit("joinRoom", room);
-      console.log('after emit')
-
     },
     leaveRoom(room) {
 
       this.socket.emit("leaveRoom", room);
       this.showRooms = false;
-      this.selectedItems = {};
+      // this.selectedItems = {};
     },
     createRooms() {
       let room = {
@@ -85,7 +88,6 @@ export default {
       this.socket.emit("createRoom", room);
     },
     updateSelected(selectedItem) {
-      console.log(selectedItem);
       this.selectedRoom = selectedItem.name;
       this.showRooms = true;
       this.joinedRoom(selectedItem);
@@ -113,7 +115,6 @@ export default {
 
     this.socket.on("rooms", (rooms) => {
       this.myRooms = rooms.items;
-      console.log(this.myRooms);
     });
   },
 };
@@ -179,7 +180,7 @@ export default {
             placeholder="Enter message..."
           ></textarea>
           <br />
-          <button id="send" class="btn" @click.prevent="sendMessage(selectedItems)">
+          <button id="send" class="btn" @click.prevent="sendMessage(room)">
             Send
           </button>
         </div>
