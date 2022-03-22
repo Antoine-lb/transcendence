@@ -20,6 +20,7 @@ import { ConnectedUserService } from '../service/connected-user/connected-user.s
 import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
 import { JoinedRoomService } from '../service/joined-room/joined-room.service';
 import { MessageService } from '../service/message/message.service';
+import { UserDto } from 'src/entities/users.dto';
  
 
  @WebSocketGateway({
@@ -79,6 +80,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
 
+    // TODO : Check validity of all users before create the room
+
     const createRoom: RoomI = await this.roomSerice.createRoom(room, socket.data.user);
 
     for (const user of createRoom.users) {
@@ -91,8 +94,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
    
+  @SubscribeMessage('blockUser')
+  async onBlockUser(socket: Socket, room: RoomI){}
+   
   @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, room: RoomI) {
+
+    
     
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
@@ -107,6 +115,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
+  }
+   
+  @SubscribeMessage('addAdmins')
+  async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
+
+    // Add admins to the Rooms
+    try {
+      await this.roomSerice.addAdminsToRoom(room, newAdmins, socket.data.user);
+    }
+    catch {
+      socket.emit('Error', new UnauthorizedException());
+    }
+
   }
    
   @SubscribeMessage('addMessage')
