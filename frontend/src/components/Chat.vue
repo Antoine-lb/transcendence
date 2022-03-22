@@ -1,17 +1,10 @@
 <script lang="ts">
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
+import ChatNewRoom from "./ChatNewRoom.vue";
 
-function fetchWithHeaders(url) {
-  return fetch(url, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Cache: "no-cache",
-    },
-    credentials: "include",
-  });
+interface roomInterface {
+  name: string;
 }
 
 export default {
@@ -36,9 +29,11 @@ export default {
   props: {
     user: Object,
   },
+  components: {
+    ChatNewRoom,
+  },
   methods: {
     sendMessage() {
-
       console.log(this.room);
       if (this.validateInput()) {
         const message = {
@@ -50,17 +45,15 @@ export default {
         this.text = "";
       }
     },
-      receivedMessage(message) {
-
-        console.log('received old message');
-        console.log(message);
-        this.messages.push(message);
+    receivedMessage(message) {
+      console.log("received old message");
+      console.log(message);
+      this.messages.push(message);
     },
     receivedOldMessages(message) {
-
-        console.log('received old message');
-        console.log(message);
-        // this.messages.push(message);
+      console.log("received old message");
+      console.log(message);
+      // this.messages.push(message);
     },
     validateInput() {
       return this.text.length > 0;
@@ -70,28 +63,12 @@ export default {
       this.socket.emit("joinRoom", room);
     },
     leaveRoom(room) {
-
       this.socket.emit("leaveRoom", room);
       this.showRooms = false;
       // this.selectedItems = {};
     },
-    createRooms() {
-      let room = {
-        name: this.newRoomName,
-        users: [],
-      };
-      let tmpNewRoomUsers = this.newRoomUsers.split(/[ ,]+/);
-      tmpNewRoomUsers.forEach((userAsked) => {
-        let exist = false;
-        this.friendList.forEach((validUser) => {
-          if (userAsked === validUser.username) {
-            console.log(validUser.username + " added");
-            room.users.push({ id: validUser.id });
-            exist = true;
-          }
-        });
-        if (!exist) alert(userAsked + " don't exist");
-      });
+    createRoom(room: roomInterface) {
+      console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
     updateSelected(selectedItem) {
@@ -99,7 +76,6 @@ export default {
       this.showRooms = true;
       this.joinedRoom(selectedItem);
     },
-
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -107,56 +83,39 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    this.loading = true;
-    try {
-      const response = await fetchWithHeaders(
-        "http://127.0.0.1:3000/api/users"
-      );
-      if (response.status == 200) {
-        this.friendList = await response.json();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    this.loading = false;
 
     this.socket.on("rooms", (rooms) => {
       this.myRooms = rooms.items;
     });
 
-    this.socket.on('messageAdded', (message) => {
-      this.receivedMessage(message)
+    this.socket.on("messageAdded", (message) => {
+      this.receivedMessage(message);
     });
-    this.socket.on('messages', (message) => {
-      this.receivedOldMessages(message)
+    this.socket.on("messages", (message) => {
+      this.receivedOldMessages(message);
     });
   },
 };
 </script>
 <template>
   <div class="container">
-    <h1>Créer un salon</h1>
-    <form @submit.prevent="createRooms">
-      <input type="text" v-model="newRoomName" placeholder="Room Name" />
-      <input type="text" v-model="newRoomUsers" placeholder="Room Users" />
-      <input class="button" type="submit" value="Ajouter" />
-    </form>
+    <ChatNewRoom @onSubmit="createRoom" />
 
     <h1>Salons Disponibles</h1>
-    <div class="list-group" v-if="showRooms == false">
+    <div class="list-group">
       <ul>
-        <li
+        <div
           class="list-group-item list-group-item-action"
           @click="updateSelected(room)"
           v-for="(room, index) in this.myRooms"
           :key="index"
         >
           {{ room?.name }}
-        </li>
+        </div>
       </ul>
     </div>
 
-    <div v-else>
+    <div>
       <button class="btn btn-primary" @click="leaveRoom(selectedRoom)">
         Go back
       </button>
