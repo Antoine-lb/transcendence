@@ -27,6 +27,18 @@ export class AuthController{
             }
             else res.status(302).redirect('/api/auth/callback')
         }
+    
+        @Get('/islog')
+        async islog(@Res() res: Response, @Req() req: Request) {
+            if (req.cookies && req.cookies['access_token']) {
+                if (this.authService.verifyToken(req.cookies['access_token']))
+                    return await res.status(200).send({ logged: true });
+                else
+                    return await res.status(200).send({ logged: false });
+            }
+            return await res.status(200).send({ logged: false });
+        }
+        
         
 
         @UseGuards(Guard42)

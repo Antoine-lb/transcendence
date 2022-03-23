@@ -8,18 +8,20 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { createQuery } from 'mysql2/typings/mysql/lib/Connection';
 import { UserDto } from 'src/entities/users.dto';
 import { UsersService } from 'src/users/users.service';
+import { encodePassword } from 'src/utils/bcrypt';
 
 
 @Injectable()
 export class RoomService {
 
     constructor(
+        private readonly usersService: UsersService,
+
         @InjectRepository(RoomEntity)
-        private usersService: UsersService,
         private readonly roomRepository: Repository<RoomEntity>
     ){}
     
-    async createRoom(room: RoomI, creator: UserEntity): Promise<RoomI> {
+    async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
 
         const newRoom = await this.addCreatorToRoom(room, creator);
 
@@ -27,13 +29,14 @@ export class RoomService {
         if (newRoom.status == true) {
 
             // hash and store the password
-            if (newRoom.protected == true) {
-                
-            }
+            if (newRoom.protected == true && room.password)
+                newRoom.password = encodePassword(room.password);
+            else
+                // TODO : return error
+            
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
         }
-        
         return this.roomRepository.save(newRoom);
     }
 
@@ -54,13 +57,17 @@ export class RoomService {
     }
 
     async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
+        
+        // initialize empty array for the admins
+        const admins: UserDto[] = [];
+
 
         // Save creator as Creator
         room.users.push(creator);
 
-
         // Save creator as Admin
-        room.admins.push(creator);
+        admins.push(creator);
+        room.admins = admins;
 
         return await room;
     }
@@ -71,15 +78,19 @@ export class RoomService {
         const user = await this.findAdminForRoom(room, modifier.id);
         if (!user) throw new UnauthorizedException();
         
-        // Save User's'  as  Admin's'
         for (const admin of admins) {
-            room.admins.push(admin);
+
+            // Save User's'  as  Admin's' if (not already admin to the room)
+            const tmp = await this.findAdminForRoom(room, admin.id);
+            if (!tmp)
+                room.admins.push(admin);
         }
         return await room;
     }
 
-    async deleteUserByName(room: RoomI, blockedUser: UserDto) {
-        // delete room.users.delete({});
+    async banUsers(room: RoomI, UsersToBan: UserDto[]) {}
+
+    async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
 
     async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {

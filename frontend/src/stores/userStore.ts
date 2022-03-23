@@ -19,6 +19,21 @@ export const useUserStore = defineStore({
     async requestLogState() {
       this._isLoading = true;
       try {
+        let tmp = await fetch("http://127.0.0.1:3000/api/auth/islog", {
+          method: "GET",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache': 'no-cache'
+          },
+          credentials: 'include'
+        })
+        const userTmp = await tmp.json();
+        console.log(userTmp)
+
+
+
+
         this._response = await fetch("http://127.0.0.1:3000/api/users/me", {
           method: "GET",
           headers: {

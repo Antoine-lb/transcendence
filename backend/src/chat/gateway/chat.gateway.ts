@@ -21,6 +21,7 @@ import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
 import { JoinedRoomService } from '../service/joined-room/joined-room.service';
 import { MessageService } from '../service/message/message.service';
 import { UserDto } from 'src/entities/users.dto';
+import { comparePassword } from 'src/utils/bcrypt';
  
 
  @WebSocketGateway({
@@ -98,9 +99,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onBlockUser(socket: Socket, room: RoomI){}
    
   @SubscribeMessage('joinRoom')
-  async onJoinRoom(socket: Socket, room: RoomI) {
+  async onJoinRoom(socket: Socket, room: RoomI, password: string) {
 
-    
+    if (room.protected == true) {
+      const matched = comparePassword(password, room.password)
+      if (!matched) {
+        socket.emit('WrongPassword', new UnauthorizedException());
+      }
+    }
     
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
