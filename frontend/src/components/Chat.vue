@@ -237,4 +237,8 @@ input[type="submit"]:hover {
   padding: 10px;
   margin: 10px;
 }
+
+.message-user {
+  font-weight: bold;
+}
 </style>
