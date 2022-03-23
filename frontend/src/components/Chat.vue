@@ -25,6 +25,10 @@ export default {
       room: {},
     };
   },
+  setup() {
+    const userStore = useUserStore();
+    return { userStore };
+  },
   props: {
     user: Object,
   },
@@ -135,12 +139,31 @@ export default {
       <div id="status"></div>
       <div id="chat">
         <br />
-        <div class="card">
-          <div id="messages" class="card-block">
+        <div class="message-box">
+          <div id="messages-box" class="card-block">
             <div v-for="message of messages.items" :key="message.id">
-              <div class="message">
-                <div class="message-user">{{ message?.user.username }}</div>
-                <div class="message-content">{{ message?.text }}</div>
+              <div class="message-box">
+                <div
+                  v-if="userStore.user.id !== message?.user.id"
+                  class="message"
+                >
+                  <div class="message-user">
+                    {{ message?.user.username }}
+                  </div>
+                  <div class="message-content">{{ message?.text }}</div>
+                </div>
+              </div>
+
+              <div class="message-box" style="flex-direction: row-reverse">
+                <div
+                  v-if="userStore.user.id === message?.user.id"
+                  class="my-message"
+                >
+                  <div class="my-message-user">
+                    {{ message?.user.username }}
+                  </div>
+                  <div class="my-message-content">{{ message?.text }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -166,29 +189,6 @@ main {
   max-width: 500px;
   padding-top: 50px; /* Original 100px */
   margin: auto;
-}
-
-input {
-  color: #703ab8;
-  border: 3px solid #703ab8;
-  padding: 10px;
-  border-radius: 13px;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-input[type="submit"] {
-  background-color: #703ab8;
-  border: none;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  border-radius: 13px;
-  padding: 6px 15px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  margin-top: 10px;
-  display: block;
 }
 
 input[type="submit"]:hover {
@@ -228,6 +228,17 @@ input[type="submit"]:hover {
   background-color: #713ab8;
 }
 
+.message-box {
+  display: flex;
+}
+#messages-box {
+  height: 450px;
+  overflow-y: scroll;
+  width: 500px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  border-radius: 20px;
+}
+
 .message {
   color: white;
   background-color: #713ab8;
@@ -236,9 +247,54 @@ input[type="submit"]:hover {
   display: inline-block;
   padding: 10px;
   margin: 10px;
+  overflow-wrap: break-word;
+  max-width: 300px;
 }
 
 .message-user {
+  overflow-wrap: break-word;
   font-weight: bold;
+}
+.message-content {
+  overflow-wrap: break-word;
+}
+.my-message {
+  color: #713ab8;
+  align-self: end;
+  border: 2px solid #703ab8;
+  background-color: white;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 23px 23px 3px 23px;
+  display: inline-block;
+  padding: 10px;
+  margin: 10px;
+  overflow-wrap: break-word;
+  max-width: 300px;
+}
+
+.my-message-user {
+  overflow-wrap: break-word;
+
+  font-weight: bold;
+}
+.my-message-content {
+  overflow-wrap: break-word;
+}
+
+textarea {
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  width: 100%;
+  padding: 10px;
+}
+
+#send {
+  background-color: #713ab8;
+  color: white;
+  border: none;
+  font-size: 30px;
+  padding: 10px;
+  border-radius: 13px;
+  margin-bottom: 100px;
 }
 </style>
