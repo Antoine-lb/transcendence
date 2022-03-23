@@ -21,7 +21,6 @@ export default {
       newRoomName: null,
       newRoomUsers: null,
       friendList: [],
-      showRooms: false,
       selectedRoom: {},
       room: {},
     };
@@ -45,16 +44,6 @@ export default {
         this.text = "";
       }
     },
-    receivedMessage(message) {
-      console.log("received old message");
-      console.log(message);
-      this.messages.push(message);
-    },
-    receivedOldMessages(message) {
-      console.log("received old message");
-      console.log(message);
-      // this.messages.push(message);
-    },
     validateInput() {
       return this.text.length > 0;
     },
@@ -64,17 +53,23 @@ export default {
     },
     leaveRoom(room) {
       this.socket.emit("leaveRoom", room);
-      this.showRooms = false;
-      // this.selectedItems = {};
+      this.selectedRoom = {};
     },
     createRoom(room: roomInterface) {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
     updateSelected(selectedItem) {
-      this.selectedRoom = selectedItem.name;
-      this.showRooms = true;
-      this.joinedRoom(selectedItem);
+      console.log("selectedItem", selectedItem);
+
+      if (selectedItem.id === this.selectedRoom.id) {
+        console.log("leave current room");
+        this.socket.emit("leaveRoom", this.selectedRoom);
+        this.selectedRoom = {};
+      } else {
+        this.selectedRoom = selectedItem;
+        this.joinedRoom(selectedItem);
+      }
     },
   },
   async created() {
@@ -86,13 +81,17 @@ export default {
 
     this.socket.on("rooms", (rooms) => {
       this.myRooms = rooms.items;
+      console.log("this.myRooms", this.myRooms);
     });
 
     this.socket.on("messageAdded", (message) => {
-      this.receivedMessage(message);
+      console.log("messageAdded", message);
+      // this.receivedMessage(message);
+      this.messages.items.push(message);
     });
-    this.socket.on("messages", (message) => {
-      this.receivedOldMessages(message);
+    this.socket.on("messages", (messages) => {
+      console.log("messages", messages);
+      this.messages = messages;
     });
   },
 };
@@ -101,62 +100,62 @@ export default {
   <div class="container">
     <ChatNewRoom @onSubmit="createRoom" />
 
-    <h1>Salons Disponibles</h1>
+    <h1 style="margin-top: 30px">Salons Disponibles</h1>
     <div class="list-group">
       <ul>
         <div
-          class="list-group-item list-group-item-action"
           @click="updateSelected(room)"
           v-for="(room, index) in this.myRooms"
           :key="index"
         >
-          {{ room?.name }}
+          <div
+            v-if="room.id !== this.selectedRoom.id"
+            class="list-group-item list-group-item-action"
+          >
+            💬 {{ room.name }}
+          </div>
+          <div
+            v-if="room.id === this.selectedRoom.id"
+            class="list-group-item list-group-item-action selected"
+          >
+            💬 {{ room.name }}
+          </div>
         </div>
       </ul>
     </div>
 
-    <div>
-      <button class="btn btn-primary" @click="leaveRoom(selectedRoom)">
-        Go back
-      </button>
-      <p>
-        You have choosen
-        <span class="highlight">{{ this.selectedRoom }}</span>
-      </p>
-    </div>
     <!-- CHAT ROOM -->
-    <div class="row">
-      <div class="col-md-6 offset-md-3 col-sm-12">
-        <h1 class="text-center">
-          {{ title }}
-          <span v-if="showRooms == true"> : {{ this.selectedRoom }} </span>
-        </h1>
-        <br />
+    <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
+      <h1 class="text-center">
+        {{ title }}
+        <span> : {{ this.selectedRoom.name }} </span>
+      </h1>
+      <br />
 
-        <div id="status"></div>
-        <div id="chat">
-          <br />
-          <div class="card">
-            <div id="messages" class="card-block">
-              <ul>
-                <li v-for="message of messages">
-                  {{ message?.name }}: {{ message?.text }}
-                </li>
-              </ul>
+      <div id="status"></div>
+      <div id="chat">
+        <br />
+        <div class="card">
+          <div id="messages" class="card-block">
+            <div v-for="message of messages.items" :key="message.id">
+              <div class="message">
+                <div class="message-user">{{ message?.user.username }}</div>
+                <div class="message-content">{{ message?.text }}</div>
+              </div>
             </div>
           </div>
-          <br />
-          <textarea
-            id="textarea"
-            class="form-control"
-            v-model="text"
-            placeholder="Enter message..."
-          ></textarea>
-          <br />
-          <button id="send" class="btn" @click.prevent="sendMessage(room)">
-            Send
-          </button>
         </div>
+        <br />
+        <textarea
+          id="textarea"
+          class="form-control"
+          v-model="text"
+          placeholder="Enter message..."
+        ></textarea>
+        <br />
+        <button id="send" class="btn" @click.prevent="sendMessage(room)">
+          Send
+        </button>
       </div>
     </div>
   </div>
@@ -191,6 +190,7 @@ input[type="submit"] {
   margin-top: 10px;
   display: block;
 }
+
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
@@ -198,17 +198,43 @@ input[type="submit"]:hover {
 
 /* POUR LES SALONS */
 .list-group-item {
-  /* display: block; */ /* remove dot */
-  text-decoration: none;
-  /* margin: 1em 0.2em; */
-  color: #4a4a4a;
+  border: 3px solid #703ab8;
+  padding: 10px 20px;
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  color: #703ab8;
+  text-transform: capitalize;
+  text-align: center;
+  font-size: 20px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 15px;
 }
 
 .list-group-item:hover {
-  color: red;
+  background-color: #713ab834;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
 
-.highlight {
-  color: blue;
+.selected:hover {
+  color: #703ab8;
+  background-color: white;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+.selected {
+  color: white;
+  font-weight: bold;
+  background-color: #713ab8;
+}
+
+.message {
+  color: white;
+  background-color: #713ab8;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 23px 23px 23px 3px;
+  display: inline-block;
+  padding: 10px;
+  margin: 10px;
 }
 </style>
