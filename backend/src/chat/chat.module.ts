@@ -18,7 +18,7 @@ import { JoinedRoomEntity } from './model/joined-room.entity';
     ConnectedUserEntity,
     MessageEntity,
     JoinedRoomEntity
-    ])
+    ]),
   ],
   providers: [ChatGateway, RoomService, ConnectedUserService, JoinedRoomService, MessageService]
 })

@@ -14,6 +14,10 @@ RUN npm i --save-dev webpack webpack-cli webpack-node-externals ts-loader run-sc
 RUN npm i --save @nestjs/websockets @nestjs/platform-socket.io
 RUN npm i nestjs-typeorm-paginate
 
+
+RUN npm i bcrypt    
+RUN npm i -D @types/bcrypt
+
 RUN npm i cookie-parser
 RUN npm i -D @types/cookie-parser
 

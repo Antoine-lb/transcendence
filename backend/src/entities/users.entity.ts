@@ -56,7 +56,7 @@ export class UserEntity {
   receivedFriendRequests: FriendRequestEntity[];
 
   @ManyToMany(() => RoomEntity, room => room.users)
-  rooms: RoomEntity[]
+  rooms: RoomEntity[];
 
   @OneToMany(() => ConnectedUserEntity, connection => connection.user)
   connections: ConnectedUserEntity[];
@@ -66,4 +66,8 @@ export class UserEntity {
 
   @OneToMany(() => MessageEntity, message => message.user)
   messages: MessageEntity[];
+
+  @ManyToMany(() => RoomEntity, room => room.admins)
+  adminOF: RoomEntity[];
+
 }

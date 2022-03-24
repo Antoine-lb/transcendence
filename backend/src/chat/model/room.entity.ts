@@ -1,5 +1,5 @@
 import { UserEntity } from "src/entities/users.entity";
-import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
+import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, JoinTable, OneToMany, ManyToOne } from "typeorm";
 import { JoinedRoomEntity } from "./joined-room.entity";
 import { MessageEntity } from "./message.entity";
 
@@ -13,14 +13,27 @@ export class RoomEntity {
     @Column()
     name: string;
 
-    // @Column({nullable: true})
-    // password: string; // hashed password
+    // true = public
+    @Column({ default: true })
+    status: boolean;
+
+    // false = not protected
+    @Column({ default: false })
+    protected: boolean;
+
+
+    @ManyToMany(() => UserEntity)
+    @JoinTable()
+    admins: UserEntity[];
+
+    @Column({nullable: true})
+    password: string; // hashed password
 
     @ManyToMany(() => UserEntity)
     @JoinTable()
     users: UserEntity[];
 
-    @OneToMany(() => JoinedRoomEntity, joinedRoom => joinedRoom.user)
+    @OneToMany(() => JoinedRoomEntity, joinedRoom => joinedRoom.room)
     joinedUsers: JoinedRoomEntity[];
 
     @OneToMany(() => MessageEntity, message => message.room)
