@@ -48,6 +48,7 @@ export const useUserStore = defineStore({
           const userTmp = await this._response.json();
           this._user = userTmp.user
           this._user.access_token = userTmp.access_token
+          this._user.access_token_2fa = userTmp.access_token_2fa
         }      
       } catch (error) {
         console.error(error);

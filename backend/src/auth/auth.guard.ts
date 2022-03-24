@@ -5,11 +5,11 @@ import { AuthGuard } from "@nestjs/passport";
 export class Guard42 extends AuthGuard('OAuth2') {
 
 	async canActivate(context: ExecutionContext): Promise<any> {
+		console.log('___ canActivate()')
 		const activate = (await super.canActivate(context)) as boolean;
 		const request = context.switchToHttp().getRequest();
 
 		await super.logIn(request);
-
 		return activate;
 	}
 }

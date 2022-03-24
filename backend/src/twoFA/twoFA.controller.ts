@@ -11,12 +11,12 @@ import {
   HttpCode,
   Body,
   UnauthorizedException,
+  ImATeapotException,
 } from '@nestjs/common';
 import { TwoFAService } from './twoFA.service';
 import { Response, Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UsersService } from '../users/users.service';
-// import { UserEntity } from '../users/users.entity';
 import RequestWithUser from '../auth/requestWithUser.interface';
 import { TwoFADto } from './twoFA.dto';
 import { AuthService } from 'src/auth/auth.service';
@@ -36,13 +36,13 @@ export class TwoFAController {
   // SETUP : n'est fait qu'une seule fois
   @Post('generate')
   @UseGuards(JwtAuthGuard)
-  async register(@Res() response: Response, @Req() request: RequestWithUser) {
-    console.log("___ generate 2fa qrcode ___ ")
-    // console.log("[user] >>> ", request.user);
-    // console.log("[req cookies]", request.cookies);
-
+  async register(@Res() res: Response, @Req() request: RequestWithUser) {
+    const qrcode = require('qrcode');
     const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(request.user);
-    return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
+    const ret = await qrcode.toDataURL(otpauthUrl);
+    console.log("ret : ", ret)
+    await res.send({ img_src : ret });
+    return res;
   }
   
   // SETUP : n'est fait qu'une seule fois
@@ -57,22 +57,23 @@ export class TwoFAController {
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
+    console.log(request.user)
     if (!isCodeValid) {
-      throw new UnauthorizedException('Wrong authentication code');
+      throw new ImATeapotException('Wrong authentication 2fa turn-on code');
     }
     console.log("CODE IS VALID - TURNING ON 2FA ON USER");
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
-    console.log(request.user)
   }
 
   @Post('turn-off')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
-  async turnOffTwoFA(@Req() request: RequestWithUser) {
+  async turnOffTwoFA(
+    @Req() request: RequestWithUser) {
     console.log("___ turn-off 2fa ___ ")
-    await this.usersService.turnOffTwoFA(request.user.id);
     console.log(request.user)
+    await this.usersService.turnOffTwoFA(request.user.id);
   }
 
   // EST APPELEE A CHAQUE LOGIN si 2fa est active (isTwoFA = true)
@@ -90,7 +91,7 @@ export class TwoFAController {
     );
     if (!isCodeValid) {
       console.log('>>> authenticate code non valide')
-      throw new UnauthorizedException('Wrong authentication code');
+      throw new ImATeapotException('Wrong authentication 2fa code');
     }
     // cree cookie qui contient le token
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
