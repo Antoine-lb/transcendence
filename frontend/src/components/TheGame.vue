@@ -14,6 +14,10 @@ export default {
       gameActive: false,
     };
   },
+  setup() {
+    const userStore = useUserStore();
+    return { userStore };
+  },
   props: {
     user: Object,
   },
