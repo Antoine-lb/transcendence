@@ -67,6 +67,10 @@ export default {
       gameActive : false,
 };
   },
+  setup() {
+    const userStore = useUserStore();
+    return { userStore };
+  },
   props: {
     user: Object,
   },
@@ -170,7 +174,7 @@ export default {
   async mounted() {
     this.socket = await io("http://127.0.0.1:3000", {
       extraHeaders: {
-        Authorization: this.user.access_token,
+        Authorization: this.userStore.access_token,
       },
     });
 
