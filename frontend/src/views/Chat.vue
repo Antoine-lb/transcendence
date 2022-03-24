@@ -4,7 +4,7 @@ import TheChat from "@/components/Chat.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
-  name: "Game",
+  name: "Chat",
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();

@@ -33,61 +33,143 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
    async onModuleInit() {
    }
-
-
  
   async handleConnection(socket: Socket, payload: string) {
 
     console.log('GAME!');
     socket.emit('test', {data: "hello form server"});
 
+    try {
+      const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
+
+      const user = await this.userService.findById(decodedToken.id);
+
+      if (!user) {
+        return this.disconnect(socket);
+      }
+      else {
+
+        console.log('user in handleConnection', user)
+
+      }
+    }
+    catch {
+      console.log('disconnect socket', )
+      return this.disconnect(socket);
+    }
+
   }
    
-  @SubscribeMessage('createGame')
-  async onCreateRoom(socket: Socket) {
-
-    // TODO : Check validity of all users before create the room
-
-    // const createRoom: RoomI = await this.roomSerice.createRoom(room, socket.data.user);
-
-    // for (const user of createRoom.users) {
-    //   const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-    //   const rooms = await this.roomSerice.getRoomForUser(user.id, { page: 1, limit: 100 })
-
-    //   for (const connection of connections) {
-    //     await this.server.to(connection.socketID).emit('rooms', rooms)
-    //   }
-    // }
-  }
+//   @SubscribeMessage('keydown')
+//   async handleKeydown(socket: Socket) {
+//     console.log('keydown')
+//     const roomName = clientRooms[client.id];
+//     if (!roomName) {
+//       return;
+//     }
+//     try {
+//       keyCode = parseInt(keyCode);
+//     } catch(e) {
+//       console.error(e);
+//       return;
+//     }
+  
+//     const vel = getUpdatedVelocity(keyCode);
+  
+//     if (vel) {
+//       state[roomName].players[client.number - 1].vel = vel;
+//     }
+//     // prevent paddles from going through walls
+//     if (state[roomName].players[client.number - 1].y < grid) {
+//       state[roomName].players[client.number - 1].y = grid;
+//     }
+//     else if (state[roomName].players[client.number - 1].y > maxPaddleY) {
+//       state[roomName].players[client.number - 1].y = maxPaddleY;
+//     }
+//   }
    
-   
-  @SubscribeMessage('joinGame')
-  async onJoinRoom(socket: Socket) {
+//   @SubscribeMessage('joinGame')
+//   async handleJoinGame(socket: Socket) {
 
-    // if (room.protected == true) {
-    //   const matched = comparePassword(password, room.password)
-    //   if (!matched) {
-    //     socket.emit('WrongPassword', new UnauthorizedException());
-    //   }
-    // }
+//     const room = io.sockets.adapter.rooms[roomName];
+
+//     let allUsers;
+//     if (room) {
+//       allUsers = room.sockets;
+//     }
+  
+//     let numClients = 0;
+//     if (allUsers) {
+//       numClients = Object.keys(allUsers).length;
+//     }
+  
+//     if (numClients === 0) {
+//       client.emit('unknownCode');
+//       return;
+//     } else if (numClients > 1) {
+//       client.emit('tooManyPlayers');
+//       return;
+//     }
+  
+//     clientRooms[client.id] = roomName;
+  
+//     client.join(roomName);
+//     client.number = 2;
+//     client.emit('init', 2);
     
-    // Find previous Room Messages
-    // const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-    // // Save Connection to Room in DB
-    // await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
-    // // Send Last Message to User
-    // await this.server.to(socket.id).emit('messages', messages);
-  }
+//     startGameInterval(roomName);
+//   }
    
-  @SubscribeMessage('leaveGame')
-  async onLeaveRoom(socket: Socket) {
+//   @SubscribeMessage('newGame')
+//   async handleNewGame(socket: Socket) {
+//   let roomName = makeid(5);
+//   console.log("handleNewGame : ", roomName);
+//   clientRooms[client.id] = roomName;
+//   client.emit('gameCode', roomName);
 
-    // Remove connection for Joined Room
-    // await this.joinedRoomService.deleteBySocketID(socket.id);
-  }
-   
+//   state[roomName] = initGame();
+
+//   client.join(roomName);
+//   client.number = 1;
+//   client.emit('init', 1);
+
+//   }
      
+//   @SubscribeMessage('keyDown')
+//   async handleKeyDown(socket: Socket) {
+//     const roomName = clientRooms[client.id];
+//   if (!roomName) {
+//     return;
+//   }
+//   try {
+//     keyCode = parseInt(keyCode);
+//   } catch(e) {
+//     console.error(e);
+//     return;
+//   }
+
+//   const vel = getUpdatedVelocity(keyCode);
+
+//   if (vel) {
+//     state[roomName].players[client.number - 1].vel = vel;
+//   }
+//   // prevent paddles from going through walls
+//   if (state[roomName].players[client.number - 1].y < grid) {
+//     state[roomName].players[client.number - 1].y = grid;
+//   }
+//   else if (state[roomName].players[client.number - 1].y > maxPaddleY) {
+//     state[roomName].players[client.number - 1].y = maxPaddleY;
+//   }
+  
+//   }
    
+//   @SubscribeMessage('keyDown')
+//   async handleKeyDown(socket: Socket) {
+  
+  
+  
+//   }
+
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
     socket.disconnect()
@@ -102,3 +184,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
  }
 
+//  function startGameInterval(roomName) {
+//   const intervalId = setInterval(() => {
+//     const winner = gameLoop(state[roomName]);
+//     console.log("startGameInterval winner :", winner)
+//     if (!winner) {
+//       emitGameState(roomName, state[roomName])
+//     } else {
+//       emitGameOver(roomName, winner);
+//       state[roomName] = null;
+//       clearInterval(intervalId);
+//     }
+//   }, 1000 / FRAME_RATE);
+//   }
+  
+//   function emitGameState(room, gameState) {
+//   // Send this event to everyone in the room.
+//   io.sockets.in(room)
+//     .emit('gameState', JSON.stringify(gameState));
+//   }
+  
+//   function emitGameOver(room, winner) {
+//   io.sockets.in(room)
+//     .emit('gameOver', JSON.stringify({ winner }));
+//   }
