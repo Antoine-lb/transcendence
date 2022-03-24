@@ -172,6 +172,8 @@ export default {
 
   },
   async mounted() {
+
+    console.log('test game')
     this.socket = await io("http://127.0.0.1:3000", {
       extraHeaders: {
         Authorization: this.userStore.access_token,
