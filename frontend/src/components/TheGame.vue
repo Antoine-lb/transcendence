@@ -1,51 +1,59 @@
 <template>
-<!--   <div class="canvas-container">
+  <!--   <div class="canvas-container">
     <canvas width="750" height="585" id="game" ></canvas> Toggle with : "const canvas = <HTMLCanvasElement>document.getElementById("game"); l.19"
     <canvas ref="game" width="750" height="585"></canvas>
   </div> -->
-<!-- NEW VERSION -->
-<body>
-  <section class="vh-100">
-    <div class="container h-100">
-
-      <div ref="initialScreen" class="h-100">
-        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+  <!-- NEW VERSION -->
+  <body>
+    <section class="vh-100">
+      <div class="container h-100">
+        <div ref="initialScreen" class="h-100">
+          <div
+            class="
+              d-flex
+              flex-column
+              align-items-center
+              justify-content-center
+              h-100
+            "
+          >
             <h1>Multiplayer Pong Game</h1>
-            <button
-              type="submit"
-              class="btn btn-success"
-              ref="newGameButton"
-            >
+            <button type="submit" class="btn btn-success" ref="newGameButton">
               Create New Game
             </button>
             <div>OR</div>
             <div class="form-group">
-              <input type="text" placeholder="Enter Game Code" ref="gameCodeInput"/>
+              <input
+                type="text"
+                placeholder="Enter Game Code"
+                ref="gameCodeInput"
+              />
             </div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              ref="joinGameButton"
-            >
+            <button type="submit" class="btn btn-success" ref="joinGameButton">
               Join Game
             </button>
+          </div>
+        </div>
+
+        <div ref="gameScreen" class="h-100">
+          <div
+            class="
+              d-flex
+              flex-column
+              align-items-center
+              justify-content-center
+              h-100
+            "
+          >
+            <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
+
+            <!-- <canvas ref="canvas"></canvas> // toggle -->
+            <canvas ref="canvas"></canvas>
+          </div>
         </div>
       </div>
-
-      <div ref="gameScreen" class="h-100">
-        <div class="d-flex flex-column align-items-center justify-content-center h-100">
-
-          <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
-
-          <!-- <canvas ref="canvas"></canvas> // toggle -->
-          <canvas ref="canvas"></canvas>
-        </div>
-      </div>
-
-    </div>
-  </section>
-</body>
-
+    </section>
+  </body>
 </template>
 
 <script lang="ts">
@@ -53,19 +61,18 @@ import { io } from "socket.io-client";
 import WelcomeItem from "./WelcomeItem.vue";
 import { useUserStore } from "../stores/userStore";
 
-
 export default {
   name: "TheGame",
   data() {
     return {
-      socket : null,
-      canvas : null,
-      ctx : null,
-      grid : 15,
-      paddleHeight : this.grid * 5, // 80
-      playerNumber : 0,
-      gameActive : false,
-};
+      socket: null,
+      canvas: null,
+      ctx: null,
+      grid: 15,
+      paddleHeight: this.grid * 5, // 80
+      playerNumber: 0,
+      gameActive: false,
+    };
   },
   setup() {
     const userStore = useUserStore();
@@ -81,44 +88,61 @@ export default {
 
       // canvas = document.getElementById('canvas');
       this.canvas = this.$refs.game;
-      this.ctx = this.canvas.getContext('2d');
+      this.ctx = this.canvas.getContext("2d");
 
-      this.canvas.width =  750;
+      this.canvas.width = 750;
       this.canvas.height = 585;
 
       this.ctx.fillStyle = "#231f20";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-      document.addEventListener('keydown', this.keydown);
+      document.addEventListener("keydown", this.keydown);
       this.gameActive = true;
     },
 
     keydown(e) {
-      this.socket.emit('keydown', e.keyCode);
+      this.socket.emit("keydown", e.keyCode);
     },
 
     paintGame(state) {
-    
       // clear canvas
-      this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // draw paddles
-      this.ctx.fillStyle = 'black';
+      this.ctx.fillStyle = "black";
       this.ctx.fillRect(this.grid, state.players[0].y, 15, this.paddleHeight);
-      this.ctx.fillRect(this.canvas.width - 2 * this.grid, state.players[1].y, 15, paddleHeight);
+      this.ctx.fillRect(
+        this.canvas.width - 2 * this.grid,
+        state.players[1].y,
+        15,
+        paddleHeight
+      );
 
       // draw ball
       this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
 
       // draw walls
-      this.ctx.fillStyle = 'lightgrey';
+      this.ctx.fillStyle = "lightgrey";
       this.ctx.fillRect(0, 0, this.canvas.width, this.grid);
-      this.ctx.fillRect(0, this.canvas.height - this.grid, this.canvas.width, this.canvas.height);
+      this.ctx.fillRect(
+        0,
+        this.canvas.height - this.grid,
+        this.canvas.width,
+        this.canvas.height
+      );
 
       // draw dotted line down the middle
-      for (let i = this.grid; i < this.canvas.height - this.grid; i += this.grid * 2) {
-        this.ctx.fillRect(this.canvas.width / 2 - this.grid / 2, i, this.grid, this.grid);
+      for (
+        let i = this.grid;
+        i < this.canvas.height - this.grid;
+        i += this.grid * 2
+      ) {
+        this.ctx.fillRect(
+          this.canvas.width / 2 - this.grid / 2,
+          i,
+          this.grid,
+          this.grid
+        );
       }
-
     },
 
     handleInit(number) {
@@ -130,7 +154,7 @@ export default {
         return;
       }
       gameState = JSON.parse(gameState);
-      console.log( "handleGameState gameState : ", gameState);
+      console.log("handleGameState gameState : ", gameState);
       requestAnimationFrame(() => this.paintGame(gameState));
     },
 
@@ -143,9 +167,9 @@ export default {
       this.gameActive = false;
 
       if (data.winner === this.playerNumber) {
-        alert('You Win!');
+        alert("You Win!");
       } else {
-        alert('You Lose :(');
+        alert("You Lose :(");
       }
     },
 
@@ -155,40 +179,41 @@ export default {
 
     handleUnknownCode() {
       this.reset();
-      alert('Unknown Game Code')
+      alert("Unknown Game Code");
     },
 
     handleTooManyPlayers() {
       this.reset();
-      alert('This game is already in progress');
+      alert("This game is already in progress");
     },
 
     reset() {
       this.playerNumber = null;
-      this.$ref.gameCodeInput.value = '';
+      this.$ref.gameCodeInput.value = "";
       this.$ref.initialScreen.style.display = "block";
       this.$ref.gameScreen.style.display = "none";
     },
-
+    testConnexion(data) {
+      console.log("test connection", data);
+    },
   },
   async mounted() {
-
-    console.log('test game')
+    console.log("test game");
     this.socket = await io("http://127.0.0.1:3000", {
       extraHeaders: {
         Authorization: this.userStore.access_token,
       },
     });
 
-    this.socket.on('test', this.testConnexion);
-    this.socket.on('init', this.handleInit);
-    this.socket.on('gameState', this.handleGameState);
-    this.socket.on('gameOver', this.handleGameOver);
-    this.socket.on('gameCode', this.handleGameCode);
-    this.socket.on('unknownCode', this.handleUnknownCode);
-    this.socket.on('tooManyPlayers', this.handleTooManyPlayers);
+    this.socket.on("test", this.testConnexion);
+    this.socket.on("init", this.handleInit);
+    this.socket.on("gameState", this.handleGameState);
+    this.socket.on("gameOver", this.handleGameOver);
+    this.socket.on("gameCode", this.handleGameCode);
+    this.socket.on("unknownCode", this.handleUnknownCode);
+    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
 
-/* 
+    /* 
 //  ANCIENNE VERSION
     // const canvas = <HTMLCanvasElement>document.getElementById("game");
     const canvas = this.$refs.game;

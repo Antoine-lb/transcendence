@@ -39,6 +39,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleConnection(socket: Socket, payload: string) {
 
     console.log('GAME!');
+    socket.emit('test', {data: "hello form server"});
+
   }
    
   @SubscribeMessage('createGame')
