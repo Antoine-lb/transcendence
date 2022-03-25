@@ -32,12 +32,12 @@ export class RoomService {
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
             else
-                // TODO : return error
+            // TODO : return error
             
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
         }
-        return this.roomRepository.save(newRoom);
+        return await this.roomRepository.save(newRoom);
     }
 
     async getRoom(roomID: number): Promise<RoomI> {

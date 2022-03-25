@@ -20,6 +20,7 @@ import { JoinedRoomEntity } from './chat/model/joined-room.entity';
 import { GameGateway } from './gamee/gateway/game.gateway';
 import { GameService } from './gamee/service/game/game.service';
 import { TestService } from './gamee/service/test/test.service';
+import { GameEntity } from './gamee/model/game.entity';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { TestService } from './gamee/service/test/test.service';
 				RoomEntity,
 				ConnectedUserEntity,
 				MessageEntity,
-				JoinedRoomEntity
+				JoinedRoomEntity,
+				GameEntity,
 			],
 			synchronize: true,
 			keepConnectionAlive: true,

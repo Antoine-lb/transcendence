@@ -13,6 +13,12 @@ import { UsersService } from 'src/users/users.service';
 import { runInThisContext } from 'vm';
 import { UserDto } from 'src/entities/users.dto';
 import { comparePassword } from 'src/utils/bcrypt';
+import { GameService } from 'src/gamee/service/game/game.service';
+import { FRAME_RATE, maxPaddleY, grid } from 'src/utils/constants';
+import { RoomEntity } from 'src/chat/model/room.entity';
+import { RoomI } from 'src/chat/model/room.interface';
+import { StateI } from 'src/gamee/model/state.interface';
+
  
 
  @WebSocketGateway({
@@ -25,11 +31,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    constructor(
      private authService: AuthService,
      private userService: UsersService,
+     private GameService: GameService,
+
     ) { }
   
    
    
    @WebSocketServer() server: Server;
+
+   state: StateI;
    
    async onModuleInit() {
    }
@@ -37,138 +47,131 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleConnection(socket: Socket, payload: string) {
 
     console.log('GAME!');
-    socket.emit('test', {data: "hello form server"});
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
       const user = await this.userService.findById(decodedToken.id);
 
-      if (!user) {
+      if (!user)
         return this.disconnect(socket);
-      }
       else {
-
-        console.log('user in handleConnection', user)
-
+        socket.data.user = user;
+        socket.data.number = null;
       }
+      
     }
     catch {
       console.log('disconnect socket', )
       return this.disconnect(socket);
     }
-
   }
    
-//   @SubscribeMessage('keydown')
-//   async handleKeydown(socket: Socket) {
-//     console.log('keydown')
-//     const roomName = clientRooms[client.id];
-//     if (!roomName) {
-//       return;
-//     }
-//     try {
-//       keyCode = parseInt(keyCode);
-//     } catch(e) {
-//       console.error(e);
-//       return;
-//     }
+  @SubscribeMessage('keydown')
+  async handleKeydown(socket: Socket, keyCode: string) {
+    console.log('keydown')
+
+    let keyCodeInt: number;
+    const roomName = this.state.id;
+    if (!roomName) {
+      return;
+    }
+    try {
+      keyCodeInt = parseInt(keyCode);
+    } catch(e) {
+      console.error(e);
+      return;
+    }
   
-//     const vel = getUpdatedVelocity(keyCode);
+    const vel = this.GameService.getUpdatedVelocity(keyCodeInt);
   
-//     if (vel) {
-//       state[roomName].players[client.number - 1].vel = vel;
-//     }
-//     // prevent paddles from going through walls
-//     if (state[roomName].players[client.number - 1].y < grid) {
-//       state[roomName].players[client.number - 1].y = grid;
-//     }
-//     else if (state[roomName].players[client.number - 1].y > maxPaddleY) {
-//       state[roomName].players[client.number - 1].y = maxPaddleY;
-//     }
-//   }
+    if (vel) {
+      this.state[roomName].players[socket.data.number - 1].y += vel;
+    }
+    // prevent paddles from going through walls
+    if (this.state[roomName].players[socket.data.number - 1].y < grid) {
+      this.state[roomName].players[socket.data.number - 1].y = grid;
+    }
+    else if (this.state[roomName].players[socket.data.number - 1].y > maxPaddleY) {
+      this.state[roomName].players[socket.data.number - 1].y = maxPaddleY;
+    }
+  }
    
-//   @SubscribeMessage('joinGame')
-//   async handleJoinGame(socket: Socket) {
+  @SubscribeMessage('joinGame')
+  async handleJoinGame(socket: Socket, roomName: string) {
 
-//     const room = io.sockets.adapter.rooms[roomName];
+    const room = this.server.sockets.adapter.rooms[roomName];
 
-//     let allUsers;
-//     if (room) {
-//       allUsers = room.sockets;
-//     }
+    let allUsers;
+    if (room) {
+      allUsers = room.sockets;
+    }
   
-//     let numClients = 0;
-//     if (allUsers) {
-//       numClients = Object.keys(allUsers).length;
-//     }
+    let numClients = 0;
+    if (allUsers) {
+      numClients = Object.keys(allUsers).length;
+    }
   
-//     if (numClients === 0) {
-//       client.emit('unknownCode');
-//       return;
-//     } else if (numClients > 1) {
-//       client.emit('tooManyPlayers');
-//       return;
-//     }
+    if (numClients === 0) {
+      socket.emit('unknownCode');
+      return;
+    } else if (numClients > 1) {
+      socket.emit('tooManyPlayers');
+      return;
+    }
   
-//     clientRooms[client.id] = roomName;
+    this.state.id = parseInt(roomName);
   
-//     client.join(roomName);
-//     client.number = 2;
-//     client.emit('init', 2);
+    socket.join(roomName);
+    socket.data.number = 2;
+    socket.emit('init', 2);
     
-//     startGameInterval(roomName);
-//   }
+    startGameInterval(roomName);
+  }
    
-//   @SubscribeMessage('newGame')
-//   async handleNewGame(socket: Socket) {
-//   let roomName = makeid(5);
-//   console.log("handleNewGame : ", roomName);
-//   clientRooms[client.id] = roomName;
-//   client.emit('gameCode', roomName);
+  @SubscribeMessage('createGame')
+  async handleNewGame(socket: Socket) {
+    
+    let roomId = this.GameService.makeid(5);
+    socket.emit('gameCode', roomId);
 
-//   state[roomName] = initGame();
+    this.state = await this.GameService.initGame();
 
-//   client.join(roomName);
-//   client.number = 1;
-//   client.emit('init', 1);
-
-//   }
+    console.log(this.state);
+    socket.join(roomId);
+    socket.data.number = 1;
+    socket.emit('init', 1);
+  }
      
-//   @SubscribeMessage('keyDown')
-//   async handleKeyDown(socket: Socket) {
-//     const roomName = clientRooms[client.id];
-//   if (!roomName) {
-//     return;
-//   }
-//   try {
-//     keyCode = parseInt(keyCode);
-//   } catch(e) {
-//     console.error(e);
-//     return;
-//   }
-
-//   const vel = getUpdatedVelocity(keyCode);
-
-//   if (vel) {
-//     state[roomName].players[client.number - 1].vel = vel;
-//   }
-//   // prevent paddles from going through walls
-//   if (state[roomName].players[client.number - 1].y < grid) {
-//     state[roomName].players[client.number - 1].y = grid;
-//   }
-//   else if (state[roomName].players[client.number - 1].y > maxPaddleY) {
-//     state[roomName].players[client.number - 1].y = maxPaddleY;
-//   }
-  
-//   }
    
-//   @SubscribeMessage('keyDown')
-//   async handleKeyDown(socket: Socket) {
-  
-  
-  
-//   }
+  @SubscribeMessage('keyDown')
+  async handleKeyDown(socket: Socket, keyCode: string) {
+
+    let keyCodeInt: number;
+    const roomName = this.state.id
+    if (!roomName) {
+      return;
+    }
+    try {
+      keyCodeInt = parseInt(keyCode);
+    } catch(e) {
+      console.error(e);
+      return;
+    }
+
+    const vel = this.GameService.getUpdatedVelocity(keyCodeInt);
+
+    if (vel) {
+      this.state[roomName].players[socket.data.number - 1].y += vel;
+    }
+    // prevent paddles from going through walls
+    if (this.state[roomName].players[socket.data.number - 1].y < grid) {
+      this.state[roomName].players[socket.data.number - 1].y = grid;
+    }
+    else if (this.state[roomName].players[socket.data.number - 1].y > maxPaddleY) {
+      this.state[roomName].players[socket.data.number - 1].y = maxPaddleY;
+    }
+  }
 
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
@@ -184,27 +187,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
  }
 
-//  function startGameInterval(roomName) {
-//   const intervalId = setInterval(() => {
-//     const winner = gameLoop(state[roomName]);
-//     console.log("startGameInterval winner :", winner)
-//     if (!winner) {
-//       emitGameState(roomName, state[roomName])
-//     } else {
-//       emitGameOver(roomName, winner);
-//       state[roomName] = null;
-//       clearInterval(intervalId);
-//     }
-//   }, 1000 / FRAME_RATE);
-//   }
+ function startGameInterval(roomName) {
+  const intervalId = setInterval(() => {
+    const winner = this.GameService.gameLoop(this.state[roomName]);
+    console.log("startGameInterval winner :", winner)
+    if (!winner) {
+      this.emitGameState(roomName, this.state[roomName])
+    } else {
+      this.emitGameOver(roomName, winner);
+      this.state[roomName] = null;
+      clearInterval(intervalId);
+    }
+  }, 1000 / FRAME_RATE);
+  }
   
-//   function emitGameState(room, gameState) {
-//   // Send this event to everyone in the room.
-//   io.sockets.in(room)
-//     .emit('gameState', JSON.stringify(gameState));
-//   }
+  function emitGameState(socket: Socket, room, gameState) {
+  // Send this event to everyone in the room.
+  socket.in(room)
+    .emit('gameState', JSON.stringify(gameState));
+  }
   
-//   function emitGameOver(room, winner) {
-//   io.sockets.in(room)
-//     .emit('gameOver', JSON.stringify({ winner }));
-//   }
+  function emitGameOver(socket: Socket, room, winner) {
+  socket.in(room)
+    .emit('gameOver', JSON.stringify({ winner }));
+  }

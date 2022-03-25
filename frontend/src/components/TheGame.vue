@@ -1,5 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
+import { useUserStore } from "../stores/userStore";
 
 export default {
   name: "TheGame",
@@ -54,7 +55,7 @@ export default {
         this.canvas.width - 2 * this.grid,
         state.players[1].y,
         15,
-        paddleHeight
+        this.paddleHeight
       );
 
       // draw ball
@@ -138,6 +139,11 @@ export default {
       console.log("test connection", data);
     },
 
+    handleJoinGame() {
+      const code = this.gameCodeInput.value;
+      this.socket.emit('joinGame', code);
+      this.init();
+    },
     createNewGame() {
       console.log("new game");
       console.log("this.socket", this.socket.emit("createGame"));
@@ -198,7 +204,12 @@ export default {
                 ref="gameCodeInput"
               />
             </div>
-            <button type="submit" class="btn btn-success" ref="joinGameButton">
+            <button
+              type="submit"
+              class="btn btn-success"
+              ref="joinGameButton"
+              @click="handleJoinGame"
+            >
               Join Game
             </button>
           </div>
