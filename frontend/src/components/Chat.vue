@@ -2,10 +2,7 @@
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatNewRoom from "./ChatNewRoom.vue";
-
-interface roomInterface {
-  name: string;
-}
+import type { roomInterface } from "../types";
 
 export default {
   name: "Chat",
@@ -51,11 +48,11 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
-    joinedRoom(room) {
+    joinedRoom(room: roomInterface) {
       this.room = room;
       this.socket.emit("joinRoom", room);
     },
-    leaveRoom(room) {
+    leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
       this.selectedRoom = {};
     },
