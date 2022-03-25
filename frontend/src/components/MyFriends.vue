@@ -13,7 +13,13 @@ function fetchWithHeaders(url) {
   });
 }
 export default {
-  data() {
+  data(): {
+    loading: boolean;
+    friendList: [];
+    pendingFriendList: [];
+    blockedFriendList: [];
+    addFriendUsername: string;
+  } {
     return {
       loading: false,
       friendList: [],
