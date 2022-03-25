@@ -1,6 +1,11 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 
+export interface newRoomInterface {
+  name: string;
+  users: [{ id: number }];
+}
+
 function fetchWithHeaders(url) {
   return fetch(url, {
     method: "GET",
@@ -60,7 +65,7 @@ export default {
       }
     },
     createRooms() {
-      let room = {
+      let room: newRoomInterface = {
         name: this.newRoomName ? this.newRoomName : "No Name",
         users: this.newRoomUsers,
       };

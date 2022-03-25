@@ -2,7 +2,25 @@
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatNewRoom from "./ChatNewRoom.vue";
-import type { roomInterface } from "../types";
+
+export interface newRoomInterface {
+  name: string;
+  users: [{ id: number }];
+}
+
+export interface roomInterface {
+  created_date: string;
+  id: number;
+  name: string;
+  // password: string;
+  protected: boolean;
+  status: boolean;
+  updated_date: string;
+}
+
+export interface rawServerRoomsInterface {
+  items: [roomInterface?];
+}
 
 export default {
   name: "Chat",
@@ -56,11 +74,11 @@ export default {
       this.socket.emit("leaveRoom", room);
       this.selectedRoom = {};
     },
-    createRoom(room: roomInterface) {
+    createRoom(room: newRoomInterface) {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
-    updateSelected(selectedItem) {
+    updateSelected(selectedItem: roomInterface) {
       console.log("selectedItem", selectedItem);
 
       if (selectedItem.id === this.selectedRoom.id) {
@@ -80,7 +98,7 @@ export default {
       },
     });
 
-    this.socket.on("rooms", (rooms) => {
+    this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
       this.myRooms = rooms.items;
       console.log("this.myRooms", this.myRooms);
     });
