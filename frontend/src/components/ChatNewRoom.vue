@@ -53,7 +53,7 @@ export default {
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log("{ id: element.id }", { id: element.id });
+          console.log("add user { id: element.id }", { id: element.id }, element.username);
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;
@@ -64,12 +64,19 @@ export default {
         this.newRoomUserShowError = true;
       }
     },
+    removeUser(user) {
+      this.allUsers.map((element) => {
+        if (element.username === user.username) {
+          console.log("remove user { id: element.id }", { id: element.id }, element.username);
+          this.newRoomUsers.splice(this.newRoomUsers.indexOf(user), 1);
+        }
+      });
+    },
     createRooms() {
       let room: newRoomInterface = {
         name: this.newRoomName ? this.newRoomName : "No Name",
         users: this.newRoomUsers,
       };
-
       this.$emit("onSubmit", room);
     },
   },
@@ -83,6 +90,7 @@ export default {
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <li v-for="user in newRoomUsers" :key="user.username">
         {{ user.username }}
+        <button class="add-user" @click="removeUser(user)">Remove user</button>
       </li>
       <div>
         <input type="text" v-model="newRoomUser" placeholder="Room Users" />
