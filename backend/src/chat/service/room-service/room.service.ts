@@ -40,9 +40,19 @@ export class RoomService {
         return this.roomRepository.save(newRoom);
     }
 
+    async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
+        console.log("getAdminRoomsForUser");
+        
+        return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
+        .leftJoinAndSelect('rooms.admins', 'admins') // load "admins" relation (user entity) and select results as "admins"
+        .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
+        .getMany(); // get many results
+    }
+
+      
     async getRoom(roomID: number): Promise<RoomI> {
         return this.roomRepository.findOne(roomID, {
-            relations: ['users']
+            relations: ['users', 'admins']
         })
     }
 
@@ -94,8 +104,6 @@ export class RoomService {
     }
 
     async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-
-        
         for (const admin of room.admins) {
             if (admin.id == id) 
                 return await admin;

@@ -16,6 +16,7 @@ export interface roomInterface {
   protected: boolean;
   status: boolean;
   updated_date: string;
+  admins: [];
 }
 
 export interface rawServerRoomsInterface {
@@ -90,6 +91,10 @@ export default {
         this.joinedRoom(selectedItem);
       }
     },
+    findRole(room: roomInterface, userId: number) {
+      console.log("findRole", userId);
+      console.log("room in findRole : ", room);
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -148,6 +153,7 @@ export default {
       <h1 class="text-center">
         {{ title }}
         <span> : {{ this.selectedRoom.name }} </span>
+        <span> => {{ this.findRole(this.selectedRoom, userStore.user.id) }} </span>
       </h1>
       <br />
 
