@@ -49,7 +49,32 @@ export class RoomService {
         .getMany(); // get many results
     }
 
-      
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    async getAdminsForRoom(roomId: number) {
+        console.log("getAdminsForRoom ", roomId);
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.admins;
+    }
+
+    async getAdminsIdsForRoom(roomId: number) {
+        console.log("getAdminsForRoom ", roomId);
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var adminsIds = [];
+        for (const admin of ret.admins) {
+            adminsIds.push(admin.id);
+        }
+        // console.log(">>>>>> adminsIds : ", adminsIds);
+        return adminsIds;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     async getRoom(roomID: number): Promise<RoomI> {
         return this.roomRepository.findOne(roomID, {
             relations: ['users', 'admins']

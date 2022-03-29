@@ -38,6 +38,7 @@ export default {
       newRoomUsers: null,
       friendList: [],
       selectedRoom: {},
+      selectedRoomAdmins: [],
       room: {},
     };
   },
@@ -70,6 +71,7 @@ export default {
     joinedRoom(room: roomInterface) {
       this.room = room;
       this.socket.emit("joinRoom", room);
+      this.socket.emit("showAdmins", room);
     },
     leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
@@ -95,6 +97,7 @@ export default {
       console.log("findRole", userId);
       console.log("room in findRole : ", room);
     },
+    
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -102,12 +105,14 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-
     this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
       this.myRooms = rooms.items;
       console.log("this.myRooms", this.myRooms);
     });
-
+    this.socket.on("showAdmins", (admins: number[]) => {
+      this.selectedRoomAdmins = admins;
+      console.log("this.selectedRoomAdmins", this.selectedRoomAdmins);
+    });
     this.socket.on("messageAdded", (message) => {
       console.log("messageAdded", message);
       // this.receivedMessage(message);
@@ -153,7 +158,7 @@ export default {
       <h1 class="text-center">
         {{ title }}
         <span> : {{ this.selectedRoom.name }} </span>
-        <span> => {{ this.findRole(this.selectedRoom, userStore.user.id) }} </span>
+        <span> => {{ this.selectedRoomAdmins }} </span>
       </h1>
       <br />
 

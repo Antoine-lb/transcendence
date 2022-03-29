@@ -94,6 +94,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       }
     }
   }
+
+  @SubscribeMessage('showAdmins')
+  async onShowAdmins(socket: Socket, room: RoomI, admins: number[]){
+    admins = await this.roomSerice.getAdminsIdsForRoom(room.id);
+    console.log("______ admins : ", admins);
+    return this.server.to(socket.id).emit('showAdmins', admins)
+  }
    
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
