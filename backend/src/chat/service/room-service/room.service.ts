@@ -61,7 +61,6 @@ export class RoomService {
     }
 
     async getAdminsIdsForRoom(roomId: number) {
-        console.log("getAdminsForRoom ", roomId);
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
@@ -69,9 +68,39 @@ export class RoomService {
         for (const admin of ret.admins) {
             adminsIds.push(admin.id);
         }
-        // console.log(">>>>>> adminsIds : ", adminsIds);
         return adminsIds;
     }
+
+    async getUsersForRoom(roomId: number) {
+        console.log("getUsersForRoom ", roomId);
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.users;
+    }
+
+    async getUsersIdsForRoom(roomId: number) {
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var usersIds = [];
+        for (const user of ret.users) {
+            usersIds.push(user.id);
+        }
+        return usersIds;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    async quitRoom(room: RoomI, user: UserDto) {
+        console.log("quitRoom in service ", room.id, user.id);
+        // var ret = await this.roomRepository.findOne(roomId, {
+        //     relations: ['users', 'admins']
+        // });
+        // return ret.users;
+    }
+
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -123,7 +152,8 @@ export class RoomService {
         return await room;
     }
 
-    async banUsers(room: RoomI, UsersToBan: UserDto[]) {}
+    async banUsers(room: RoomI, UsersToBan: UserDto[]) {
+    }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }

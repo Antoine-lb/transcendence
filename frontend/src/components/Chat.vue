@@ -39,6 +39,7 @@ export default {
       friendList: [],
       selectedRoom: {},
       selectedRoomAdmins: [],
+      selectedRoomUsers: [],
       room: {},
     };
   },
@@ -71,11 +72,17 @@ export default {
     joinedRoom(room: roomInterface) {
       this.room = room;
       this.socket.emit("joinRoom", room);
-      this.socket.emit("showAdmins", room);
+      this.socket.emit("getAdmins", room);
+      this.socket.emit("getUsers", room);
     },
     leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
       this.selectedRoom = {};
+    },
+    quitRoom(room: roomInterface) {
+      this.socket.emit("quitRoom", { room : room, user : this.userStore.user });
+      // this.socket.emit("leaveRoom", room);
+      // this.selectedRoom = {};
     },
     createRoom(room: newRoomInterface) {
       console.log("createRoom", room);
@@ -93,11 +100,17 @@ export default {
         this.joinedRoom(selectedItem);
       }
     },
-    findRole(room: roomInterface, userId: number) {
-      console.log("findRole", userId);
-      console.log("room in findRole : ", room);
+    findRoleInSelectedRoom(userId: number) {
+      for (var admin of this.selectedRoomAdmins)
+      {
+        if (admin.id == userId)
+          return "admin";
+      }
+      return "lambda";
     },
-    
+    // banUser(user) {
+    //   ;
+    // },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -109,9 +122,13 @@ export default {
       this.myRooms = rooms.items;
       console.log("this.myRooms", this.myRooms);
     });
-    this.socket.on("showAdmins", (admins: number[]) => {
+    this.socket.on("getAdmins", (admins: number[]) => {
       this.selectedRoomAdmins = admins;
       console.log("this.selectedRoomAdmins", this.selectedRoomAdmins);
+    });
+    this.socket.on("getUsers", (users: number[]) => {
+      this.selectedRoomUsers = users;
+      console.log("this.selectedRoomUsers", this.selectedRoomUsers);
     });
     this.socket.on("messageAdded", (message) => {
       console.log("messageAdded", message);
@@ -156,9 +173,20 @@ export default {
     <!-- CHAT ROOM -->
     <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
       <h1 class="text-center">
-        {{ title }}
-        <span> : {{ this.selectedRoom.name }} </span>
-        <span> => {{ this.selectedRoomAdmins }} </span>
+        <!-- {{ title }} -->
+        <!-- <span> => {{ this.selectedRoomAdmins }} </span> -->
+        <!-- <span> => {{ this.selectedRoomUsers }} </span> -->
+        <!-- <span> => {{ findRoleInSelectedRoom(userStore.user.id) }} </span> -->
+        Users in {{ this.selectedRoom.name }} :
+        <li v-for="user in this.selectedRoomUsers" :key="user.username">
+          {{ user.username }}
+          <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="message">
+            <button class="add-user" @click="banUser(user)">Ban user</button>
+          </div>
+          <div v-if="userStore.user.id == user.id" class="message">
+            <button class="add-user" @click="quitRoom(this.selectedRoom)">Quit Room</button>
+          </div>
+        </li>
       </h1>
       <br />
 
