@@ -183,9 +183,9 @@ export default {
           <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="message">
             <button class="add-user" @click="banUser(user)">Ban user</button>
           </div>
-          <div v-if="userStore.user.id == user.id" class="message">
+          <!-- <div v-if="userStore.user.id == user.id" class="message">
             <button class="add-user" @click="quitRoom(this.selectedRoom)">Quit Room</button>
-          </div>
+          </div> -->
         </li>
       </h1>
       <br />

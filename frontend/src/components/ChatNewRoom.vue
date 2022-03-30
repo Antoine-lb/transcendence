@@ -28,6 +28,9 @@ export default {
       newRoomUserShowError: false,
       newRoomUsers: [],
       allUsers: [],
+      isPublic: true,
+      newRoomPassword: null,
+      passwordFieldType: "password",
     };
   },
   props: {
@@ -79,6 +82,15 @@ export default {
       };
       this.$emit("onSubmit", room);
     },
+    toggleStatus() {
+      this.isPublic = !this.isPublic;
+    },
+    switchVisibility() {
+      if (this.passwordFieldType == 'password')
+        this.passwordFieldType = 'text'
+      else
+        this.passwordFieldType = 'password'
+    }
   },
 };
 </script>
@@ -99,8 +111,19 @@ export default {
       <p v-if="newRoomUserShowError" class="error-paragraf">
         Username not found
       </p>
-      <!-- <input class="button" type="submit" value="Ajouter" /> -->
-      <button class="submit-new-room" @click="createRooms">
+      <div>
+        <button @click="toggleStatus" :class="[isPublic ? 'new-room-button on-colors' : 'new-room-button off-colors']">Public</button>
+        <button @click="toggleStatus" :class="[!isPublic ?'new-room-button on-colors' : 'new-room-button off-colors']">Private</button>
+      </div>
+      <div v-if="isPublic">
+        You may add a password to protect this public room :
+          <input :type="passwordFieldType" v-model="newRoomPassword" placeholder="Password" />
+          <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+      </div>
+      <div v-else>
+        This room will be private (only you and added users can see it).
+      </div>
+      <button class="submit-new-room new-room-button" @click="createRooms">
         Créer {{ newRoomName }}
       </button>
     </div>
@@ -118,27 +141,41 @@ input {
   padding: 10px;
   border-radius: 13px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
 }
 
-.submit-new-room {
-  background-color: #703ab8;
+.new-room-button {
   border: none;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 13px;
   padding: 6px 15px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
-  /* display: block; */
+  margin-bottom: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
+
+.submit-new-room {
+  background-color: #703ab8;
+  margin-bottom: 0px;
+  color: white;
+  font-weight: bold;
+}
+
 .submit-new-room:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   background-color: white;
   color: #703ab8;
 }
 
+.off-colors {
+  background-color: lightgray;
+  color: black;
+}
+.on-colors {
+  background-color: #703ab8;
+  color: white;
+}
 /* POUR LES SALONS */
 .list-group-item {
   /* display: block; */ /* remove dot */
@@ -181,4 +218,5 @@ input {
   background-color: #703ab8;
   color: white;
 }
+
 </style>
