@@ -4,6 +4,9 @@ import { useUserStore } from "../stores/userStore";
 export interface newRoomInterface {
   name: string;
   users: [{ id: number }];
+  status: boolean;
+  protected: boolean;
+  password: string; // TODO : crypt it
 }
 
 function fetchWithHeaders(url) {
@@ -62,7 +65,6 @@ export default {
           valid = true;
         }
       });
-
       if (!valid) {
         this.newRoomUserShowError = true;
       }
@@ -79,11 +81,16 @@ export default {
       let room: newRoomInterface = {
         name: this.newRoomName ? this.newRoomName : "No Name",
         users: this.newRoomUsers,
+        status: this.isPublic ? true : false,
+        protected: this.newRoomPassword ? true : false,
+        password: !this.isPublic ? false : (this.newRoomPassword ? this.newRoomPassword : null),
       };
       this.$emit("onSubmit", room);
     },
     toggleStatus() {
       this.isPublic = !this.isPublic;
+      if (!this.isPublic)
+        this.newRoomPassword = null;
     },
     switchVisibility() {
       if (this.passwordFieldType == 'password')
