@@ -41,6 +41,9 @@ export default {
       selectedRoomAdmins: [],
       selectedRoomUsers: [],
       room: {},
+      roomPasswordRequired: 0,
+      passwordFieldType: "password",
+      joinRoomPassword: null,
     };
   },
   setup() {
@@ -72,6 +75,7 @@ export default {
     joinedRoom(room: roomInterface) {
       this.room = room;
       this.socket.emit("joinRoom", room);
+      // this.socket.emit("joinRoom", {room: room, password: this.joinRoomPassword});
       this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
     },
@@ -90,14 +94,21 @@ export default {
     },
     updateSelected(selectedItem: roomInterface) {
       console.log("selectedItem", selectedItem);
-
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
       } else {
-        this.selectedRoom = selectedItem;
-        this.joinedRoom(selectedItem);
+        if (selectedItem.protected == true)
+        {
+          this.roomPasswordRequired = selectedItem.id;
+          console.log("Trying to join protected room id", this.roomPasswordRequired);
+        }
+        else
+        {
+          this.selectedRoom = selectedItem;
+          this.joinedRoom(selectedItem);
+        }
       }
     },
     findRoleInSelectedRoom(userId: number) {
@@ -107,6 +118,18 @@ export default {
           return "admin";
       }
       return "lambda";
+    },
+    switchVisibility() {
+      if (this.passwordFieldType == 'password')
+        this.passwordFieldType = 'text'
+      else
+        this.passwordFieldType = 'password'
+    },
+    submitPassword(room: roomInterface) {
+      console.log("submitPassword : ", room);
+      this.selectedRoom = room;
+      this.joinedRoom(room);
+      this.roomPasswordRequired = 0;
     },
     // banUser(user) {
     //   ;
@@ -155,13 +178,24 @@ export default {
           :key="index"
         >
           <div
-            v-if="room.id !== this.selectedRoom.id"
+            v-if="room.id == this.roomPasswordRequired"
+            class="list-group-item list-group-item-action"
+          >
+            💬 {{ room.name }}
+            <div>
+              <input :type="passwordFieldType" v-model="joinRoomPassword" placeholder="Password" />
+              <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+              <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button>
+            </div>
+          </div>
+          <div
+            v-else-if="room.id !== this.selectedRoom.id"
             class="list-group-item list-group-item-action"
           >
             💬 {{ room.name }}
           </div>
           <div
-            v-if="room.id === this.selectedRoom.id"
+            v-else-if="room.id === this.selectedRoom.id"
             class="list-group-item list-group-item-action selected"
           >
             💬 {{ room.name }}
@@ -173,10 +207,6 @@ export default {
     <!-- CHAT ROOM -->
     <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
       <h1 class="text-center">
-        <!-- {{ title }} -->
-        <!-- <span> => {{ this.selectedRoomAdmins }} </span> -->
-        <!-- <span> => {{ this.selectedRoomUsers }} </span> -->
-        <!-- <span> => {{ findRoleInSelectedRoom(userStore.user.id) }} </span> -->
         Users in {{ this.selectedRoom.name }} :
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
           {{ user.username }}
@@ -291,6 +321,11 @@ input[type="submit"]:hover {
   width: 500px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
   border-radius: 20px;
+}
+
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
 .message {

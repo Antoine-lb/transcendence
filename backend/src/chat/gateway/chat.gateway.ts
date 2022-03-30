@@ -78,7 +78,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onCreateRoom(socket: Socket, room: RoomI) {
 
     // TODO : Check validity of all users before create the room
-
     const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
 
     for (const user of createRoom.users) {
@@ -108,7 +107,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, room: RoomI, password: string) {
-
+    console.log("onJoinRoom password : ", password);
+    console.log("onJoinRoom room.password : ", room.password);
     if (room.protected == true) {
       const matched = comparePassword(password, room.password)
       if (!matched) {
