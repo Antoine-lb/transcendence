@@ -44,6 +44,7 @@ export default {
       roomPasswordRequired: 0,
       passwordFieldType: "password",
       joinRoomPassword: null,
+      wrongPassword: false,
     };
   },
   setup() {
@@ -74,10 +75,13 @@ export default {
     },
     joinedRoom(room: roomInterface) {
       this.room = room;
-      this.socket.emit("joinRoom", room);
-      // this.socket.emit("joinRoom", {room: room, password: this.joinRoomPassword});
+      console.log("front joinedRoom");
+      // this.socket.emit("joinRoom", room);
+      this.socket.emit("joinRoom", { room: room, password: this.joinRoomPassword });
       this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
+      this.wrongPassword = false;
+      this.joinRoomPassword = null;
     },
     leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
@@ -93,19 +97,22 @@ export default {
       this.socket.emit("createRoom", room);
     },
     updateSelected(selectedItem: roomInterface) {
-      console.log("selectedItem", selectedItem);
+      console.log("updateSelected", selectedItem);
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
+        this.joinRoomPassword = null;
       } else {
         if (selectedItem.protected == true)
         {
           this.roomPasswordRequired = selectedItem.id;
+          this.selectedRoom = {};
           console.log("Trying to join protected room id", this.roomPasswordRequired);
         }
         else
         {
+          this.joinRoomPassword = null;
           this.selectedRoom = selectedItem;
           this.joinedRoom(selectedItem);
         }
@@ -162,6 +169,11 @@ export default {
       console.log("messages", messages);
       this.messages = messages;
     });
+    this.socket.on("WrongPassword", (data) => {
+      console.log("WrongPassword", data);
+      this.selectedRoom = {};
+      this.wrongPassword = true;
+    });
   },
 };
 </script>
@@ -170,10 +182,12 @@ export default {
     <ChatNewRoom @onSubmit="createRoom" />
 
     <h1 style="margin-top: 30px">Salons Disponibles</h1>
+    <p v-if="wrongPassword" class="error-paragraf">
+      Password not matching
+    </p>
     <div class="list-group">
       <ul>
         <div
-          @click="updateSelected(room)"
           v-for="(room, index) in this.myRooms"
           :key="index"
         >
@@ -187,14 +201,19 @@ export default {
               <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
               <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button>
             </div>
+            <!-- <p v-if="wrongPassword" class="error-paragraf">
+              Password not matching
+            </p> -->
           </div>
           <div
+           @click="updateSelected(room)"
             v-else-if="room.id !== this.selectedRoom.id"
             class="list-group-item list-group-item-action"
           >
             💬 {{ room.name }}
           </div>
           <div
+           @click="updateSelected(room)"
             v-else-if="room.id === this.selectedRoom.id"
             class="list-group-item list-group-item-action selected"
           >
@@ -279,7 +298,9 @@ input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
 }
-
+.error-paragraf {
+  color: red;
+}
 /* POUR LES SALONS */
 .list-group-item {
   border: 3px solid #703ab8;

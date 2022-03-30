@@ -106,16 +106,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onBlockUser(socket: Socket, room: RoomI){}
    
   @SubscribeMessage('joinRoom')
-  async onJoinRoom(socket: Socket, room: RoomI, password: string) {
+  // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
+  async onJoinRoom(socket: Socket, { room, password }) {
     console.log("onJoinRoom password : ", password);
     console.log("onJoinRoom room.password : ", room.password);
     if (room.protected == true) {
-      const matched = comparePassword(password, room.password)
+    console.log("room.protected == true");
+    const matched = comparePassword(password, room.password)
       if (!matched) {
         socket.emit('WrongPassword', new UnauthorizedException());
       }
+      console.log("matched : ", matched);
     }
-    
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
     // Save Connection to Room in DB
@@ -126,7 +128,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('leaveRoom')
   async onLeaveRoom(socket: Socket, room: RoomI) {
-
+    console.log("onLeaveRoom");
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
   }
