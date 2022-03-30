@@ -157,6 +157,7 @@ export default {
         Authorization: this.user.access_token,
       },
     });
+    console.log("this.socket game", this.socket.connected );
 
     this.socket.on("test", this.testConnexion);
     this.socket.on("init", this.handleInit);

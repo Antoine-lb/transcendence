@@ -82,6 +82,7 @@ export default {
         Authorization: this.user.access_token,
       },
     });
+    console.log("socket Game :", this.socket.connected);
 
     this.socket.on("rooms", (rooms) => {
       this.myRooms = rooms.items;
