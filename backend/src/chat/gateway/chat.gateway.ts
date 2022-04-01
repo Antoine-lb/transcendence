@@ -76,7 +76,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
-
     // TODO : Check validity of all users before create the room
     const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
 
@@ -92,9 +91,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('getAdmins')
   async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
-    
     admins = await this.roomService.getAdminsForRoom(room.id);
-    return this.server.to(socket.id).emit('getAdmins', admins)
+    console.log(">>>>>> onGetAdmins admins : ", admins);
+    return await this.server.to(socket.id).emit('getAdmins', admins)
   }
 
   @SubscribeMessage('getUsers')
@@ -111,11 +110,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
   async onJoinRoom(socket: Socket, { room, password }) {
 
-    if (room.protected == true) {
+     if (room.protected == true) {
+      
+       if (!password) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+         
       const matched = comparePassword(password, room.password)
-      if (!matched) {
-        socket.emit('WrongPassword', new UnauthorizedException());
-      }
+      
+       if (!matched) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+        
     }
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
@@ -136,18 +144,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.joinedRoomService.deleteBySocketID(socket.id);
   }
       
-  @SubscribeMessage('addAdmins')
-  async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
-
-    // Add admins to the Rooms
+  @SubscribeMessage('addAdmin')
+  async onAddAdmin(socket: Socket, { room, user, modifier }) {
     try {
-      await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
+      await this.roomService.addAdminsToRoom(room, [ user ], modifier);
+      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+      for (const joinedUser of joinedUsers) {
+        await this.server.to(joinedUser.socketID).emit('getAdmins', room.admins);
+      }
     }
     catch {
       socket.emit('Error', new UnauthorizedException());
     }
-
   }
+      
+  // @SubscribeMessage('addAdmins') // not use for now
+  // async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
+  //   // Add admins to the Rooms
+  //   try {
+  //     await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
+  //   }
+  //   catch {
+  //     socket.emit('Error', new UnauthorizedException());
+  //   }
+  // }
+
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
 

@@ -23,6 +23,15 @@ export interface rawServerRoomsInterface {
   items: [roomInterface?];
 }
 
+export interface UserInterface {
+    id: number;
+    username: string;
+    avatar: string;
+    isTwoFA: boolean;
+    secret?: string;
+    isOnline: boolean;
+}
+
 export default {
   name: "Chat",
   data() {
@@ -142,6 +151,11 @@ export default {
       this.joinedRoom(room);
       this.roomPasswordRequired = 0;
     },
+    addAdmin(room: roomInterface, user: UserInterface, modifier: UserInterface) {
+      this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+      // this.socket.emit("getAdmins", room);
+      this.socket.emit("getUsers", room);
+    },
     // banUser(user) {
     //   ;
     // },
@@ -157,6 +171,7 @@ export default {
       console.log("on \"rooms\" myRooms : ", this.myRooms);
     });
     this.socket.on("getAdmins", (admins: number[]) => {
+      console.log("admins : ", admins);
       this.selectedRoomAdmins = admins;
       console.log("on \"getAdmins\" : ", this.selectedRoomAdmins);
     });
@@ -230,11 +245,15 @@ export default {
     <!-- CHAT ROOM -->
     <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
       <h1 class="text-center">
+        <!-- {{ this.selectedRoomAdmins }} -->
         Users in {{ this.selectedRoom.name }} :
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
-          {{ user.username }}
-          <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="message">
-            <button class="add-user" @click="banUser(user)">Ban user</button>
+          {{ user.username }} : {{ findRoleInSelectedRoom(user.id) }}
+          <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="empty">
+            <button class="new-room-button" @click="banUser(user)">Ban user</button>
+            <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && findRoleInSelectedRoom(user.id) != 'admin'" class="empty">
+              <button class="new-room-button" @click="addAdmin(this.selectedRoom, user, userStore.user)">Set as admin</button>
+            </div>
           </div>
           <!-- <div v-if="userStore.user.id == user.id" class="message">
             <button class="add-user" @click="quitRoom(this.selectedRoom)">Quit Room</button>
@@ -305,6 +324,47 @@ input[type="submit"]:hover {
 .error-paragraf {
   color: red;
 }
+
+.empty {
+  background-color: white;
+  display: inline-block;
+}
+
+.new-room-button {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  /* display: block; */
+  margin: 10px;
+  border: 2px solid #703ab8;
+  display: inline-block;
+  max-width: 300px;
+  max-height: 50px;
+}
+
+.add-user {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  /* display: block; */
+  margin: 10px;
+  border: 2px solid #703ab8;
+}
+
 /* POUR LES SALONS */
 .list-group-item {
   border: 3px solid #703ab8;

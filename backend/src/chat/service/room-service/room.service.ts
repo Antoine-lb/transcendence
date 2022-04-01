@@ -24,20 +24,17 @@ export class RoomService {
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
 
         const newRoom = await this.addCreatorToRoom(room, creator);
-
         // if (Public room)
         if (newRoom.status == true) {
 
             // hash and store the password
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
-            // else
-                // TODO : return error
             
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
         }
-        return this.roomRepository.save(newRoom);
+        return await this.roomRepository.save(newRoom);
     }
 
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
@@ -50,11 +47,21 @@ export class RoomService {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    async isAdmin(userId: number, roomId: number) : Promise<boolean> {
+        var admins = await this.getAdminsForRoom(roomId);
+        for (var admin of admins)
+        {
+            if (admin.id == userId)
+                return true;
+        }
+        return false;
+     }
+    
     async getAdminsForRoom(roomId: number) {
-
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
+        console.log("getAdminsForRoom ret : ", ret);
         return ret.admins;
     }
 
@@ -79,7 +86,6 @@ export class RoomService {
     }
 
     async getUsersIdsForRoom(roomId: number) {
-
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
@@ -91,8 +97,7 @@ export class RoomService {
     }
 
     async getRoom(roomID: number): Promise<RoomI> {
-
-        return this.roomRepository.findOne(roomID, {
+        return await this.roomRepository.findOne(roomID, {
             relations: ['users', 'admins']
         })
     }
@@ -108,35 +113,35 @@ export class RoomService {
     }
 
     async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        
         // initialize empty array for the admins
         const admins: UserDto[] = [];
-
-
         // Save creator as Creator
         room.users.push(creator);
-
         // Save creator as Admin
         admins.push(creator);
         room.admins = admins;
-
-        return await room;
+        return room;
     }
 
     async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-
         // Check if the modifier User is an Admin
-        const user = await this.findAdminForRoom(room, modifier.id);
-        if (!user) throw new UnauthorizedException();
-        
-        for (const admin of admins) {
-
-            // Save User's'  as  Admin's' if (not already admin to the room)
-            const tmp = await this.findAdminForRoom(room, admin.id);
-            if (!tmp)
-                room.admins.push(admin);
+        if (await this.isAdmin(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (!room.admins)
+        {
+            room.admins = [];
+            room.admins.push(modifier);
         }
-        return await room;
+        for (const admin of admins) {
+            // Save User's'  as  Admin's' if (not already admin to the room)
+            if (await this.isAdmin(admin.id, room.id) == false)
+            {
+                if (!room.admins)
+                    room.admins = [];
+                room.admins.push(admin);
+            }
+        }
+        return await this.roomRepository.save(room);
     }
 
     async banUsers(room: RoomI, UsersToBan: UserDto[]) {
@@ -145,11 +150,11 @@ export class RoomService {
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
 
-    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-        
+    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> { // not userd at the moment
+        // console.log(">>>>>> findAdminForRoom");
         for (const admin of room.admins) {
-            if (admin.id == id) 
-                return await admin;
+            if (admin.id == id)
+                return admin;
         }
         return;
     }
