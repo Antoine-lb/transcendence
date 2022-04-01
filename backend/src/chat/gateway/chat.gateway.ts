@@ -107,7 +107,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
    
-  @SubscribeMessage('joinRoom')
+   @SubscribeMessage('joinRoom')
   // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
   async onJoinRoom(socket: Socket, { room, password }) {
 
@@ -120,7 +120,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
     
-    var found = await this.joinedRoomService.findByUserAndRoom(socket.data.user, room); // check socket id too ?
+     // check if already join (for if the client switch between)
+    var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
 
     // Save Connection to Room in DB
     if (found.length == 0)
