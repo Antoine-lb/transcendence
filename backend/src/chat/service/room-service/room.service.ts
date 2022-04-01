@@ -31,7 +31,7 @@ export class RoomService {
             // hash and store the password
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
-            else
+            // else
                 // TODO : return error
             
             // add all users to the Room
@@ -48,7 +48,6 @@ export class RoomService {
         .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
         .getMany(); // get many results
     }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,8 +98,6 @@ export class RoomService {
         // });
         // return ret.users;
     }
-
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
