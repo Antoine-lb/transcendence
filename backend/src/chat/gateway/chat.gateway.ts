@@ -121,7 +121,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
     // Save Connection to Room in DB
-    var found = await this.joinedRoomService.findByUserAndRoom(socket.data.user, room); // check socket id too ?
+    var found = await this.joinedRoomService.findByUserRoomAndSocket(socket.data.user, room, socket.id); // check socket id too ?
     if (found.length == 0)
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
     // Send Last Message to User
