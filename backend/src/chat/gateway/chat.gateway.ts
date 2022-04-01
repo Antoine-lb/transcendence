@@ -146,12 +146,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       
   @SubscribeMessage('addAdmin')
   async onAddAdmin(socket: Socket, { room, user, modifier }) {
-    console.log("### STEP 2");
-    console.log(">>>>>> gateway addAdmin");
     try {
-      console.log("room before in STEP 2: ", room);
       await this.roomService.addAdminsToRoom(room, [ user ], modifier);
-      console.log("room after in STEP 2: ", room);
+      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+      for (const joinedUser of joinedUsers) {
+        await this.server.to(joinedUser.socketID).emit('getAdmins', room.admins);
+      }
     }
     catch {
       socket.emit('Error', new UnauthorizedException());

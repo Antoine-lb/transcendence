@@ -152,11 +152,9 @@ export default {
       this.roomPasswordRequired = 0;
     },
     addAdmin(room: roomInterface, user: UserInterface, modifier: UserInterface) {
-      console.log("### STEP 1");
       this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
-      console.log("this.selectedRoomAdmins before: ", this.selectedRoomAdmins);
-      this.socket.emit("getAdmins", room);
-      console.log("this.selectedRoomAdmins after: ", this.selectedRoomAdmins);
+      // this.socket.emit("getAdmins", room);
+      this.socket.emit("getUsers", room);
     },
     // banUser(user) {
     //   ;

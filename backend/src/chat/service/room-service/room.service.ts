@@ -24,7 +24,6 @@ export class RoomService {
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
 
         const newRoom = await this.addCreatorToRoom(room, creator);
-
         // if (Public room)
         if (newRoom.status == true) {
 
@@ -52,14 +51,13 @@ export class RoomService {
         var admins = await this.getAdminsForRoom(roomId);
         for (var admin of admins)
         {
-          if (admin.id == userId)
-            return true;
+            if (admin.id == userId)
+                return true;
         }
         return false;
      }
     
     async getAdminsForRoom(roomId: number) {
-
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
@@ -88,7 +86,6 @@ export class RoomService {
     }
 
     async getUsersIdsForRoom(roomId: number) {
-
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
@@ -100,7 +97,6 @@ export class RoomService {
     }
 
     async getRoom(roomID: number): Promise<RoomI> {
-
         return await this.roomRepository.findOne(roomID, {
             relations: ['users', 'admins']
         })
@@ -128,9 +124,6 @@ export class RoomService {
     }
 
     async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-        console.log("### STEP 3");
-        console.log("room before in STEP 3 : ", room);
-    // console.log(">>>>>> service addAdminsToRoom");
         // Check if the modifier User is an Admin
         if (await this.isAdmin(modifier.id, room.id) == false)
             throw new UnauthorizedException();
@@ -148,9 +141,7 @@ export class RoomService {
                 room.admins.push(admin);
             }
         }
-        console.log("room after in STEP 3 : ", room);
         return await this.roomRepository.save(room);
-        return room;
     }
 
     async banUsers(room: RoomI, UsersToBan: UserDto[]) {
