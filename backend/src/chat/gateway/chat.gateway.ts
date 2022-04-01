@@ -111,11 +111,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
   async onJoinRoom(socket: Socket, { room, password }) {
 
-    if (room.protected == true) {
+     if (room.protected == true) {
+      
+       if (!password) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+         
       const matched = comparePassword(password, room.password)
-      if (!matched) {
-        socket.emit('WrongPassword', new UnauthorizedException());
-      }
+      
+       if (!matched) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+        
     }
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });

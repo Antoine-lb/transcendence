@@ -31,8 +31,6 @@ export class RoomService {
             // hash and store the password
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
-            // else
-                // TODO : return error
             
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
