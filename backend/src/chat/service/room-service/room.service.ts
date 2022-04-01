@@ -35,7 +35,7 @@ export class RoomService {
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
         }
-        return this.roomRepository.save(newRoom);
+        return await this.roomRepository.save(newRoom);
     }
 
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
@@ -48,11 +48,22 @@ export class RoomService {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    async isAdmin(userId: number, roomId: number) : Promise<boolean> {
+        var admins = await this.getAdminsForRoom(roomId);
+        for (var admin of admins)
+        {
+          if (admin.id == userId)
+            return true;
+        }
+        return false;
+     }
+    
     async getAdminsForRoom(roomId: number) {
 
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
+        console.log("getAdminsForRoom ret : ", ret);
         return ret.admins;
     }
 
@@ -90,7 +101,7 @@ export class RoomService {
 
     async getRoom(roomID: number): Promise<RoomI> {
 
-        return this.roomRepository.findOne(roomID, {
+        return await this.roomRepository.findOne(roomID, {
             relations: ['users', 'admins']
         })
     }
@@ -117,26 +128,28 @@ export class RoomService {
     }
 
     async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-        console.log(">>>>>> service addAdminsToRoom");
-        console.log("admins : ", admins);
+        console.log("### STEP 3");
+        console.log("room before in STEP 3 : ", room);
+    // console.log(">>>>>> service addAdminsToRoom");
         // Check if the modifier User is an Admin
-        const user = await this.findAdminForRoom(room, modifier.id);
-        console.log("after findAdminForRoom");
-        if (!user)
-        {
-            console.log("!user exception");
+        if (await this.isAdmin(modifier.id, room.id) == false)
             throw new UnauthorizedException();
+        if (!room.admins)
+        {
+            room.admins = [];
+            room.admins.push(modifier);
         }
-        console.log("before for loop");
         for (const admin of admins) {
-            console.log("admin : ", admin);
             // Save User's'  as  Admin's' if (not already admin to the room)
-            const tmp = await this.findAdminForRoom(room, admin.id);
-            if (!tmp)
+            if (await this.isAdmin(admin.id, room.id) == false)
+            {
+                if (!room.admins)
+                    room.admins = [];
                 room.admins.push(admin);
+            }
         }
-        console.log("after for loop");
-        console.log("room.admins : ", room.admins);
+        console.log("room after in STEP 3 : ", room);
+        return await this.roomRepository.save(room);
         return room;
     }
 
@@ -146,16 +159,12 @@ export class RoomService {
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
 
-    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-        console.log(">>>>>> findAdminForRoom");
+    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> { // not userd at the moment
+        // console.log(">>>>>> findAdminForRoom");
         for (const admin of room.admins) {
             if (admin.id == id)
-            {
-                console.log("before ret admin");
                 return admin;
-            }
         }
-        console.log("before ret empty");
         return;
     }
 }

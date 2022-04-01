@@ -152,10 +152,11 @@ export default {
       this.roomPasswordRequired = 0;
     },
     addAdmin(room: roomInterface, user: UserInterface, modifier: UserInterface) {
-      console.log("...addAdmin emitting");
-      console.log("user : ", user);
-      console.log("modifier : ", modifier);
+      console.log("### STEP 1");
       this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+      console.log("this.selectedRoomAdmins before: ", this.selectedRoomAdmins);
+      this.socket.emit("getAdmins", room);
+      console.log("this.selectedRoomAdmins after: ", this.selectedRoomAdmins);
     },
     // banUser(user) {
     //   ;
@@ -172,6 +173,7 @@ export default {
       console.log("on \"rooms\" myRooms : ", this.myRooms);
     });
     this.socket.on("getAdmins", (admins: number[]) => {
+      console.log("admins : ", admins);
       this.selectedRoomAdmins = admins;
       console.log("on \"getAdmins\" : ", this.selectedRoomAdmins);
     });
@@ -245,9 +247,10 @@ export default {
     <!-- CHAT ROOM -->
     <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
       <h1 class="text-center">
+        <!-- {{ this.selectedRoomAdmins }} -->
         Users in {{ this.selectedRoom.name }} :
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
-          {{ user.username }}
+          {{ user.username }} : {{ findRoleInSelectedRoom(user.id) }}
           <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="empty">
             <button class="new-room-button" @click="banUser(user)">Ban user</button>
             <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && findRoleInSelectedRoom(user.id) != 'admin'" class="empty">

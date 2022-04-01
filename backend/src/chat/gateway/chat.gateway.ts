@@ -76,7 +76,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
-
     // TODO : Check validity of all users before create the room
     const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
 
@@ -92,9 +91,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('getAdmins')
   async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
-    
     admins = await this.roomService.getAdminsForRoom(room.id);
-    return this.server.to(socket.id).emit('getAdmins', admins)
+    console.log(">>>>>> onGetAdmins admins : ", admins);
+    return await this.server.to(socket.id).emit('getAdmins', admins)
   }
 
   @SubscribeMessage('getUsers')
@@ -147,29 +146,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       
   @SubscribeMessage('addAdmin')
   async onAddAdmin(socket: Socket, { room, user, modifier }) {
+    console.log("### STEP 2");
     console.log(">>>>>> gateway addAdmin");
-    console.log("user : ", user);
-    console.log("modifier : ", modifier);
     try {
+      console.log("room before in STEP 2: ", room);
       await this.roomService.addAdminsToRoom(room, [ user ], modifier);
+      console.log("room after in STEP 2: ", room);
     }
     catch {
       socket.emit('Error', new UnauthorizedException());
     }
   }
       
-  @SubscribeMessage('addAdmins') // not use for now
-  async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
+  // @SubscribeMessage('addAdmins') // not use for now
+  // async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
+  //   // Add admins to the Rooms
+  //   try {
+  //     await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
+  //   }
+  //   catch {
+  //     socket.emit('Error', new UnauthorizedException());
+  //   }
+  // }
 
-    // Add admins to the Rooms
-    try {
-      await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
-    }
-    catch {
-      socket.emit('Error', new UnauthorizedException());
-    }
-
-  }
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
 
