@@ -22,7 +22,7 @@ export class JoinedRoomService {
         return await this.joinedRoomRepository.find({ user });
     }
 
-    async findByUserRoomAndSocket(user: UserDto, room: RoomI, socketID: string): Promise<JoinedRoomI[]> { 
+    async findByRoomSocket(user: UserDto, room: RoomI, socketID: string): Promise<JoinedRoomI[]> { 
         return await this.joinedRoomRepository.find({
             where: {
                 user: user,
