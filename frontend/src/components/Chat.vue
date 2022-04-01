@@ -3,8 +3,24 @@ import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatNewRoom from "./ChatNewRoom.vue";
 
-interface roomInterface {
+export interface newRoomInterface {
   name: string;
+  users: [{ id: number }];
+}
+
+export interface roomInterface {
+  created_date: string;
+  id: number;
+  name: string;
+  // password: string;
+  protected: boolean;
+  status: boolean;
+  updated_date: string;
+  admins: [];
+}
+
+export interface rawServerRoomsInterface {
+  items: [roomInterface?];
 }
 
 export default {
@@ -22,7 +38,13 @@ export default {
       newRoomUsers: null,
       friendList: [],
       selectedRoom: {},
+      selectedRoomAdmins: [],
+      selectedRoomUsers: [],
       room: {},
+      roomPasswordRequired: 0,
+      passwordFieldType: "password",
+      joinRoomPassword: null,
+      wrongPassword: false,
     };
   },
   setup() {
@@ -37,7 +59,7 @@ export default {
   },
   methods: {
     sendMessage() {
-      console.log(this.room);
+      console.log(">>>> sendMessage room", this.room);
       if (this.validateInput()) {
         const message = {
           user: this.userStore.user,
@@ -46,35 +68,83 @@ export default {
         };
         this.socket.emit("addMessage", message);
         this.text = "";
+        console.log("after sendMessage emit");
       }
     },
     validateInput() {
       return this.text.length > 0;
     },
-    joinedRoom(room) {
+    joinedRoom(room: roomInterface) {
       this.room = room;
-      this.socket.emit("joinRoom", room);
+      this.socket.emit("joinRoom", { room: room, password: this.joinRoomPassword });
+      this.socket.emit("getAdmins", room);
+      this.socket.emit("getUsers", room);
+      this.wrongPassword = false;
+      this.joinRoomPassword = null;
     },
-    leaveRoom(room) {
+    leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
       this.selectedRoom = {};
     },
-    createRoom(room: roomInterface) {
+    quitRoom(room: roomInterface) {
+      this.socket.emit("quitRoom", { room : room, user : this.userStore.user });
+      // this.socket.emit("leaveRoom", room);
+      // this.selectedRoom = {};
+    },
+    createRoom(room: newRoomInterface) {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
-    updateSelected(selectedItem) {
-      console.log("selectedItem", selectedItem);
-
+    resetProtectedRoom()
+    {
+        this.joinRoomPassword = null;
+        this.roomPasswordRequired = 0;
+    },
+    updateSelected(selectedItem: roomInterface) {
+      console.log("updateSelected", selectedItem);
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
+        this.resetProtectedRoom();
       } else {
-        this.selectedRoom = selectedItem;
-        this.joinedRoom(selectedItem);
+        if (selectedItem.protected == true)
+        {
+          this.roomPasswordRequired = selectedItem.id;
+          this.selectedRoom = {};
+          console.log("Trying to join protected room id", this.roomPasswordRequired);
+        }
+        else
+        {
+          this.resetProtectedRoom();
+          this.selectedRoom = selectedItem;
+          this.joinedRoom(selectedItem);
+        }
       }
     },
+    findRoleInSelectedRoom(userId: number) {
+      for (var admin of this.selectedRoomAdmins)
+      {
+        if (admin.id == userId)
+          return "admin";
+      }
+      return "lambda";
+    },
+    switchVisibility() {
+      if (this.passwordFieldType == 'password')
+        this.passwordFieldType = 'text'
+      else
+        this.passwordFieldType = 'password'
+    },
+    submitPassword(room: roomInterface) {
+      console.log("submitPassword : ", room);
+      this.selectedRoom = room;
+      this.joinedRoom(room);
+      this.roomPasswordRequired = 0;
+    },
+    // banUser(user) {
+    //   ;
+    // },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -82,20 +152,31 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-
-    this.socket.on("rooms", (rooms) => {
+    this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
       this.myRooms = rooms.items;
-      console.log("this.myRooms", this.myRooms);
+      console.log("on \"rooms\" myRooms : ", this.myRooms);
     });
-
+    this.socket.on("getAdmins", (admins: number[]) => {
+      this.selectedRoomAdmins = admins;
+      console.log("on \"getAdmins\" : ", this.selectedRoomAdmins);
+    });
+    this.socket.on("getUsers", (users: number[]) => {
+      this.selectedRoomUsers = users;
+      console.log("on \"getUsers\" : ", this.selectedRoomUsers);
+    });
     this.socket.on("messageAdded", (message) => {
-      console.log("messageAdded", message);
+      console.log("on \"messageAdded\" : ", message);
       // this.receivedMessage(message);
       this.messages.items.push(message);
     });
     this.socket.on("messages", (messages) => {
-      console.log("messages", messages);
+      console.log("on \"messages\" : ", messages);
       this.messages = messages;
+    });
+    this.socket.on("WrongPassword", (data) => {
+      console.log("on \"WrongPassword\" : ", data);
+      this.selectedRoom = {};
+      this.wrongPassword = true;
     });
   },
 };
@@ -105,21 +186,39 @@ export default {
     <ChatNewRoom @onSubmit="createRoom" />
 
     <h1 style="margin-top: 30px">Salons Disponibles</h1>
+    <p v-if="wrongPassword" class="error-paragraf">
+      Password not matching
+    </p>
     <div class="list-group">
       <ul>
         <div
-          @click="updateSelected(room)"
           v-for="(room, index) in this.myRooms"
           :key="index"
         >
           <div
-            v-if="room.id !== this.selectedRoom.id"
+            v-if="room.id == this.roomPasswordRequired"
+            class="list-group-item list-group-item-action"
+          >
+            💬 {{ room.name }}
+            <div>
+              <input :type="passwordFieldType" v-model="joinRoomPassword" placeholder="Password" />
+              <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+              <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button>
+            </div>
+            <!-- <p v-if="wrongPassword" class="error-paragraf">
+              Password not matching
+            </p> -->
+          </div>
+          <div
+           @click="updateSelected(room)"
+            v-else-if="room.id !== this.selectedRoom.id"
             class="list-group-item list-group-item-action"
           >
             💬 {{ room.name }}
           </div>
           <div
-            v-if="room.id === this.selectedRoom.id"
+           @click="updateSelected(room)"
+            v-else-if="room.id === this.selectedRoom.id"
             class="list-group-item list-group-item-action selected"
           >
             💬 {{ room.name }}
@@ -131,8 +230,16 @@ export default {
     <!-- CHAT ROOM -->
     <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
       <h1 class="text-center">
-        {{ title }}
-        <span> : {{ this.selectedRoom.name }} </span>
+        Users in {{ this.selectedRoom.name }} :
+        <li v-for="user in this.selectedRoomUsers" :key="user.username">
+          {{ user.username }}
+          <div v-if="findRoleInSelectedRoom(userStore.user.id) == 'admin' && userStore.user.id != user.id" class="message">
+            <button class="add-user" @click="banUser(user)">Ban user</button>
+          </div>
+          <!-- <div v-if="userStore.user.id == user.id" class="message">
+            <button class="add-user" @click="quitRoom(this.selectedRoom)">Quit Room</button>
+          </div> -->
+        </li>
       </h1>
       <br />
 
@@ -195,7 +302,9 @@ input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
 }
-
+.error-paragraf {
+  color: red;
+}
 /* POUR LES SALONS */
 .list-group-item {
   border: 3px solid #703ab8;
@@ -237,6 +346,11 @@ input[type="submit"]:hover {
   width: 500px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
   border-radius: 20px;
+}
+
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
 .message {

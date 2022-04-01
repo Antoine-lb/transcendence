@@ -31,7 +31,7 @@ export class RoomService {
             // hash and store the password
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
-            else
+            // else
                 // TODO : return error
             
             // add all users to the Room
@@ -40,9 +40,60 @@ export class RoomService {
         return this.roomRepository.save(newRoom);
     }
 
+    async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
+        
+        return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
+        .leftJoinAndSelect('rooms.admins', 'admins') // load "admins" relation (user entity) and select results as "admins"
+        .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
+        .getMany(); // get many results
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    async getAdminsForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.admins;
+    }
+
+    async getAdminsIdsForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var adminsIds = [];
+        for (const admin of ret.admins) {
+            adminsIds.push(admin.id);
+        }
+        return adminsIds;
+    }
+
+    async getUsersForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.users;
+    }
+
+    async getUsersIdsForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var usersIds = [];
+        for (const user of ret.users) {
+            usersIds.push(user.id);
+        }
+        return usersIds;
+    }
+
     async getRoom(roomID: number): Promise<RoomI> {
+
         return this.roomRepository.findOne(roomID, {
-            relations: ['users']
+            relations: ['users', 'admins']
         })
     }
 
@@ -88,13 +139,13 @@ export class RoomService {
         return await room;
     }
 
-    async banUsers(room: RoomI, UsersToBan: UserDto[]) {}
+    async banUsers(room: RoomI, UsersToBan: UserDto[]) {
+    }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
 
     async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-
         
         for (const admin of room.admins) {
             if (admin.id == id) 

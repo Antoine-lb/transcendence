@@ -1,6 +1,14 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 
+export interface newRoomInterface {
+  name: string;
+  users: [{ id: number }];
+  status: boolean;
+  protected: boolean;
+  password: string; // TODO : crypt it
+}
+
 function fetchWithHeaders(url) {
   return fetch(url, {
     method: "GET",
@@ -23,6 +31,9 @@ export default {
       newRoomUserShowError: false,
       newRoomUsers: [],
       allUsers: [],
+      isPublic: true,
+      newRoomPassword: null,
+      passwordFieldType: "password",
     };
   },
   props: {
@@ -48,25 +59,45 @@ export default {
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log("{ id: element.id }", { id: element.id });
+          console.log("add user { id: element.id }", { id: element.id }, element.username);
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;
         }
       });
-
       if (!valid) {
         this.newRoomUserShowError = true;
       }
     },
+    removeUser(user) {
+      this.allUsers.map((element) => {
+        if (element.username === user.username) {
+          console.log("remove user { id: element.id }", { id: element.id }, element.username);
+          this.newRoomUsers.splice(this.newRoomUsers.indexOf(user), 1);
+        }
+      });
+    },
     createRooms() {
-      let room = {
+      let room: newRoomInterface = {
         name: this.newRoomName ? this.newRoomName : "No Name",
         users: this.newRoomUsers,
+        status: this.isPublic ? true : false,
+        protected: this.newRoomPassword ? true : false,
+        password: !this.isPublic ? false : (this.newRoomPassword ? this.newRoomPassword : null),
       };
-
       this.$emit("onSubmit", room);
     },
+    toggleStatus() {
+      this.isPublic = !this.isPublic;
+      if (!this.isPublic)
+        this.newRoomPassword = null;
+    },
+    switchVisibility() {
+      if (this.passwordFieldType == 'password')
+        this.passwordFieldType = 'text'
+      else
+        this.passwordFieldType = 'password'
+    }
   },
 };
 </script>
@@ -78,6 +109,7 @@ export default {
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <li v-for="user in newRoomUsers" :key="user.username">
         {{ user.username }}
+        <button class="add-user" @click="removeUser(user)">Remove user</button>
       </li>
       <div>
         <input type="text" v-model="newRoomUser" placeholder="Room Users" />
@@ -86,8 +118,19 @@ export default {
       <p v-if="newRoomUserShowError" class="error-paragraf">
         Username not found
       </p>
-      <!-- <input class="button" type="submit" value="Ajouter" /> -->
-      <button class="submit-new-room" @click="createRooms">
+      <div>
+        <button @click="toggleStatus" :class="[isPublic ? 'new-room-button on-colors' : 'new-room-button off-colors']">Public</button>
+        <button @click="toggleStatus" :class="[!isPublic ?'new-room-button on-colors' : 'new-room-button off-colors']">Private</button>
+      </div>
+      <div v-if="isPublic">
+        You may add a password to protect this public room :
+          <input :type="passwordFieldType" v-model="newRoomPassword" placeholder="Password" />
+          <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+      </div>
+      <div v-else>
+        This room will be private (only you and added users can see it).
+      </div>
+      <button class="submit-new-room new-room-button" @click="createRooms">
         Créer {{ newRoomName }}
       </button>
     </div>
@@ -105,27 +148,41 @@ input {
   padding: 10px;
   border-radius: 13px;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 16px;
 }
 
-.submit-new-room {
-  background-color: #703ab8;
+.new-room-button {
   border: none;
-  color: white;
-  font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 13px;
   padding: 6px 15px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
-  /* display: block; */
+  margin-bottom: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
+
+.submit-new-room {
+  background-color: #703ab8;
+  margin-bottom: 0px;
+  color: white;
+  font-weight: bold;
+}
+
 .submit-new-room:hover {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   background-color: white;
   color: #703ab8;
 }
 
+.off-colors {
+  background-color: lightgray;
+  color: black;
+}
+.on-colors {
+  background-color: #703ab8;
+  color: white;
+}
 /* POUR LES SALONS */
 .list-group-item {
   /* display: block; */ /* remove dot */
@@ -168,4 +225,5 @@ input {
   background-color: #703ab8;
   color: white;
 }
+
 </style>
