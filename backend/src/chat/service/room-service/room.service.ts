@@ -106,35 +106,38 @@ export class RoomService {
     }
 
     async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        
         // initialize empty array for the admins
         const admins: UserDto[] = [];
-
-
         // Save creator as Creator
         room.users.push(creator);
-
         // Save creator as Admin
         admins.push(creator);
         room.admins = admins;
-
-        return await room;
+        return room;
     }
 
     async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-
+        console.log(">>>>>> service addAdminsToRoom");
+        console.log("admins : ", admins);
         // Check if the modifier User is an Admin
         const user = await this.findAdminForRoom(room, modifier.id);
-        if (!user) throw new UnauthorizedException();
-        
+        console.log("after findAdminForRoom");
+        if (!user)
+        {
+            console.log("!user exception");
+            throw new UnauthorizedException();
+        }
+        console.log("before for loop");
         for (const admin of admins) {
-
+            console.log("admin : ", admin);
             // Save User's'  as  Admin's' if (not already admin to the room)
             const tmp = await this.findAdminForRoom(room, admin.id);
             if (!tmp)
                 room.admins.push(admin);
         }
-        return await room;
+        console.log("after for loop");
+        console.log("room.admins : ", room.admins);
+        return room;
     }
 
     async banUsers(room: RoomI, UsersToBan: UserDto[]) {
@@ -144,11 +147,15 @@ export class RoomService {
     }
 
     async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-        
+        console.log(">>>>>> findAdminForRoom");
         for (const admin of room.admins) {
-            if (admin.id == id) 
-                return await admin;
+            if (admin.id == id)
+            {
+                console.log("before ret admin");
+                return admin;
+            }
         }
+        console.log("before ret empty");
         return;
     }
 }
