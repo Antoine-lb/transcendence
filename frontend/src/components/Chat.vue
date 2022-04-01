@@ -53,6 +53,8 @@ export default {
     },
     joinedRoom(room) {
       this.room = room;
+
+      console.log(this.room);
       this.socket.emit("joinRoom", room);
     },
     leaveRoom(room) {

@@ -33,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any): Promise<UserEntity> {
-		console.log('___ Jwt validate()')
+		// console.log('___ Jwt validate()')
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
         throw new UnauthorizedException('JwtStrategy')

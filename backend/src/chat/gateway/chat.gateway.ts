@@ -102,7 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onJoinRoom(socket: Socket, room: RoomI, password: string) {
 
     if (room.protected == true) {
-      const matched = comparePassword(password, room.password)
+      const matched = comparePassword(password, room.password);
       if (!matched) {
         socket.emit('WrongPassword', new UnauthorizedException());
       }
@@ -133,7 +133,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     catch {
       socket.emit('Error', new UnauthorizedException());
     }
-
   }
    
   @SubscribeMessage('addMessage')

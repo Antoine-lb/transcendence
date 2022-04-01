@@ -39,7 +39,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
    @WebSocketServer() server: Server;
 
-   state: StateI;
+   state: StateI = {id: 0};
    
    async onModuleInit() {
    }
@@ -47,6 +47,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleConnection(socket: Socket, payload: string) {
 
     console.log('GAME!');
+    
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
@@ -137,7 +138,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     this.state = await this.GameService.initGame();
 
-    console.log(this.state);
     socket.join(roomId);
     socket.data.number = 1;
     socket.emit('init', 1);
