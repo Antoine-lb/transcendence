@@ -91,13 +91,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   @SubscribeMessage('getAdmins')
-  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]){
+  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
+    
     admins = await this.roomService.getAdminsForRoom(room.id);
     return this.server.to(socket.id).emit('getAdmins', admins)
   }
 
   @SubscribeMessage('getUsers')
-  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]){
+  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
+    
     users = await this.roomService.getUsersForRoom(room.id);
     return this.server.to(socket.id).emit('getUsers', users)
   }
@@ -108,20 +110,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('joinRoom')
   // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
   async onJoinRoom(socket: Socket, { room, password }) {
-    console.log("onJoinRoom password : ", password);
-    console.log("onJoinRoom room.password : ", room.password);
+
     if (room.protected == true) {
-    console.log("room.protected == true");
-    const matched = comparePassword(password, room.password)
+      const matched = comparePassword(password, room.password)
       if (!matched) {
         socket.emit('WrongPassword', new UnauthorizedException());
       }
-      console.log("matched : ", matched);
     }
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-    // Save Connection to Room in DB
+    
     var found = await this.joinedRoomService.findByUserAndRoom(socket.data.user, room); // check socket id too ?
+
+    // Save Connection to Room in DB
     if (found.length == 0)
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
     // Send Last Message to User
@@ -130,16 +131,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('leaveRoom')
   async onLeaveRoom(socket: Socket, room: RoomI) {
-    console.log("onLeaveRoom");
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
-  }
-   
-  @SubscribeMessage('quitRoom')
-  // async onQuitRoom(socket: Socket, { room: RoomI, user: UserInterface }) {
-  async onQuitRoom(socket: Socket, { room, user }) {
-    console.log("onQuitRoom")
-    await this.roomService.quitRoom(room, user);
   }
       
   @SubscribeMessage('addAdmins')
@@ -156,8 +149,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
-    console.log(">>>>>> addMessage");
-    console.log("message : ", message);
 
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
