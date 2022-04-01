@@ -59,7 +59,7 @@ export default {
   },
   methods: {
     sendMessage() {
-      console.log(this.room);
+      console.log(">>>> sendMessage room", this.room);
       if (this.validateInput()) {
         const message = {
           user: this.userStore.user,
@@ -68,6 +68,7 @@ export default {
         };
         this.socket.emit("addMessage", message);
         this.text = "";
+        console.log("after sendMessage emit");
       }
     },
     validateInput() {
@@ -75,8 +76,6 @@ export default {
     },
     joinedRoom(room: roomInterface) {
       this.room = room;
-      console.log("front joinedRoom");
-      // this.socket.emit("joinRoom", room);
       this.socket.emit("joinRoom", { room: room, password: this.joinRoomPassword });
       this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
@@ -96,13 +95,18 @@ export default {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
+    resetProtectedRoom()
+    {
+        this.joinRoomPassword = null;
+        this.roomPasswordRequired = 0;
+    },
     updateSelected(selectedItem: roomInterface) {
       console.log("updateSelected", selectedItem);
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
-        this.joinRoomPassword = null;
+        this.resetProtectedRoom();
       } else {
         if (selectedItem.protected == true)
         {
@@ -112,7 +116,7 @@ export default {
         }
         else
         {
-          this.joinRoomPassword = null;
+          this.resetProtectedRoom();
           this.selectedRoom = selectedItem;
           this.joinedRoom(selectedItem);
         }
@@ -150,27 +154,27 @@ export default {
     });
     this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
       this.myRooms = rooms.items;
-      console.log("this.myRooms", this.myRooms);
+      console.log("on \"rooms\" myRooms : ", this.myRooms);
     });
     this.socket.on("getAdmins", (admins: number[]) => {
       this.selectedRoomAdmins = admins;
-      console.log("this.selectedRoomAdmins", this.selectedRoomAdmins);
+      console.log("on \"getAdmins\" : ", this.selectedRoomAdmins);
     });
     this.socket.on("getUsers", (users: number[]) => {
       this.selectedRoomUsers = users;
-      console.log("this.selectedRoomUsers", this.selectedRoomUsers);
+      console.log("on \"getUsers\" : ", this.selectedRoomUsers);
     });
     this.socket.on("messageAdded", (message) => {
-      console.log("messageAdded", message);
+      console.log("on \"messageAdded\" : ", message);
       // this.receivedMessage(message);
       this.messages.items.push(message);
     });
     this.socket.on("messages", (messages) => {
-      console.log("messages", messages);
+      console.log("on \"messages\" : ", messages);
       this.messages = messages;
     });
     this.socket.on("WrongPassword", (data) => {
-      console.log("WrongPassword", data);
+      console.log("on \"WrongPassword\" : ", data);
       this.selectedRoom = {};
       this.wrongPassword = true;
     });

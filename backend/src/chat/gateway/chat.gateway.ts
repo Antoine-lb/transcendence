@@ -121,7 +121,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
     // Save Connection to Room in DB
-    await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
+    var found = await this.joinedRoomService.findByUserAndRoom(socket.data.user, room); // check socket id too ?
+    if (found.length == 0)
+      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
     // Send Last Message to User
     await this.server.to(socket.id).emit('messages', messages);
   }
@@ -152,16 +154,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
   }
-   
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
-
+    console.log(">>>>>> addMessage");
+    console.log("message : ", message);
 
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
-
-
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
-
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
     // Send New Message to all joineds Users (online on the room)
     for (const user of joinedUsers) {
