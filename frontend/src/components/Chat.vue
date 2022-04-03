@@ -55,6 +55,9 @@ export default {
       passwordFieldType: "password",
       joinRoomPassword: null,
       wrongPassword: false,
+      changePassword: false,
+      newPassword: null,
+      passwordUpdated: false,
     };
   },
   setup() {
@@ -109,9 +112,12 @@ export default {
     {
         this.joinRoomPassword = null;
         this.roomPasswordRequired = 0;
+        this.passwordUpdated = false;
+        this.changePassword = false;
     },
     updateSelected(selectedItem: roomInterface) {
       console.log("updateSelected", selectedItem);
+      this.passwordUpdated = false;
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
@@ -179,6 +185,13 @@ export default {
       console.log(">>>>>> deletePassword");
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
+    updatePassword(room: roomInterface, modifier: UserInterface) {
+      console.log(">>>>>> updatePassword");
+      this.socket.emit("updatePassword", { room: room, modifier: modifier, password: this.newPassword });
+      this.changePassword = false;
+      this.newPassword = null;
+      this.passwordUpdated = false;
+    },
     // banUser(user) {
     //   ;
     // },
@@ -217,8 +230,15 @@ export default {
       this.wrongPassword = true;
     });
     this.socket.on("updateSelectedRoom", (room: roomInterface) => {
+      console.log(">>>>> updateSelectedRoom room : ", room);
       this.selectedRoom = room;
       console.log("on \"updateSelectedRoom\" room : ", room);
+    });
+    this.socket.on("passwordUpdated", (room: roomInterface) => {
+      this.passwordUpdated = true;
+      this.changePassword = false;
+      this.newPassword = null;
+      console.log("on \"passwordUpdated\" room : ", room);
     });
   },
 };
@@ -226,7 +246,6 @@ export default {
 <template>
   <div class="container">
     <ChatNewRoom @onSubmit="createRoom" />
-
     <h1 style="margin-top: 30px">Salons Disponibles</h1>
     <p v-if="wrongPassword" class="error-paragraf">
       Password not matching
@@ -245,11 +264,8 @@ export default {
             <div>
               <input :type="passwordFieldType" v-model="joinRoomPassword" placeholder="Password" />
               <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-              <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button>
+              <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button> 
             </div>
-            <!-- <p v-if="wrongPassword" class="error-paragraf">
-              Password not matching
-            </p> -->
           </div>
           <div
            @click="updateSelected(room)"
@@ -275,8 +291,19 @@ export default {
         <!-- {{ this.selectedRoomAdmins }} -->
         <!-- {{ this.selectedRoom }} -->
         <div v-if="isOwner(userStore.user.id) && (userStore.user.id == user.id) && isProtected()" class="empty">
-          <p>You are the owner of this protected room. 
+          <p>You are the owner of this protected room.
+            <p>
               <button class="new-room-button" @click="deletePassword(this.selectedRoom, userStore.user)">Delete Password</button>
+              <button class="new-room-button" @click="this.changePassword = !this.changePassword">Change Password</button>
+              <div v-if="this.changePassword">
+                <input :type="passwordFieldType" v-model="newPassword" placeholder="Password" />
+                <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+                <button class="add-user on-colors" @click="updatePassword(this.selectedRoom, userStore.user)">UPDATE PASSWORD</button>
+              </div>
+              <p v-if="this.passwordUpdated" class="validation-paragraf">
+                Password updated
+              </p>
+            </p>
           </p>
         </div>
         <p>Users in <span class="bold-colored">{{ this.selectedRoom.name }}</span> :</p>
@@ -360,6 +387,11 @@ input[type="submit"]:hover {
 
 .error-paragraf {
   color: red;
+}
+
+.validation-paragraf {
+  color: green;
+  font-weight: bold;
 }
 
 .empty {

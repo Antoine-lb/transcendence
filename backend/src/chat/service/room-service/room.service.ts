@@ -13,7 +13,6 @@ import { encodePassword } from 'src/utils/bcrypt';
 
 @Injectable()
 export class RoomService {
-
     constructor(
         private readonly usersService: UsersService,
 
@@ -22,15 +21,12 @@ export class RoomService {
     ){}
     
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-
         const newRoom = await this.addCreatorToRoom(room, creator);
         // if (Public room)
         if (newRoom.status == true) {
-
             // hash and store the password
             if (newRoom.protected == true && room.password)
                 newRoom.password = encodePassword(room.password);
-            
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
         }
@@ -46,7 +42,15 @@ export class RoomService {
         room.protected = false;
         return await this.roomRepository.save(room);
     }
-
+    
+    async updatePassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+        if (await this.isOwner(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (room.status == false || room.protected == false || room.password == null)
+            throw new UnauthorizedException();
+        room.password = encodePassword(password);;
+        return await this.roomRepository.save(room);
+    }
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
         
         return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
