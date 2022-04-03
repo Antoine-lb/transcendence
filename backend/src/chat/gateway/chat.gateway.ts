@@ -89,10 +89,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  @SubscribeMessage('deletePassword')
+  async onDeletePassword(socket: Socket, { room, modifier }) {
+      await this.roomService.deletePassword(room, modifier);
+      return await this.server.to(socket.id).emit('updateSelectedRoom', room);
+  }
+
+
   @SubscribeMessage('getAdmins')
   async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
     admins = await this.roomService.getAdminsForRoom(room.id);
-    console.log(">>>>>> onGetAdmins admins : ", admins);
     return await this.server.to(socket.id).emit('getAdmins', admins)
   }
 

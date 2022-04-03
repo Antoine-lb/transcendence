@@ -36,6 +36,16 @@ export class RoomService {
         }
         return await this.roomRepository.save(newRoom);
     }
+    
+    async deletePassword(room: RoomI, modifier: UserDto): Promise<RoomI> {
+        if (await this.isOwner(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (room.status == false || room.protected == false || room.password == null)
+            throw new UnauthorizedException();
+        room.password = null;
+        room.protected = false;
+        return await this.roomRepository.save(room);
+    }
 
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
         
@@ -57,11 +67,17 @@ export class RoomService {
         return false;
      }
     
+    async isOwner(userId: number, roomId: number) : Promise<boolean> {
+        var room = await this.roomRepository.findOne(roomId);
+        if (userId == room.ownerId)
+            return true;
+        return false;
+     }
+    
     async getAdminsForRoom(roomId: number) {
         var ret = await this.roomRepository.findOne(roomId, {
             relations: ['users', 'admins']
         });
-        console.log("getAdminsForRoom ret : ", ret);
         return ret.admins;
     }
 
@@ -120,6 +136,7 @@ export class RoomService {
         // Save creator as Admin
         admins.push(creator);
         room.admins = admins;
+        room.ownerId = creator.id;
         return room;
     }
 
