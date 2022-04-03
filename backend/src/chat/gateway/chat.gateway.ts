@@ -98,8 +98,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('updatePassword')
   async onUpdatePassword(socket: Socket, { room, modifier, password }) {
       await this.roomService.updatePassword(room, modifier, password);
-      await this.server.to(socket.id).emit('updateSelectedRoom', room);
       return await this.server.to(socket.id).emit('passwordUpdated', room);
+      // return await this.server.to(socket.id).emit('updateSelectedRoom', room);
   }
 
   @SubscribeMessage('getAdmins')

@@ -238,6 +238,7 @@ export default {
       this.passwordUpdated = true;
       this.changePassword = false;
       this.newPassword = null;
+      this.selectedRoom = room;
       console.log("on \"passwordUpdated\" room : ", room);
     });
   },
