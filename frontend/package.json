@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@kyvg/vue3-notification": "^2.3.4",
     "axios": "^0.26.1",
     "pinia": "^2.0.11",
     "socket.io-client": "^4.4.1",
