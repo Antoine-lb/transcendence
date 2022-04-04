@@ -54,10 +54,12 @@ export default {
       roomPasswordRequired: 0,
       passwordFieldType: "password",
       joinRoomPassword: null,
-      wrongPassword: false,
-      changePassword: false,
-      newPassword: null,
+      wrongPassword: false, // error
+      changingPassword: false, // true if we are in the process
+      updatedPassword: null, // validation
       passwordUpdated: false,
+      addingPassword: false,
+      addedPassword: null, // validation
     };
   },
   setup() {
@@ -113,11 +115,14 @@ export default {
         this.joinRoomPassword = null;
         this.roomPasswordRequired = 0;
         this.passwordUpdated = false;
-        this.changePassword = false;
+        this.changingPassword = false;
+        this.addingPassword = false;
+        this.addedPassword = null;
     },
     updateSelected(selectedItem: roomInterface) {
       console.log("updateSelected", selectedItem);
       this.passwordUpdated = false;
+      this.passwordAdded = false;
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
@@ -165,6 +170,11 @@ export default {
         return true;
       return false;
     },
+    isPublic() {
+      if (this.selectedRoom.status == true && this.selectedRoom.protected == false && this.selectedRoom.password == null)
+        return true;
+      return false;
+    },
     switchVisibility() {
       if (this.passwordFieldType == 'password')
         this.passwordFieldType = 'text'
@@ -187,10 +197,17 @@ export default {
     },
     updatePassword(room: roomInterface, modifier: UserInterface) {
       console.log(">>>>>> updatePassword");
-      this.socket.emit("updatePassword", { room: room, modifier: modifier, password: this.newPassword });
-      this.changePassword = false;
-      this.newPassword = null;
+      this.socket.emit("updatePassword", { room: room, modifier: modifier, password: this.updatedPassword });
+      this.changingPassword = false;
+      this.updatedPassword = null;
       this.passwordUpdated = false;
+    },
+    addPassword(room: roomInterface, modifier: UserInterface) {
+      console.log(">>>>>> addPassword");
+      this.socket.emit("addPassword", { room: room, modifier: modifier, password: this.addedPassword });
+      this.addingPassword = false;
+      this.addedPassword = null;
+      this.passwordAdded = false;
     },
     // banUser(user) {
     //   ;
@@ -236,10 +253,17 @@ export default {
     });
     this.socket.on("passwordUpdated", (room: roomInterface) => {
       this.passwordUpdated = true;
-      this.changePassword = false;
-      this.newPassword = null;
+      this.changingPassword = false;
+      this.updatedPassword = null;
       this.selectedRoom = room;
       console.log("on \"passwordUpdated\" room : ", room);
+    });
+    this.socket.on("passwordAdded", (room: roomInterface) => {
+      this.passwordAdded = true;
+      this.addingPassword = false;
+      this.addedPassword = null;
+      this.selectedRoom = room;
+      console.log("on \"passwordAdded\" room : ", room);
     });
   },
 };
@@ -291,21 +315,38 @@ export default {
       <h1 class="text-center small-text">
         <!-- {{ this.selectedRoomAdmins }} -->
         <!-- {{ this.selectedRoom }} -->
-        <div v-if="isOwner(userStore.user.id) && (userStore.user.id == user.id) && isProtected()" class="empty">
-          <p>You are the owner of this protected room.
-            <p>
-              <button class="new-room-button" @click="deletePassword(this.selectedRoom, userStore.user)">Delete Password</button>
-              <button class="new-room-button" @click="this.changePassword = !this.changePassword">Change Password</button>
-              <div v-if="this.changePassword">
-                <input :type="passwordFieldType" v-model="newPassword" placeholder="Password" />
-                <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-                <button class="add-user on-colors" @click="updatePassword(this.selectedRoom, userStore.user)">UPDATE PASSWORD</button>
-              </div>
-              <p v-if="this.passwordUpdated" class="validation-paragraf">
-                Password updated
+        <div v-if="isOwner(userStore.user.id) && (userStore.user.id == user.id)" class="empty">
+          <div v-if="isProtected()">
+            <p>You are the owner of this protected room.
+              <p>
+                <button class="new-room-button" @click="deletePassword(this.selectedRoom, userStore.user)">Delete Password</button>
+                <button class="new-room-button" @click="this.changingPassword = !this.changingPassword">Change Password</button>
+                <div v-if="this.changingPassword">
+                  <input :type="passwordFieldType" v-model="updatedPassword" placeholder="Password" />
+                  <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+                  <button class="add-user on-colors" @click="updatePassword(this.selectedRoom, userStore.user)">UPDATE PASSWORD</button>
+                </div>
+                <p v-if="this.passwordUpdated" class="validation-paragraf">
+                  Password updated
+                </p>
               </p>
             </p>
-          </p>
+          </div>
+          <div v-if="isPublic()">
+            <p>You are the owner of this public room.
+              <p>
+                <button class="new-room-button" @click="this.addingPassword = !this.addingPassword">Add Password</button>
+                <div v-if="this.addingPassword">
+                  <input :type="passwordFieldType" v-model="addedPassword" placeholder="Password" />
+                  <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+                  <button class="add-user on-colors" @click="addPassword(this.selectedRoom, userStore.user)">ADD PASSWORD</button>
+                </div>
+                <p v-if="this.passwordAdded" class="validation-paragraf">
+                  Password added
+                </p>
+              </p>
+            </p>
+          </div>
         </div>
         <p>Users in <span class="bold-colored">{{ this.selectedRoom.name }}</span> :</p>
         <li v-for="user in this.selectedRoomUsers" :key="user.username">

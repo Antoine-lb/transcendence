@@ -48,9 +48,20 @@ export class RoomService {
             throw new UnauthorizedException();
         if (room.status == false || room.protected == false || room.password == null)
             throw new UnauthorizedException();
-        room.password = encodePassword(password);;
+        room.password = encodePassword(password);
         return await this.roomRepository.save(room);
     }
+
+    async addPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+        if (await this.isOwner(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (room.status == false)
+            throw new UnauthorizedException();
+        room.password = encodePassword(password);
+        room.protected = true;
+        return await this.roomRepository.save(room);
+    }
+
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
         
         return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable

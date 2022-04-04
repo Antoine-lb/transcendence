@@ -99,7 +99,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onUpdatePassword(socket: Socket, { room, modifier, password }) {
       await this.roomService.updatePassword(room, modifier, password);
       return await this.server.to(socket.id).emit('passwordUpdated', room);
-      // return await this.server.to(socket.id).emit('updateSelectedRoom', room);
+  }
+
+  @SubscribeMessage('addPassword')
+  async onAddPassword(socket: Socket, { room, modifier, password }) {
+      await this.roomService.addPassword(room, modifier, password);
+      return await this.server.to(socket.id).emit('passwordAdded', room);
   }
 
   @SubscribeMessage('getAdmins')
@@ -118,31 +123,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
    
-   @SubscribeMessage('joinRoom')
-  // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
+  @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, { room, password }) {
-
-     if (room.protected == true) {
-      
+    if (room.protected == true) {
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
        }
-         
       const matched = comparePassword(password, room.password)
-      
        if (!matched) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
        }
-        
     }
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-    
      // check if already join (for if the client switch between)
     var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
-
     // Save Connection to Room in DB
     if (found.length == 0)
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
