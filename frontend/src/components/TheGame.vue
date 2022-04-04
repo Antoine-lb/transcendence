@@ -1,36 +1,85 @@
 <script lang="ts">
+import { ref, onMounted } from 'vue'
 import { io } from "socket.io-client";
+import { notify } from "@kyvg/vue3-notification"; 
 import { useUserStore } from "../stores/userStore";
 
 export default {
   name: "TheGame",
+   setup() {
+      const gameCodeDisplay = ref(null)
+      const initialScreen = ref(null)
+      const gameCodeInput = ref(null)
+      const gameScreen = ref(null)
+      const canvas = ref(null)
+      onMounted(() => {
+        // the DOM element will be assigned to the ref after initial render
+        console.log(gameCodeDisplay.value) // <div>This is a gameCodeDisplay element</div>
+      })
+
+      return {
+        gameCodeDisplay,
+        initialScreen,
+        gameCodeInput,
+        gameScreen,
+        canvas,
+      }
+    },
   data() {
     return {
-      socket: null,
-      canvas: null,
+      title: "Game Room",
+      
+      score : {},
+      gameStatus : String("paused"),
+      socket: ref(),
       ctx: null,
-      grid: 15,
-      paddleHeight: this.grid * 5, // 80
-      playerNumber: 0,
-      gameActive: false,
+      // myRooms: null,
+      // friendList: [],
+      // newRoomName: null,
+      // newRoomUsers: null,
+      // selectedRoom: {},
+      // room: {},
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
+  created() {
+    this.socket = io("http://127.0.0.1:3000", {
+    });
+    // this.socket.on("test", (msg) => {
+    //   console.log(msg)
+    //   console.log("connected :", this.socket.connected);
+    //   console.log("this.socket.id", this.socket.id);
+
+    // })
+    console.log("connected :", this.socket.connected);
   },
-  props: {
-    user: Object,
+  mounted() {
+
+    this.socket.on("connect", () => {this.gameStatus = "idle"})
+    this.socket.on("init", this.handleInit);
+    this.socket.on("gameState", this.handleGameState);
+    this.socket.on("gameOver", this.handleGameOver);
+    this.socket.on("gameCode", this.handleGameCode);
+    this.socket.on("unknownCode", this.handleUnknownCode);
+    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
+    this.socket.on("paused", this.handlePause);
+    this.socket.on("notify", this.handleNotification);
+    this.socket.on("disconnection", this.handleDisconnection);
+    this.socket.on("disconnect", (reason) => {
+      if (reason === "io server disconnect") {
+        // the disconnection was initiated by the server, you need to reconnect manually
+        this.socket.connect();
+      }
+      // else the socket will automatically try to reconnect
+    });
   },
   methods: {
-    init() {
-      this.$ref.initialScreen.style.display = "none";
-      this.$ref.gameScreen.style.display = "block";
+   init() {
+      this.initialScreen.style.display = "none";
+      this.gameScreen.style.display = "block";
 
       // canvas = document.getElementById('canvas');
-      this.canvas = this.$refs.game;
+      // this.canvas = this.$refs.game;
       this.ctx = this.canvas.getContext("2d");
-
       this.canvas.width = 750;
       this.canvas.height = 585;
 
@@ -42,48 +91,69 @@ export default {
     },
 
     keydown(e) {
+      // console.log(e.key)
+      console.log(e.keyCode)
       this.socket.emit("keydown", e.keyCode);
+      if (e.key == 'd')
+        this.socket.disconnect()
+      if (e.key == 'f')
+        this.socket.connect()
     },
 
     paintGame(state) {
+      const grid = 15;
+      const paddleHeight = grid * 5
       // clear canvas
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // draw paddles
       this.ctx.fillStyle = "black";
-      this.ctx.fillRect(this.grid, state.players[0].y, 15, this.paddleHeight);
+      this.ctx.fillRect(grid, state.players[0].y, 15, paddleHeight);
       this.ctx.fillRect(
-        this.canvas.width - 2 * this.grid,
+        this.canvas.width - 2 * grid,
         state.players[1].y,
         15,
-        this.paddleHeight
+        paddleHeight
       );
-
-      // draw ball
-      this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
 
       // draw walls
       this.ctx.fillStyle = "lightgrey";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.grid);
+      this.ctx.fillRect(0, 0, this.canvas.width, grid);
       this.ctx.fillRect(
         0,
-        this.canvas.height - this.grid,
+        this.canvas.height - grid,
         this.canvas.width,
         this.canvas.height
       );
 
       // draw dotted line down the middle
       for (
-        let i = this.grid;
-        i < this.canvas.height - this.grid;
-        i += this.grid * 2
+        let i = grid;
+        i < this.canvas.height - grid;
+        i += grid * 2
       ) {
         this.ctx.fillRect(
-          this.canvas.width / 2 - this.grid / 2,
+          this.canvas.width / 2 - grid / 2,
           i,
-          this.grid,
-          this.grid
+          grid,
+          grid
         );
       }
+      // draw ball
+      this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
+
+      // draw PowerUps (if any)
+      if (state.powerUp[0].x > 0) {
+        console.log("state.powerUp_t", state.powerUp_t)
+        this.ctx.fillStyle = state.powerUp_t;
+        this.ctx.fillRect(state.powerUp[0].x, state.powerUp[0].y, 15, 15);
+        this.ctx.fillRect(state.powerUp[1].x, state.powerUp[1].y, 15, 15);
+      }
+
+      // draw scrore
+      this.ctx.font = "20pt Calibri,Geneva,Arial";
+      this.ctx.strokeStyle = "rgb(0,0,0)";
+      this.ctx.strokeText(String(this.score.p1), this.canvas.width / 2 - 40, 40);
+      this.ctx.strokeText(String(this.score.p2), this.canvas.width / 2 + 25, 40);
     },
 
     handleInit(number) {
@@ -95,8 +165,10 @@ export default {
         return;
       }
       gameState = JSON.parse(gameState);
-      console.log("handleGameState gameState : ", gameState);
-      requestAnimationFrame(() => this.paintGame(gameState));
+      this.score = gameState.score;
+      console.log("this.gameStatus : ", this.gameStatus);
+      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
+        requestAnimationFrame(() => this.paintGame(gameState));
     },
 
     handleGameOver(data) {
@@ -108,14 +180,24 @@ export default {
       this.gameActive = false;
 
       if (data.winner === this.playerNumber) {
-        alert("You Win!");
+        this.$notify({
+          position : "center",
+          title: "Congratulations !!",
+          text: "You Won :)",
+          duration : 6000
+      });
       } else {
-        alert("You Lose :(");
+        this.$notify({
+          position : "center",
+          title: "Try Again !!",
+          text: "You Loose :(",
+          duration : 6000
+      });
       }
     },
 
     handleGameCode(gameCode) {
-      this.$ref.gameCodeDisplay.innerText = gameCode;
+      this.gameCodeDisplay.innerText = gameCode;
     },
 
     handleUnknownCode() {
@@ -128,15 +210,31 @@ export default {
       alert("This game is already in progress");
     },
 
-    reset() {
-      this.playerNumber = null;
-      this.$ref.gameCodeInput.value = "";
-      this.$ref.initialScreen.style.display = "block";
-      this.$ref.gameScreen.style.display = "none";
+    handleDisconnection() {
+      this.gameStatus = "opponentLeft"
+      this.$notify({
+        title: "Important message",
+        text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
+        duration : 6000
+      });
+      // alert("Your Opponent disconnected, you can wait till he come back or claim victory");
     },
 
-    testConnexion(data) {
-      console.log("test connection", data);
+    handlePause(msg) {
+      console.log(`%c your opponent paused ${msg}`, 'background: #222; color: #bada55')
+      this.$notify(msg);
+      this.socket.emit('pause');
+    },
+
+    handleNotification(msg) {
+      this.$notify(msg);
+    },
+
+    reset() {
+      this.playerNumber = null;
+      this.gameCodeInput.value = "";
+      this.initialScreen.style.display = "block";
+      this.gameScreen.style.display = "none";
     },
 
     handleJoinGame() {
@@ -144,100 +242,73 @@ export default {
       this.socket.emit('joinGame', code);
       this.init();
     },
+
     createNewGame() {
       console.log("new game");
-      console.log("this.socket", this.socket.emit("createGame"));
-      this.socket.emit("createGame");
+      // console.log("this.socket", this.socket.emit("createGame"));
+      this.socket.emit("newGame"/* "createGame" */);
+      this.init();
     },
-  },
-  async created() {
-    console.log("this.user.access_token", this.user.access_token);
-    this.socket = await io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
-    console.log("this.socket game", this.socket.connected );
-
-    this.socket.on("test", this.testConnexion);
-    this.socket.on("init", this.handleInit);
-    this.socket.on("gameState", this.handleGameState);
-    this.socket.on("gameOver", this.handleGameOver);
-    this.socket.on("gameCode", this.handleGameCode);
-    this.socket.on("unknownCode", this.handleUnknownCode);
-    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
   },
 };
 </script>
 
 <template>
-  <!--   <div class="canvas-container">
-    <canvas width="750" height="585" id="game" ></canvas> Toggle with : "const canvas = <HTMLCanvasElement>document.getElementById("game"); l.19"
-    <canvas ref="game" width="750" height="585"></canvas>
-  </div> -->
-  <!-- NEW VERSION -->
-  <body>
-    <section class="vh-100">
-      <div class="container h-100">
-        <div ref="initialScreen" class="h-100">
-          <div
-            class="
-              d-flex
-              flex-column
-              align-items-center
-              justify-content-center
-              h-100
-            "
-          >
+  <section class="vh-100">
+    <div class="container h-100">
+
+      <div ref="initialScreen" class="h-100">
+        <div class="d-flex flex-column align-items-center justify-content-center h-100">
             <h1>Multiplayer Pong Game</h1>
+            <h1>myRoom is : {{this.socket.id}}</h1>
             <button
+              type="submit"
               class="btn btn-success"
-              ref="newGameButton"
               @click="createNewGame"
             >
-              Create New Game
+              Play 
             </button>
             <div>OR</div>
             <div class="form-group">
-              <input
-                type="text"
-                placeholder="Enter Game Code"
-                ref="gameCodeInput"
-              />
+              <input type="text" placeholder="Enter Game Code" ref="gameCodeInput"/>
             </div>
             <button
               type="submit"
               class="btn btn-success"
-              ref="joinGameButton"
-              @click="handleJoinGame"
+              v-on:click="handleJoinGame"
             >
               Join Game
             </button>
-          </div>
-        </div>
-
-        <div ref="gameScreen" class="h-100">
-          <div
-            class="
-              d-flex
-              flex-column
-              align-items-center
-              justify-content-center
-              h-100
-            "
-          >
-            <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
-
-            <!-- <canvas ref="canvas"></canvas> // toggle -->
-            <canvas ref="canvas"></canvas>
-          </div>
         </div>
       </div>
-    </section>
-  </body>
+
+      <div ref="gameScreen" id="gameScreen" class="h-100">
+        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+          <h1>myRoom is : {{this.socket.id}}</h1>
+          <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
+          <canvas ref="canvas"></canvas>
+          <button
+            type="submit"
+            class="btn btn-success"
+            ref="pauseButton"
+            v-on:click="handlePause()"
+          >
+          pause
+          </button>
+          <button type="submit"
+            class="btn btn-success"
+            ref="notifyButton"
+            v-if="this.gameStatus === 'opponentLeft'"
+            v-on:click="claimVictory"
+          >
+          claimVictory
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
 </template>
-
-
 
 <style scoped>
 #gameScreen {
