@@ -14,7 +14,7 @@ export interface roomInterface {
   id: number;
   name: string;
   ownerId: number;
-  // password: string;
+  password: string;
   protected: boolean;
   status: boolean;
   updated_date: string;
@@ -47,16 +47,15 @@ export default {
       selectedRoomAdmins: [],
       selectedRoomUsers: [],
       room: {},
-      roomPasswordRequired: 0,
-      passwordFieldType: "password",
       // Pwd when trying to join room
+      roomPasswordRequired: 0,
       joiningPassword: null, // password
       wrongPassword: false, // error
       // Pwd when changing it
-      showModifyPassword: false, // true if we are in the process
+      showModifyPassword: false,
       modifyingPasswordSuccess: false, // validation
       // Pwd when adding one
-      showAddPassword: false, // true if we are in the process
+      showAddPassword: false,
       addingPasswordSuccess: false, // validation
     };
   },
@@ -104,20 +103,25 @@ export default {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
+    resetValidationMsgs()
+    {
+      this.modifyingPasswordSuccess = false;
+      this.addingPasswordSuccess = false;
+    },
     resetProtectedRoom()
     {
         this.joiningPassword = null;
         this.roomPasswordRequired = 0;
-        this.modifyingPasswordSuccess = false;
+        this.resetValidationMsgs();
         this.showModifyPassword = false;
         this.showAddPassword = false;
     },
     updateSelected(selectedItem: roomInterface) {
       console.log("updateSelected", selectedItem);
-      this.modifyingPasswordSuccess = false;
-      this.addingPasswordSuccess = false;
+      this.resetValidationMsgs();
       // If we click on currently selected room => leave room
       if (selectedItem.id === this.selectedRoom.id) {
+        console.log(">>>>>> If we click on currently selected room => leave room");
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
@@ -126,6 +130,7 @@ export default {
         //  If protected => add roomId to 'roomPasswordRequired'
         if (selectedItem.protected == true)
         {
+          console.log(">>>>>> if protected => add roomId to 'roomPasswordRequired'");
           this.roomPasswordRequired = selectedItem.id;
           this.selectedRoom = {};
           console.log("Trying to join protected room id", this.roomPasswordRequired);
@@ -133,6 +138,7 @@ export default {
         //  Else, join room
         else
         {
+          console.log(">>>>>> Else, join room");
           this.resetProtectedRoom();
           this.selectedRoom = selectedItem;
           this.joinedRoom(selectedItem);
@@ -192,15 +198,12 @@ export default {
       this.roomPasswordRequired = 0;
     },
     deletePassword(room: roomInterface, modifier: UserInterface) {
-      console.log(">>>>>> deletePassword");
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
     modifyingPasswordSubmit(roomId: Number, inputPassword: string) {
-      console.log(">>>>>> modifyingPasswordSubmit");
       this.socket.emit("modifyPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
-      console.log(">>>>>> addingPasswordSubmit in Chat.vue");
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
     // banUser(user) {
@@ -239,12 +242,14 @@ export default {
     this.socket.on("modifyingPasswordSuccess", (room: roomInterface) => {
       this.modifyingPasswordSuccess = true;
       this.showModifyPassword = false;
-      this.selectedRoom = room;
+      // this.selectedRoom = room;
     });
     this.socket.on("addingPasswordSuccess", (room: roomInterface) => {
       this.addingPasswordSuccess = true;
       this.showAddPassword = false;
       this.selectedRoom = room;
+      console.log("room : ", room);
+      console.log("this.selectedRoom : ", this.selectedRoom);
     });
   },
 };

@@ -89,6 +89,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
+
   @SubscribeMessage('deletePassword')
   async onDeletePassword(socket: Socket, { room, modifier }) {
       await this.roomService.deletePassword(room, modifier);
@@ -106,6 +108,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.roomService.addPassword(room, modifier, password);
       return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
   }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
   @SubscribeMessage('getAdmins')
   async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
