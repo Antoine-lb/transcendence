@@ -43,7 +43,7 @@ export class RoomService {
         return await this.roomRepository.save(room);
     }
     
-    async updatePassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+    async modifyPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
         if (await this.isOwner(modifier.id, room.id) == false)
             throw new UnauthorizedException();
         if (room.status == false || room.protected == false || room.password == null)

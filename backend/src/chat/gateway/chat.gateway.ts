@@ -95,16 +95,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       return await this.server.to(socket.id).emit('updateSelectedRoom', room);
   }
 
-  @SubscribeMessage('updatePassword')
-  async onUpdatePassword(socket: Socket, { room, modifier, password }) {
-      await this.roomService.updatePassword(room, modifier, password);
-      return await this.server.to(socket.id).emit('passwordUpdated', room);
+  @SubscribeMessage('modifyPassword')
+  async onModifyPassword(socket: Socket, { room, modifier, password }) {
+      await this.roomService.modifyPassword(room, modifier, password);
+      return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
   }
 
   @SubscribeMessage('addPassword')
   async onAddPassword(socket: Socket, { room, modifier, password }) {
       await this.roomService.addPassword(room, modifier, password);
-      return await this.server.to(socket.id).emit('passwordAdded', room);
+      return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
   }
 
   @SubscribeMessage('getAdmins')

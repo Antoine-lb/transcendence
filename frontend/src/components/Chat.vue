@@ -2,6 +2,7 @@
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatNewRoom from "./ChatNewRoom.vue";
+import PasswordBtn from "./PasswordBtn.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -37,29 +38,28 @@ export default {
   name: "Chat",
   data() {
     return {
-      title: "Chat Room",
-      name: "",
       text: "",
       messages: [],
       socket: null,
       userStore: useUserStore(),
       myRooms: null,
-      newRoomName: null,
-      newRoomUsers: null,
-      friendList: [],
       selectedRoom: {},
       selectedRoomAdmins: [],
       selectedRoomUsers: [],
       room: {},
       roomPasswordRequired: 0,
       passwordFieldType: "password",
-      joinRoomPassword: null,
+      // Pwd when trying to join room
+      joiningPassword: null, // password
       wrongPassword: false, // error
-      changingPassword: false, // true if we are in the process
-      updatedPassword: null, // validation
-      passwordUpdated: false,
-      addingPassword: false,
-      addedPassword: null, // validation
+      // Pwd when changing it
+      showModifyPassword: false, // true if we are in the process
+      modifiedPassword: null, // password
+      passwordUpdated: false, // validation
+      // Pwd when adding one
+      showAddPassword: false, // true if we are in the process
+      addedPassword: null, // password
+      addingPasswordSuccess: false, // validation
     };
   },
   setup() {
@@ -71,6 +71,7 @@ export default {
   },
   components: {
     ChatNewRoom,
+    PasswordBtn,
   },
   methods: {
     sendMessage() {
@@ -91,11 +92,11 @@ export default {
     },
     joinedRoom(room: roomInterface) {
       this.room = room;
-      this.socket.emit("joinRoom", { room: room, password: this.joinRoomPassword });
+      this.socket.emit("joinRoom", { room: room, password: this.joiningPassword });
       this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
       this.wrongPassword = false;
-      this.joinRoomPassword = null;
+      this.joiningPassword = null;
     },
     leaveRoom(room: roomInterface) {
       this.socket.emit("leaveRoom", room);
@@ -112,17 +113,17 @@ export default {
     },
     resetProtectedRoom()
     {
-        this.joinRoomPassword = null;
+        this.joiningPassword = null;
         this.roomPasswordRequired = 0;
         this.passwordUpdated = false;
-        this.changingPassword = false;
-        this.addingPassword = false;
+        this.showModifyPassword = false;
+        this.showAddPassword = false;
         this.addedPassword = null;
     },
     updateSelected(selectedItem: roomInterface) {
       console.log("updateSelected", selectedItem);
       this.passwordUpdated = false;
-      this.passwordAdded = false;
+      this.addingPasswordSuccess = false;
       if (selectedItem.id === this.selectedRoom.id) {
         console.log("leave current room");
         this.socket.emit("leaveRoom", this.selectedRoom);
@@ -181,33 +182,48 @@ export default {
       else
         this.passwordFieldType = 'password'
     },
-    submitPassword(room: roomInterface) {
-      this.selectedRoom = room;
-      this.joinedRoom(room);
-      this.roomPasswordRequired = 0;
-    },
     addAdmin(room: roomInterface, user: UserInterface, modifier: UserInterface) {
       this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
       // this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
     },
+    getRoom(roomId: Number) {
+      for (var room of this.myRooms)
+      {
+        if (room.id == roomId)
+          return room;
+      }
+      return null;
+    },
+    joiningSubmitPassword(roomId: Number, inputPassword: string) {
+      var room: roomInterface = this.getRoom(roomId);
+      this.joiningPassword = inputPassword;
+      this.selectedRoom = room;
+      this.joinedRoom(room);
+      this.roomPasswordRequired = 0;
+    },
     deletePassword(room: roomInterface, modifier: UserInterface) {
       console.log(">>>>>> deletePassword");
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
-    updatePassword(room: roomInterface, modifier: UserInterface) {
-      console.log(">>>>>> updatePassword");
-      this.socket.emit("updatePassword", { room: room, modifier: modifier, password: this.updatedPassword });
-      this.changingPassword = false;
-      this.updatedPassword = null;
-      this.passwordUpdated = false;
+    modifyingSubmitPassword(roomId: Number, inputPassword: string) {
+      console.log(">>>>>> modifyingSubmitPassword");
+      this.socket.emit("modifyPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
+      this.showModifyPassword = false;
+      this.modifiedPassword = null;
     },
-    addPassword(room: roomInterface, modifier: UserInterface) {
-      console.log(">>>>>> addPassword");
-      this.socket.emit("addPassword", { room: room, modifier: modifier, password: this.addedPassword });
-      this.addingPassword = false;
-      this.addedPassword = null;
-      this.passwordAdded = false;
+    // addPassword(room: roomInterface, modifier: UserInterface) {
+    //   console.log(">>>>>> addPassword");
+    //   this.socket.emit("addPassword", { room: room, modifier: modifier, password: this.addedPassword });
+    //   this.showAddPassword = false;
+    //   this.addedPassword = null;
+    //   this.addingPasswordSuccess = false;
+    // },
+    addingSubmitPassword(roomId: Number, inputPassword: string) {
+      console.log(">>>>>> addingSubmitPassword in Chat.vue");
+      this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
+      this.showAddPassword = false;
+      // this.addingPasswordSuccess = false;
     },
     // banUser(user) {
     //   ;
@@ -221,49 +237,38 @@ export default {
     });
     this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
       this.myRooms = rooms.items;
-      console.log("on \"rooms\" myRooms : ", this.myRooms);
     });
     this.socket.on("getAdmins", (admins: number[]) => {
-      console.log("admins : ", admins);
       this.selectedRoomAdmins = admins;
-      console.log("on \"getAdmins\" : ", this.selectedRoomAdmins);
     });
     this.socket.on("getUsers", (users: number[]) => {
       this.selectedRoomUsers = users;
-      console.log("on \"getUsers\" : ", this.selectedRoomUsers);
     });
     this.socket.on("messageAdded", (message) => {
-      console.log("on \"messageAdded\" : ", message);
       // this.receivedMessage(message);
       this.messages.items.push(message);
     });
     this.socket.on("messages", (messages) => {
-      console.log("on \"messages\" : ", messages);
       this.messages = messages;
     });
     this.socket.on("WrongPassword", (data) => {
-      console.log("on \"WrongPassword\" : ", data);
       this.selectedRoom = {};
       this.wrongPassword = true;
     });
     this.socket.on("updateSelectedRoom", (room: roomInterface) => {
-      console.log(">>>>> updateSelectedRoom room : ", room);
       this.selectedRoom = room;
-      console.log("on \"updateSelectedRoom\" room : ", room);
     });
-    this.socket.on("passwordUpdated", (room: roomInterface) => {
+    this.socket.on("modifyingPasswordSuccess", (room: roomInterface) => {
       this.passwordUpdated = true;
-      this.changingPassword = false;
-      this.updatedPassword = null;
+      this.showModifyPassword = false;
+      this.modifiedPassword = null;
       this.selectedRoom = room;
-      console.log("on \"passwordUpdated\" room : ", room);
     });
-    this.socket.on("passwordAdded", (room: roomInterface) => {
-      this.passwordAdded = true;
-      this.addingPassword = false;
+    this.socket.on("addingPasswordSuccess", (room: roomInterface) => {
+      this.addingPasswordSuccess = false;
+      this.showAddPassword = false;
       this.addedPassword = null;
       this.selectedRoom = room;
-      console.log("on \"passwordAdded\" room : ", room);
     });
   },
 };
@@ -286,11 +291,7 @@ export default {
             class="list-group-item list-group-item-action"
           >
             💬 {{ room.name }}
-            <div>
-              <input :type="passwordFieldType" v-model="joinRoomPassword" placeholder="Password" />
-              <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-              <button class="add-user on-colors" @click="submitPassword(room)">SUBMIT</button> 
-            </div>
+            <PasswordBtn @onSubmit="joiningSubmitPassword" :roomId="room.id" :msg="'JOIN ROOM'"/>
           </div>
           <div
            @click="updateSelected(room)"
@@ -320,11 +321,9 @@ export default {
             <p>You are the owner of this protected room.
               <p>
                 <button class="new-room-button" @click="deletePassword(this.selectedRoom, userStore.user)">Delete Password</button>
-                <button class="new-room-button" @click="this.changingPassword = !this.changingPassword">Change Password</button>
-                <div v-if="this.changingPassword">
-                  <input :type="passwordFieldType" v-model="updatedPassword" placeholder="Password" />
-                  <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-                  <button class="add-user on-colors" @click="updatePassword(this.selectedRoom, userStore.user)">UPDATE PASSWORD</button>
+                <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
+                <div v-if="showModifyPassword">
+                  <PasswordBtn @onSubmit="modifyingSubmitPassword" :roomId="room.id" :msg="'MODIFY PASSWORD'"/>
                 </div>
                 <p v-if="this.passwordUpdated" class="validation-paragraf">
                   Password updated
@@ -335,13 +334,11 @@ export default {
           <div v-if="isPublic()">
             <p>You are the owner of this public room.
               <p>
-                <button class="new-room-button" @click="this.addingPassword = !this.addingPassword">Add Password</button>
-                <div v-if="this.addingPassword">
-                  <input :type="passwordFieldType" v-model="addedPassword" placeholder="Password" />
-                  <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-                  <button class="add-user on-colors" @click="addPassword(this.selectedRoom, userStore.user)">ADD PASSWORD</button>
-                </div>
-                <p v-if="this.passwordAdded" class="validation-paragraf">
+                <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
+                <p v-if="showAddPassword">
+                  <PasswordBtn @onSubmit="addingSubmitPassword" :roomId="room.id" :msg="'ADD PASSWORD'"/>
+                </p>
+                <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
                   Password added
                 </p>
               </p>
