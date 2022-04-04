@@ -26,9 +26,6 @@ export default {
         this.passwordFieldType = 'password'
     },
     submitPwd(roomId, inputPassword) {
-      // console.log(">>>>>> submit in component");
-      // console.log(">>> roomId : ", roomId);
-      // console.log(">>> inputPassword : ", inputPassword);
       this.$emit("onSubmit", roomId, inputPassword);
     }
   },
@@ -38,22 +35,19 @@ export default {
 <template>
   <div>
     <input :type="passwordFieldType" v-model="inputPassword" placeholder="Password" />
-    <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-    <button class="add-user on-colors" @click="submitPwd(this.roomId, inputPassword)">{{ msg }}</button> 
+    <button class="pwd-btn" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+    <button class="pwd-btn on-colors" @click="submitPwd(this.roomId, inputPassword)">{{ msg }}</button> 
   </div>
 </template>
 
 <style scoped>
-.error-paragraf {
-  color: red;
-}
 
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
 }
 
-.add-user {
+.pwd-btn {
   background-color: white;
   border: none;
   color: #703ab8;
@@ -64,7 +58,6 @@ input[type="submit"]:hover {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
-  /* display: block; */
   margin: 10px;
   border: 2px solid #703ab8;
 }
