@@ -32,6 +32,8 @@ export class RoomService {
         }
         return await this.roomRepository.save(newRoom);
     }
+
+    //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
     
     async deletePassword(room: RoomI, modifier: UserDto): Promise<RoomI> {
         if (await this.isOwner(modifier.id, room.id) == false)
@@ -42,8 +44,8 @@ export class RoomService {
         room.protected = false;
         return await this.roomRepository.save(room);
     }
-    
-    async modifyPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+ 
+  async modifyPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
         if (await this.isOwner(modifier.id, room.id) == false)
             throw new UnauthorizedException();
         if (room.status == false || room.protected == false || room.password == null)
@@ -62,6 +64,8 @@ export class RoomService {
         return await this.roomRepository.save(room);
     }
 
+    ////////////////////////////////////////// ROLES FUNCTIONS //////////////////////////////////////////////////////////////
+
     async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
         
         return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
@@ -69,8 +73,6 @@ export class RoomService {
         .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
         .getMany(); // get many results
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     async isAdmin(userId: number, roomId: number) : Promise<boolean> {
         var admins = await this.getAdminsForRoom(roomId);
@@ -168,15 +170,24 @@ export class RoomService {
             // Save User's'  as  Admin's' if (not already admin to the room)
             if (await this.isAdmin(admin.id, room.id) == false)
             {
-                if (!room.admins)
-                    room.admins = [];
                 room.admins.push(admin);
             }
         }
         return await this.roomRepository.save(room);
     }
 
-    async banUsers(room: RoomI, UsersToBan: UserDto[]) {
+    async banUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
+        // Check if the modifier User is an Admin
+        if (await this.isAdmin(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (!room.bans)
+            room.bans = [];
+        for (const ban of bans) {
+            // CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
+            // Save Users as Ban
+            room.bans.push(ban);
+        }
+        return await this.roomRepository.save(room);    
     }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {

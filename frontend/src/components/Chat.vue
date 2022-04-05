@@ -19,6 +19,7 @@ export interface roomInterface {
   status: boolean;
   updated_date: string;
   admins: [];
+  bans: [];
 }
 
 export interface rawServerRoomsInterface {
@@ -45,6 +46,7 @@ export default {
       myRooms: null,
       selectedRoom: {},
       selectedRoomAdmins: [],
+      selectedRoomBans: [],
       selectedRoomUsers: [],
       room: {},
       // Pwd when trying to join room
@@ -117,12 +119,11 @@ export default {
         this.showAddPassword = false;
     },
     updateSelected(selectedItem: roomInterface) {
-      console.log("updateSelected", selectedItem);
+      // console.log("updateSelected", selectedItem);
       this.resetValidationMsgs();
       // If we click on currently selected room => leave room
       if (selectedItem.id === this.selectedRoom.id) {
-        console.log(">>>>>> If we click on currently selected room => leave room");
-        console.log("leave current room");
+        // console.log(">>>>>> If we click on currently selected room => leave room");
         this.socket.emit("leaveRoom", this.selectedRoom);
         this.selectedRoom = {};
         this.resetProtectedRoom();
@@ -130,15 +131,15 @@ export default {
         //  If protected => add roomId to 'roomPasswordRequired'
         if (selectedItem.protected == true)
         {
-          console.log(">>>>>> if protected => add roomId to 'roomPasswordRequired'");
+          // console.log(">>>>>> if protected => add roomId to 'roomPasswordRequired'");
           this.roomPasswordRequired = selectedItem.id;
           this.selectedRoom = {};
-          console.log("Trying to join protected room id", this.roomPasswordRequired);
+          // console.log("Trying to join protected room id", this.roomPasswordRequired);
         }
         //  Else, join room
         else
         {
-          console.log(">>>>>> Else, join room");
+          // console.log(">>>>>> Else, join room");
           this.resetProtectedRoom();
           this.selectedRoom = selectedItem;
           this.joinedRoom(selectedItem);
@@ -146,6 +147,11 @@ export default {
       }
     },
     findRoleInSelectedRoom(userId: number) {
+      for (var ban of this.selectedRoomBans)
+      {
+        if (ban.id == userId)
+          return "banned";
+      }
       for (var admin of this.selectedRoomAdmins)
       {
         if (this.selectedRoom.ownerId == userId)
@@ -158,6 +164,12 @@ export default {
     isAdmin(userId: number) {
       var role = this.findRoleInSelectedRoom(userId);
       if (role == "admin" || role == "owner")
+        return true;
+      return false;
+    },
+    isBanned(userId: number) {
+      var role = this.findRoleInSelectedRoom(userId);
+      if (role == "banned")
         return true;
       return false;
     },
@@ -177,7 +189,7 @@ export default {
         return true;
       return false;
     },
-    addAdmin(room: roomInterface, user: UserInterface, modifier: UserInterface) {
+    addAdmin(room: roomInterface, user: UserInterface) {
       this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
       // this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
@@ -198,6 +210,7 @@ export default {
       this.roomPasswordRequired = 0;
     },
     deletePassword(room: roomInterface, modifier: UserInterface) {
+      this.roomPasswordRequired = 0;
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
     modifyingPasswordSubmit(roomId: Number, inputPassword: string) {
@@ -206,9 +219,12 @@ export default {
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
-    // banUser(user) {
-    //   ;
-    // },
+    banUser(room: roomInterface, user: UserInterface) {
+      this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
+      // this.socket.emit("getAdmins", room);
+      this.socket.emit("getUsers", room);
+      this.socket.emit("getBans", room);
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -217,10 +233,14 @@ export default {
       },
     });
     this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
+      // console.log("------------ rooms.items : ", rooms.items);
       this.myRooms = rooms.items;
     });
     this.socket.on("getAdmins", (admins: number[]) => {
       this.selectedRoomAdmins = admins;
+    });
+    this.socket.on("getBans", (bans: number[]) => {
+      this.selectedRoomBans = bans;
     });
     this.socket.on("getUsers", (users: number[]) => {
       this.selectedRoomUsers = users;
@@ -318,16 +338,30 @@ export default {
             </p>
           </div>
         </div>
+
+      <!-- Selected room - users -->
+
         <p>Users in <span class="bold-colored">{{ this.selectedRoom.name }}</span> :</p>
+          <!-- this.selectedRoomBans => {{ this.selectedRoomBans }} -->
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
-          <span class="bold-colored">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
+          <span v-if="isBanned(user.id)">
+            <span class="bold-red">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
+          </span>
+          <span v-else>
+            <span class="bold-colored">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
+          </span>
           <!-- If admin => Ban user -->
           <div v-if="isAdmin(userStore.user.id) && userStore.user.id != user.id" class="empty">
-            <button class="new-room-button" @click="banUser(user)">Ban user</button>
+            <span v-if="isBanned(user.id)">
+              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">Accept user</button>
+            </span>
+            <span v-else>
+              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">Ban user</button>
+            </span>
           </div>
           <!-- If admin and other not admin => set as admin -->
-          <div v-if="isAdmin(userStore.user.id) && !isAdmin(user.id)" class="empty">
-            <button class="new-room-button" @click="addAdmin(this.selectedRoom, user, userStore.user)">Set as admin</button>
+          <div v-if="isAdmin(userStore.user.id) && !isAdmin(user.id) && !isBanned(user.id)" class="empty">
+            <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">Set as admin</button>
           </div>
         </li>
       </h1>
@@ -411,6 +445,11 @@ input[type="submit"]:hover {
 
 .bold-colored {
   color: #703ab8;
+  font-weight: bold;
+}
+
+.bold-red {
+  color: darkred;
   font-weight: bold;
 }
 

@@ -24,10 +24,13 @@ export class RoomEntity {
     @Column({ default: false })
     protected: boolean;
 
-
     @ManyToMany(() => UserEntity)
     @JoinTable()
     admins: UserEntity[];
+
+    @ManyToMany(() => UserEntity)
+    @JoinTable()
+    bans: UserEntity[];
 
     @Column({nullable: true})
     password: string; // hashed password

@@ -8,6 +8,7 @@ export interface RoomI {
     password?: string;
     users?: UserDto[];
     admins?:  UserDto[];
+    bans?:  UserDto[];
     status?: boolean;
     protected?: boolean;
     created_at?: Date;

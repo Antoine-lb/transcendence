@@ -89,45 +89,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
-  //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
-
-  @SubscribeMessage('deletePassword')
-  async onDeletePassword(socket: Socket, { room, modifier }) {
-      await this.roomService.deletePassword(room, modifier);
-      return await this.server.to(socket.id).emit('updateSelectedRoom', room);
-  }
-
-  @SubscribeMessage('modifyPassword')
-  async onModifyPassword(socket: Socket, { room, modifier, password }) {
-      await this.roomService.modifyPassword(room, modifier, password);
-      return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
-  }
-
-  @SubscribeMessage('addPassword')
-  async onAddPassword(socket: Socket, { room, modifier, password }) {
-      await this.roomService.addPassword(room, modifier, password);
-      return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-  @SubscribeMessage('getAdmins')
-  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
-    admins = await this.roomService.getAdminsForRoom(room.id);
-    return await this.server.to(socket.id).emit('getAdmins', admins)
-  }
-
-  @SubscribeMessage('getUsers')
-  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
-    
-    users = await this.roomService.getUsersForRoom(room.id);
-    return this.server.to(socket.id).emit('getUsers', users)
-  }
-
-  @SubscribeMessage('blockUser')
-  async onBlockUser(socket: Socket, room: RoomI){}
-   
+     
   @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, { room, password }) {
     if (room.protected == true) {
@@ -158,6 +120,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.joinedRoomService.deleteBySocketID(socket.id);
   }
       
+  //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
+
+  async emitRoomsForConnectedUsers(room: RoomI) {
+    const users = await this.roomService.getUsersForRoom(room.id);
+    for (const user of users) {
+      const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
+      for (const connection of connections) {
+        await this.server.to(connection.socketID).emit('rooms', rooms)
+      }
+    }
+  }
+
+  @SubscribeMessage('deletePassword')
+  async onDeletePassword(socket: Socket, { room, modifier }) {
+    await this.roomService.deletePassword(room, modifier);
+    this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('updateSelectedRoom', room);
+  }
+
+  @SubscribeMessage('modifyPassword')
+  async onModifyPassword(socket: Socket, { room, modifier, password }) {
+      await this.roomService.modifyPassword(room, modifier, password);
+      this.emitRoomsForConnectedUsers(room);
+      return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
+  }
+
+  @SubscribeMessage('addPassword')
+  async onAddPassword(socket: Socket, { room, modifier, password }) {
+    await this.roomService.addPassword(room, modifier, password);
+    this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+  @SubscribeMessage('getAdmins')
+  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
+    admins = await this.roomService.getAdminsForRoom(room.id);
+    return await this.server.to(socket.id).emit('getAdmins', admins)
+  }
+
+  @SubscribeMessage('getUsers')
+  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
+    
+    users = await this.roomService.getUsersForRoom(room.id);
+    return this.server.to(socket.id).emit('getUsers', users)
+  }
+
   @SubscribeMessage('addAdmin')
   async onAddAdmin(socket: Socket, { room, user, modifier }) {
     try {
@@ -171,7 +183,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       socket.emit('Error', new UnauthorizedException());
     }
   }
-      
+    
+  @SubscribeMessage('banUser')
+  async onBanUser(socket: Socket, { room, user, modifier }) {
+    try {
+      await this.roomService.banUsers(room, [ user ], modifier);
+      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+      for (const joinedUser of joinedUsers) {
+        await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
+      }
+    }
+    catch {
+      socket.emit('Error', new UnauthorizedException());
+    }
+  }
+  
+  @SubscribeMessage('blockUser')
+  async onBlockUser(socket: Socket, room: RoomI){}
+
   // @SubscribeMessage('addAdmins') // not use for now
   // async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
   //   // Add admins to the Rooms
@@ -183,6 +212,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   //   }
   // }
 
+  //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
+ 
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
 
@@ -194,7 +225,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
   }
-     
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
    
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
