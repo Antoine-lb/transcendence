@@ -290,12 +290,8 @@ export default {
             💬 {{ room.name }}
             <PasswordBtn @onSubmit="joiningPasswordSubmit" :roomId="room.id" :msg="'JOIN ROOM'"/>
           </div>
-          <!-- Else if room not selected -->
-          <div @click="updateSelected(room)" v-else-if="room.id !== this.selectedRoom.id" class="list-group-item list-group-item-action" >
-            💬 {{ room.name }}
-          </div>
-          <!-- Else if room selected -->
-          <div @click="updateSelected(room)" v-else-if="room.id === this.selectedRoom.id" class="list-group-item list-group-item-action selected" >
+          <!-- Else -->
+          <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom.id) ? 'selected' : '')">
             💬 {{ room.name }}
           </div>
         </div>
@@ -308,7 +304,6 @@ export default {
       <!-- Selected room - params -->
 
       <h1 class="text-center small-text">
-        <!-- {{ this.selectedRoom }} -->
         <div v-if="isOwner(userStore.user.id) && (userStore.user.id == user.id)" class="empty">
           <div v-if="isProtected()">
             <p>You are the owner of this protected room.
@@ -344,20 +339,10 @@ export default {
         <p>Users in <span class="bold-colored">{{ this.selectedRoom.name }}</span> :</p>
           <!-- this.selectedRoomBans => {{ this.selectedRoomBans }} -->
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
-          <span v-if="isBanned(user.id)">
-            <span class="bold-red">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
-          </span>
-          <span v-else>
-            <span class="bold-colored">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
-          </span>
+          <span :class="isBanned(user.id) ? 'bold-red' : 'bold-colored'">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
           <!-- If admin => Ban user -->
           <div v-if="isAdmin(userStore.user.id) && userStore.user.id != user.id" class="empty">
-            <span v-if="isBanned(user.id)">
-              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">Accept user</button>
-            </span>
-            <span v-else>
-              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">Ban user</button>
-            </span>
+              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user.id) ? 'Accept' : 'Ban'}} user</button>
           </div>
           <!-- If admin and other not admin => set as admin -->
           <div v-if="isAdmin(userStore.user.id) && !isAdmin(user.id) && !isBanned(user.id)" class="empty">
@@ -374,44 +359,32 @@ export default {
         <br />
         <div class="message-box">
           <div id="messages-box" class="card-block">
+            <!-- Received messages -->
             <div v-for="message of messages.items" :key="message.id">
               <div class="message-box">
-                <div
-                  v-if="userStore.user.id !== message?.user.id"
-                  class="message"
-                >
+                <div v-if="userStore.user.id !== message?.user.id" class="message" >
                   <div class="message-user">
                     {{ message?.user.username }}
                   </div>
                   <div class="message-content">{{ message?.text }}</div>
                 </div>
               </div>
-
-              <div class="message-box" style="flex-direction: row-reverse">
-                <div
-                  v-if="userStore.user.id === message?.user.id"
-                  class="my-message"
-                >
-                  <div class="my-message-user">
-                    {{ message?.user.username }}
-                  </div>
-                  <div class="my-message-content">{{ message?.text }}</div>
+            <!-- Sent messages -->
+            <div class="message-box" style="flex-direction: row-reverse">
+              <div v-if="userStore.user.id === message?.user.id" class="my-message" >
+                <div class="my-message-user">
+                  {{ message?.user.username }}
                 </div>
+                <div class="my-message-content">{{ message?.text }}</div>
               </div>
+            </div>
             </div>
           </div>
         </div>
         <br />
-        <textarea
-          id="textarea"
-          class="form-control"
-          v-model="text"
-          placeholder="Enter message..."
-        ></textarea>
+        <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
         <br />
-        <button id="send" class="btn" @click.prevent="sendMessage(room)">
-          Send
-        </button>
+        <button id="send" class="btn" @click.prevent="sendMessage(room)"> Send </button>
       </div>
     </div>
   </div>
