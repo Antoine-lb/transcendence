@@ -14,7 +14,7 @@ import { runInThisContext } from 'vm';
 import { UserDto } from 'src/entities/users.dto';
 import { comparePassword } from 'src/utils/bcrypt';
 import { GameService } from 'src/gamee/service/game/game.service';
-import { FRAME_RATE, maxPaddleY, grid } from 'src/utils/constants';
+import { FRAME_RATE, maxPaddleY, grid, canvas, paddleHeight, } from 'src/utils/constants';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
 import { StateI } from 'src/gamee/model/state.interface';
@@ -32,23 +32,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      private authService: AuthService,
      private userService: UsersService,
      private GameService: GameService,
-
     ) { }
   
    
    
    @WebSocketServer() server: Server;
 
-   state: StateI = {id: 0};
+  intervalId: NodeJS.Timer;
+
+   state: StateI;
+   
+
    
    async onModuleInit() {
    }
  
   async handleConnection(socket: Socket, payload: string) {
-
-    console.log('GAME!');
-    
-
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
@@ -59,97 +58,90 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       else {
         socket.data.user = user;
         socket.data.number = null;
+        return;
       }
-      
     }
     catch {
-      console.log('disconnect socket', )
+      console.log('disconnect socket')
       return this.disconnect(socket);
-    }
-  }
-   
-  @SubscribeMessage('keydown')
-  async handleKeydown(socket: Socket, keyCode: string) {
-    console.log('keydown')
-
-    let keyCodeInt: number;
-    const roomName = this.state.id;
-    if (!roomName) {
-      return;
-    }
-    try {
-      keyCodeInt = parseInt(keyCode);
-    } catch(e) {
-      console.error(e);
-      return;
-    }
-  
-    const vel = this.GameService.getUpdatedVelocity(keyCodeInt);
-  
-    if (vel) {
-      this.state[roomName].players[socket.data.number - 1].y += vel;
-    }
-    // prevent paddles from going through walls
-    if (this.state[roomName].players[socket.data.number - 1].y < grid) {
-      this.state[roomName].players[socket.data.number - 1].y = grid;
-    }
-    else if (this.state[roomName].players[socket.data.number - 1].y > maxPaddleY) {
-      this.state[roomName].players[socket.data.number - 1].y = maxPaddleY;
     }
   }
    
   @SubscribeMessage('joinGame')
   async handleJoinGame(socket: Socket, roomName: string) {
 
-    const room = this.server.sockets.adapter.rooms[roomName];
+    let roomSize = 0;
+  	const room = this.server.sockets.adapter.rooms.get(roomName)
 
-    let allUsers;
-    if (room) {
-      allUsers = room.sockets;
-    }
-  
-    let numClients = 0;
-    if (allUsers) {
-      numClients = Object.keys(allUsers).length;
-    }
-  
-    if (numClients === 0) {
+    if (room)
+      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
+      console.log("room", room)
+
+    if (roomSize === 0) {
       socket.emit('unknownCode');
       return;
-    } else if (numClients > 1) {
+    } else if (roomSize > 1) {
       socket.emit('tooManyPlayers');
       return;
     }
-  
+
     this.state.id = parseInt(roomName);
-  
+
     socket.join(roomName);
     socket.data.number = 2;
     socket.emit('init', 2);
-    
-    startGameInterval(roomName);
+
+    console.log("room", room)
+
+    this.startGameInterval(roomName);
   }
    
-  @SubscribeMessage('createGame')
+  @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket) {
-    
-    let roomId = this.GameService.makeid(5);
-    socket.emit('gameCode', roomId);
+
+
+    let roomName = this.GameService.makeid(5);
+	
+    // clientRooms[socket.id] = roomName;
+    socket.emit('gameCode', roomName);
 
     this.state = await this.GameService.initGame();
-
-    socket.join(roomId);
+    this.state.gameState = "play"
     socket.data.number = 1;
+
+    socket.join(roomName);
+
     socket.emit('init', 1);
   }
      
+  @SubscribeMessage('pause')
+  async handlePause(socket: Socket) {
+    // let room = this.state[clientRooms[socket.id]];
+    let room = this.state;
+    if (!room)
+      return;
+    room.gameState = room.gameState === "paused" ? "play" : "paused";
+
+  	if (room.gameState === "paused") {
+  		clearInterval(this.intervalId);
+      socket.broadcast.emit('notify', {
+        title: "Important message",
+        text: "Game Paused by your opponent",
+        duration : 6000
+      });
+  	}
+  	else {
+  		console.log("Pas paused")
+      this.startGameInterval(this.state.id);
+  	}
+  }
    
-  @SubscribeMessage('keyDown')
+  @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
     let keyCodeInt: number;
-    const roomName = this.state.id
-    if (!roomName) {
+    const roomName = this.state;
+    if (!this.state) {
       return;
     }
     try {
@@ -161,16 +153,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     const vel = this.GameService.getUpdatedVelocity(keyCodeInt);
 
-    if (vel) {
-      this.state[roomName].players[socket.data.number - 1].y += vel;
-    }
-    // prevent paddles from going through walls
-    if (this.state[roomName].players[socket.data.number - 1].y < grid) {
-      this.state[roomName].players[socket.data.number - 1].y = grid;
-    }
-    else if (this.state[roomName].players[socket.data.number - 1].y > maxPaddleY) {
-      this.state[roomName].players[socket.data.number - 1].y = maxPaddleY;
-    }
+    // if (keyCodeInt == 68) { // 'd'isconnect
+    //   // socket.disconnect();
+  
+    // }
+    // if (keyCodeInt == 67) { // 'c'onnect
+    //   // socket.disconnect();
+    //   this.startGameInterval(roomName.id);
+    // }
+  
+      if (vel) {
+        this.state.players[socket.data.number - 1].y += vel;
+      }
+      // prevent paddles from going through walls
+      if ( this.state.players[socket.data.number - 1].y < grid) {
+        this.state.players[socket.data.number - 1].y = grid;
+      }
+      else if ( this.state.players[socket.data.number - 1].y > maxPaddleY) {
+        this.state.players[socket.data.number - 1].y = maxPaddleY;
+      }
   }
 
   async handleDisconnect(socket: Socket) {
@@ -183,31 +184,31 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.disconnect();
   }
    
- async afterInit() {}
-   
- }
+   async afterInit() { }
 
- function startGameInterval(roomName) {
-  const intervalId = setInterval(() => {
-    const winner = this.GameService.gameLoop(this.state[roomName]);
-    console.log("startGameInterval winner :", winner)
-    if (!winner) {
-      this.emitGameState(roomName, this.state[roomName])
-    } else {
-      this.emitGameOver(roomName, winner);
-      this.state[roomName] = null;
-      clearInterval(intervalId);
+  startGameInterval(roomName) {
+    this.intervalId = setInterval(() => {
+      const winner = this.GameService.gameLoop(this.state);
+      if (!winner) {
+        this.emitGameState(roomName, this.state.id.toString(), this.state)
+      } else {
+        this.emitGameOver(roomName, this.state.id.toString(), winner);
+        this.state = null;
+        clearInterval(this.intervalId);
+      }
+    }, 1000 / FRAME_RATE);
     }
-  }, 1000 / FRAME_RATE);
-  }
-  
-  function emitGameState(socket: Socket, room, gameState) {
-  // Send this event to everyone in the room.
-  socket.in(room)
-    .emit('gameState', JSON.stringify(gameState));
-  }
-  
-  function emitGameOver(socket: Socket, room, winner) {
-  socket.in(room)
-    .emit('gameOver', JSON.stringify({ winner }));
-  }
+    
+    emitGameState(socket: Socket, roomid: string, gameState: StateI) {
+    // Send this event to everyone in the room.
+      
+    console.log(this.state.id.toString());
+    this.server.to(this.state.id.toString())
+      .emit('gameState', JSON.stringify(gameState));
+    }
+    
+    emitGameOver(socket: Socket, roomid: string, winner) {
+      this.server.to(this.state.id.toString())
+      .emit('gameOver', JSON.stringify({ winner }));
+    }
+ }

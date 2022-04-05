@@ -7,6 +7,7 @@ import { useUserStore } from "../stores/userStore";
 export default {
   name: "TheGame",
    setup() {
+      const userStore = useUserStore();
       const gameCodeDisplay = ref(null)
       const initialScreen = ref(null)
       const gameCodeInput = ref(null)
@@ -23,8 +24,12 @@ export default {
         gameCodeInput,
         gameScreen,
         canvas,
+        userStore,
       }
     },
+  props: {
+    user: Object,
+  },
   data() {
     return {
       title: "Game Room",
@@ -43,6 +48,9 @@ export default {
   },
   created() {
     this.socket = io("http://127.0.0.1:3000", {
+      extraHeaders: {
+        Authorization: this.user.access_token,
+      },
     });
     // this.socket.on("test", (msg) => {
     //   console.log(msg)

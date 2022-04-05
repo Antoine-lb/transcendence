@@ -70,7 +70,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         await this.connectedUserService.create({ socketID: socket.id, user });
 
         // Only emit rooms to the specific connected client
-        return this.server.to(socket.id).emit('rooms', rooms)
+        return this.server.to(socket.id).emit('rooms', rooms);
       }
     }
     catch {

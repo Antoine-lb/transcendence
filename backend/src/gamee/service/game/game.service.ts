@@ -8,7 +8,8 @@ import {
     FRAME_RATE,
     GRID_SIZE_H,
     GRID_SIZE_L,
-    canvas
+    canvas,
+    powerUp_color
 } from 'src/utils/constants';
 
 
@@ -16,41 +17,55 @@ import {
 export class GameService {
 
     constructor(
-    ){}
+    ) {
+    }
 
-    initGame() {
-        const state: StateI =  this.createGameState()
+    async initGame() {
+        const state: StateI =  await this.createGameState()
         return state;
       }
       
-      createGameState(): StateI {
-          return {
-            id: 0,
-          score : { p1 : 0, p2 :0 },
-          ball :  { 
-            x : GRID_SIZE_H / 2,
-            y : GRID_SIZE_L / 2,
-            dx: 5,
-            dy: -5
-          },
-          players: [{
-            x: grid,
-            y: GRID_SIZE_H / 2,
-            vel: 0
-          }, {
-            x: canvas.width - 2 * grid,
-            y: GRID_SIZE_H / 2,
-            vel: 0
-          }],
-        };
-      }
+  async createGameState(): Promise<StateI> {
+    return {
+      gameState: "",
+      score: { p1: 0, p2: 0 },
+      ball: {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        dx: 5,
+        dy: -5,
+        resetting: false,
+      },
+      players: [{
+        x: grid,
+        y: canvas.height / 2 - paddleHeight / 2,
+        vel: 0,
+        option: null
+      }, {
+        x: canvas.width - 2 * grid,
+        y: canvas.height / 2 - paddleHeight / 2,
+        vel: 0,
+        option: null
+      }],
+      powerUp: [{
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+      },
+      {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+      }],
+      powerUp_t: "lightblue",
+      launchPowerUp: false,
+    };
+  }
       
-       gameLoop(state) {
+       gameLoop(state: StateI) : number {
         if (!state) {
           return;
         }
-      
         const ball = state.ball;
+        const powerUP = state.powerUp;
         const playerOne = state.players[0];
         const playerTwo = state.players[1];
       
@@ -98,19 +113,41 @@ export class GameService {
           ball.x = state.players[1].x - /* ball.width */ 15 ;
         }
       
+        if (state.launchPowerUp) {
+          powerUP[0].x += ball.dx 
+          powerUP[1].x -= ball.dx
+        }
+      
+        if (!state.launchPowerUp) {
+          state.launchPowerUp = !state.launchPowerUp
+          setTimeout(() => {
+            state.launchPowerUp = !state.launchPowerUp
+            powerUP[0].x = powerUP[1].x = canvas.width / 2
+            powerUP[0].y = Math.floor(Math.random() * canvas.height - grid);
+            powerUP[1].y = Math.floor(Math.random() * canvas.height - grid);
+            state.powerUp_t = powerUp_color[Math.floor(Math.random() * 3)]
+          }, 5000);
+        }
+      
         // See if ball passed the paddle
-        if (ball.x < 0) {
-          return 2;
+        if (ball.x == 0) {
+          state.score.p2++
+          console.log("joueur 1 perds")
+          if (state.score.p2 > 15)
+            return 2;
         }
-        if (ball.x > GRID_SIZE_L * 5) {
-          console.log("yes", ball.x, GRID_SIZE_L)
-          return 1;
+        if (ball.x == GRID_SIZE_L * 5) {
+          state.score.p1++
+          console.log("joueur 2 perds", ball.x, GRID_SIZE_L)
+          if (state.score.p1 > 15)
+            return 1;
         }
-        return false;
+        return 0;
+      
       }
       
       
-    collides(ball, paddle) {
+    collides(ball, paddle) : Boolean {
         const ballsize = grid;
         return ball.x < paddle.x + paddleWidth &&
                ball.x + ballsize > paddle.x &&
@@ -118,7 +155,7 @@ export class GameService {
                ball.y + ballsize > paddle.y;
       }
       
-       getUpdatedVelocity(keyCode) {
+       getUpdatedVelocity(keyCode) : number{
         console.log("(getUpdatedVelocity) key pressed :", keyCode)
         switch (keyCode) {
           case 38: { // up
@@ -130,7 +167,7 @@ export class GameService {
         }
        }
     
-    makeid(length) {
+    makeid(length): string {
      var result           = '';
      var characters       = '0123456789';
      var charactersLength = characters.length;
