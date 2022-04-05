@@ -176,7 +176,40 @@ export class RoomService {
         return await this.roomRepository.save(room);
     }
 
+    arrayRemove(array, value) { 
+        return array.filter(function(element) { 
+            return element != value; 
+        });
+    }
+
     async banUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
+        console.log(">>>>>> banUsers");
+        // Check if the modifier User is an Admin
+        if (await this.isAdmin(modifier.id, room.id) == false)
+            throw new UnauthorizedException();
+        if (!room.bans)
+            room.bans = [];
+        for (const ban of bans) {
+            // TODO: CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
+            // remove from admins if admin
+            if (this.isAdmin(ban.id, room.id))
+            {
+                // console.log("room.admins BEFORE : ", room.admins);
+                if (room.admins)
+                    room.admins = this.arrayRemove(room.admins, ban);
+                // console.log("room.admins AFTER : ", room.admins);
+            }
+            // Save Users as Ban
+            room.bans.push(ban);
+        }
+        console.log("room.admins : ", room.admins);
+        console.log("room.bans : ", room.bans);
+        return await this.roomRepository.save(room);    
+    }
+
+
+    async unbanUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
+        console.log(">>>>>> unbanUsers");
         // Check if the modifier User is an Admin
         if (await this.isAdmin(modifier.id, room.id) == false)
             throw new UnauthorizedException();
@@ -185,8 +218,11 @@ export class RoomService {
         for (const ban of bans) {
             // CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
             // Save Users as Ban
-            room.bans.push(ban);
+            // console.log("room.bans BEFORE : ", room.bans);
+            this.arrayRemove(room.bans, ban);
+            // console.log("room.bans AFTER  : ", room.bans);
         }
+
         return await this.roomRepository.save(room);    
     }
 

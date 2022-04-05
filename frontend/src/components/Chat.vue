@@ -93,6 +93,7 @@ export default {
       this.room = room;
       this.socket.emit("joinRoom", { room: room, password: this.joiningPassword });
       this.socket.emit("getAdmins", room);
+      this.socket.emit("getBans", room);
       this.socket.emit("getUsers", room);
       this.wrongPassword = false;
       this.joiningPassword = null;
@@ -147,6 +148,8 @@ export default {
       }
     },
     findRoleInSelectedRoom(userId: number) {
+      // console.log("this.selectedRoomBans : ", this.selectedRoomBans);
+      // console.log("this.selectedRoomAdmins : ", this.selectedRoomAdmins);
       for (var ban of this.selectedRoomBans)
       {
         if (ban.id == userId)
@@ -220,7 +223,10 @@ export default {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
     banUser(room: roomInterface, user: UserInterface) {
-      this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
+      if (!this.isBanned(user.id))
+        this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
+      else
+        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
       // this.socket.emit("getAdmins", room);
       this.socket.emit("getUsers", room);
       this.socket.emit("getBans", room);

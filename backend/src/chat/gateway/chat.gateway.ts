@@ -197,6 +197,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       socket.emit('Error', new UnauthorizedException());
     }
   }
+    
+  @SubscribeMessage('unbanUser')
+  async onUnbanUser(socket: Socket, { room, user, modifier }) {
+    try {
+      await this.roomService.unbanUsers(room, [ user ], modifier);
+      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+      for (const joinedUser of joinedUsers) {
+        await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
+      }
+    }
+    catch {
+      socket.emit('Error', new UnauthorizedException());
+    }
+  }
   
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
