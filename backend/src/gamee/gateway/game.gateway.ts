@@ -68,7 +68,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
    
   @SubscribeMessage('joinGame')
-  async handleJoinGame(socket: Socket, roomName: string) {
+   handleJoinGame(socket: Socket, roomName: string) {
 
     let roomSize = 0;
     console.log('------------after Join------------------------')
@@ -89,7 +89,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     let roomNameINT: number = parseInt(roomName);
-    let index: number = await this.GameService.getRoomById(this.state, roomNameINT);
+    let index: number =  this.GameService.getRoomById(this.state, roomNameINT);
 
 
     this.state[index].id = roomNameINT;
@@ -110,14 +110,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
    
   @SubscribeMessage('newGame')
-  async handleNewGame(socket: Socket) {
+  handleNewGame(socket: Socket) {
 
     let roomName = this.GameService.makeid(5);
 	
     // clientRooms[socket.id] = roomName;
     socket.emit('gameCode', roomName);
 
-    let newState: StateI = await this.GameService.initGame()
+    let newState: StateI =  this.GameService.initGame()
 
     newState.gameState = "play";
     newState.id = parseInt(roomName);
@@ -204,41 +204,41 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     startGameInterval(roomName, roomId: number) {
      
     this.intervalId =  setInterval(() =>  {
-      
-      let index: number =  this.GameService.getRoomById(this.state, roomId);
+    
+      let index: number = this.GameService.getRoomById(this.state, roomId);
       
       const winner = this.GameService.gameLoop(this.state[index]);
         
       if (!winner) {
-      let index: number =  this.GameService.getRoomById(this.state, roomId);
-        if (index == -1)
-          console.log(this.state);
-        this.emitGameState(this.state[index])
+        this.emitGameState(this.state, roomId);
       }
       else {
-
-          let index: number = this.GameService.getRoomById(this.state, roomId);
-          this.emitGameOver(this.state[index], winner);
+        clearInterval(this.intervalId);
+        this.emitGameOver(this.state[index], winner);
 
           // TODO : save the score
         this.state.splice(index, 1);
 
-        console.log('------------after SPLIRCE------------------------')
+        console.log('------------after SPLIRCE------------------------');
+        console.log(index);
         
         console.log(this.state);
-          clearInterval(this.intervalId);
       }
     }, 1000 / FRAME_RATE);
-  }
-    
-   emitGameState(state: StateI) {
-      
+    }
+   
+   emitGameState(state: StateI[], roomId: number) {
+
+     let index: number = this.GameService.getRoomById(this.state, roomId);
+     
+     console.log(index);
+     
     // Send this event to everyone in the room.
-    this.server.to(state.id.toString())
-      .emit('gameState', JSON.stringify(state));
+    this.server.to(state[index].id.toString())
+      .emit('gameState', JSON.stringify(state[index]));
     }
     
-   async emitGameOver(state: StateI, winner) {
+    emitGameOver(state: StateI, winner) {
       
       this.server.to(state.id.toString())
       .emit('gameOver', JSON.stringify({ winner }));

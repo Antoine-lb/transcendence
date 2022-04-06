@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StateI } from 'src/gamee/model/state.interface';
+import { PlayerI } from 'src/gamee/model/player.interfae';
 import {
     grid,
     BORDURE,
@@ -20,13 +21,8 @@ export class GameService {
   ) {
   }
 
-  async initGame() {
-    const state: StateI = await this.createGameState()
-    return state;
-  }
-      
-  async createGameState(): Promise<StateI> {
-    return {
+   initGame() {
+    let state: StateI = {
       id: 0,
       gameState: "pending",
       score: { p1: 0, p2: 0 },
@@ -41,14 +37,13 @@ export class GameService {
         x: grid,
         y: canvas.height / 2 - paddleHeight / 2,
         vel: 0,
-        option: null
+        option: "null"
       }, {
         x: canvas.width - 2 * grid,
         y: canvas.height / 2 - paddleHeight / 2,
         vel: 0,
-        option: null
+        option: "null"
         }],
-      
       
       powerUp: [{
         x: canvas.width / 2,
@@ -58,9 +53,11 @@ export class GameService {
         x: canvas.width / 2,
         y: canvas.height / 2,
       }],
+      
       powerUp_t: "lightblue",
       launchPowerUp: false,
     };
+    return state;
   }
       
   gameLoop(state: StateI): number {
