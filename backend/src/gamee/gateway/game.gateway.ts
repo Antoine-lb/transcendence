@@ -40,7 +40,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   intervalId: NodeJS.Timer;
 
-   state: StateI;
+   state: StateI[] = [];
    
 
    
@@ -71,6 +71,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleJoinGame(socket: Socket, roomName: string) {
 
     let roomSize = 0;
+    console.log('------------after Join------------------------')
+
+    console.log(this.state);
   	const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
@@ -85,63 +88,82 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       return;
     }
 
-    this.state.id = parseInt(roomName);
+    let roomNameINT: number = parseInt(roomName);
+    let index: number = await this.GameService.getRoomById(this.state, roomNameINT);
 
-    socket.join(roomName);
+
+    this.state[index].id = roomNameINT;
+    // set the creator to player 1
     socket.data.number = 2;
+    // set the room game id to the current user socket
+    socket.data.roomId = roomName;
+
+    // join the room socket
+    socket.join(roomName);
+
+
+    // init the front for player 2
     socket.emit('init', 2);
 
-    console.log("room", room)
-
-    this.startGameInterval(roomName);
+    // start the game when both player are connected
+    this.startGameInterval(roomName, roomNameINT);
   }
    
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket) {
-
 
     let roomName = this.GameService.makeid(5);
 	
     // clientRooms[socket.id] = roomName;
     socket.emit('gameCode', roomName);
 
-    this.state = await this.GameService.initGame();
-    this.state.gameState = "play"
-    socket.data.number = 1;
+    let newState: StateI = await this.GameService.initGame()
 
+    newState.gameState = "play";
+    newState.id = parseInt(roomName);
+
+    this.state.push(newState);
+
+    // set the creator to player 1
+    socket.data.number = 1;
+    // set the room game id to the current user socket
+    socket.data.roomId = roomName;
+
+    // join the room socket
     socket.join(roomName);
 
+    // init the front for player 1
     socket.emit('init', 1);
   }
      
-  @SubscribeMessage('pause')
-  async handlePause(socket: Socket) {
-    // let room = this.state[clientRooms[socket.id]];
-    let room = this.state;
-    if (!room)
-      return;
-    room.gameState = room.gameState === "paused" ? "play" : "paused";
+  // @SubscribeMessage('pause')
+  // async handlePause(socket: Socket) {
+  //   // let room = this.state[clientRooms[socket.id]];
+  //   let room = this.state;
+  //   if (!room)
+  //     return;
+  //   room.gameState = room.gameState === "paused" ? "play" : "paused";
 
-  	if (room.gameState === "paused") {
-  		clearInterval(this.intervalId);
-      socket.broadcast.emit('notify', {
-        title: "Important message",
-        text: "Game Paused by your opponent",
-        duration : 6000
-      });
-  	}
-  	else {
-  		console.log("Pas paused")
-      this.startGameInterval(this.state.id);
-  	}
-  }
+  // 	if (room.gameState === "paused") {
+  // 		clearInterval(this.intervalId);
+  //     socket.broadcast.emit('notify', {
+  //       title: "Important message",
+  //       text: "Game Paused by your opponent",
+  //       duration : 6000
+  //     });
+  // 	}
+  // 	else {
+  // 		console.log("Pas paused")
+  //     this.startGameInterval(this.state.id);
+  // 	}
+  // }
    
   @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
     let keyCodeInt: number;
-    const roomName = this.state;
-    if (!this.state) {
+    let index: number = await this.GameService.getRoomById(this.state,  socket.data.roomId);
+    if (!this.state[index]) {
       return;
     }
     try {
@@ -152,63 +174,73 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     const vel = this.GameService.getUpdatedVelocity(keyCodeInt);
-
-    // if (keyCodeInt == 68) { // 'd'isconnect
-    //   // socket.disconnect();
   
-    // }
-    // if (keyCodeInt == 67) { // 'c'onnect
-    //   // socket.disconnect();
-    //   this.startGameInterval(roomName.id);
-    // }
-  
-      if (vel) {
-        this.state.players[socket.data.number - 1].y += vel;
-      }
-      // prevent paddles from going through walls
-      if ( this.state.players[socket.data.number - 1].y < grid) {
-        this.state.players[socket.data.number - 1].y = grid;
-      }
-      else if ( this.state.players[socket.data.number - 1].y > maxPaddleY) {
-        this.state.players[socket.data.number - 1].y = maxPaddleY;
-      }
+    if (vel) {
+      this.state[index].players[socket.data.number - 1].y += vel;
+    }
+    // prevent paddles from going through walls
+    if ( this.state[index].players[socket.data.number - 1].y < grid) {
+      this.state[index].players[socket.data.number - 1].y = grid;
+    }
+    else if ( this.state[index].players[socket.data.number - 1].y > maxPaddleY) {
+      this.state[index].players[socket.data.number - 1].y = maxPaddleY;
+    }
   }
 
-  async handleDisconnect(socket: Socket) {
+   async handleDisconnect(socket: Socket) {
+    
     // remove client to connected repository
     socket.disconnect()
   }
 
-  private disconnect(socket: Socket) {
+   private disconnect(socket: Socket) {
+    
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }
    
    async afterInit() { }
 
-  startGameInterval(roomName) {
-    this.intervalId = setInterval(() => {
-      const winner = this.GameService.gameLoop(this.state);
+    startGameInterval(roomName, roomId: number) {
+     
+    this.intervalId =  setInterval(() =>  {
+      
+      let index: number =  this.GameService.getRoomById(this.state, roomId);
+      
+      const winner = this.GameService.gameLoop(this.state[index]);
+        
       if (!winner) {
-        this.emitGameState(roomName, this.state.id.toString(), this.state)
-      } else {
-        this.emitGameOver(roomName, this.state.id.toString(), winner);
-        this.state = null;
-        clearInterval(this.intervalId);
+      let index: number =  this.GameService.getRoomById(this.state, roomId);
+        if (index == -1)
+          console.log(this.state);
+        this.emitGameState(this.state[index])
+      }
+      else {
+
+          let index: number = this.GameService.getRoomById(this.state, roomId);
+          this.emitGameOver(this.state[index], winner);
+
+          // TODO : save the score
+        this.state.splice(index, 1);
+
+        console.log('------------after SPLIRCE------------------------')
+        
+        console.log(this.state);
+          clearInterval(this.intervalId);
       }
     }, 1000 / FRAME_RATE);
-    }
+  }
     
-    emitGameState(socket: Socket, roomid: string, gameState: StateI) {
-    // Send this event to everyone in the room.
+   emitGameState(state: StateI) {
       
-    console.log(this.state.id.toString());
-    this.server.to(this.state.id.toString())
-      .emit('gameState', JSON.stringify(gameState));
+    // Send this event to everyone in the room.
+    this.server.to(state.id.toString())
+      .emit('gameState', JSON.stringify(state));
     }
     
-    emitGameOver(socket: Socket, roomid: string, winner) {
-      this.server.to(this.state.id.toString())
+   async emitGameOver(state: StateI, winner) {
+      
+      this.server.to(state.id.toString())
       .emit('gameOver', JSON.stringify({ winner }));
     }
  }

@@ -1,6 +1,8 @@
+import { PlayerI } from "./player.interfae"
+
 export interface StateI {
     
-    id?: number;
+    id: number;
     gameState: string;
     score: { p1: number, p2:number },
     ball:  { 
@@ -11,18 +13,7 @@ export interface StateI {
         resetting: Boolean;
         }
     
-    players: [{
-        x: number;
-        y: number;
-        vel: number;
-        option : null
-
-        },{
-        x: number;
-        y: number;
-        vel: number;
-        option: null;
-        }], 
+    players: PlayerI[],
     
     powerUp: [{
         x: number;
