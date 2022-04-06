@@ -18,8 +18,7 @@ export class UserRoomService {
         console.log(">>>>>> UserRoomService create : ", userRoom);
         // console.log("find : ", await this.userRoomRepository.find());
         // return await this.userRoomRepository.update(userRoom);
-        await this.userRoomRepository.save( userRoom );
-        return
+        return await this.userRoomRepository.save( userRoom );
     }
     
     async findByUser(user: UserDto): Promise<UserRoomI[]> { 

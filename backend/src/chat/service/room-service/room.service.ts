@@ -23,25 +23,26 @@ export class RoomService {
         private readonly roomRepository: Repository<RoomEntity>
     ){}
     
-    async addAllUsers(room: RoomI, creator: UserDto)
-    {
-        console.log(">>>>>> addAllUsers");
-        const allUsers = await this.usersService.findAll();
-        console.log("allUsers : ", allUsers);
-        for (var user of allUsers)
-        {
-            if (user && (user != creator))
-            {
-                var newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
-                console.log("newUserRoom : ", newUserRoom);
-            }
-        }
-    }
+    // async addAllUsers(room: RoomI, creator: UserDto)
+    // {
+    //     console.log(">>>>>> addAllUsers");
+    //     const allUsers = await this.usersService.findAll();
+    //     console.log("allUsers : ", allUsers);
+    //     for (var user of allUsers)
+    //     {
+    //         if (user && (user != creator))
+    //         {
+    //             var newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
+    //             console.log("newUserRoom : ", newUserRoom);
+    //         }
+    //     }
+    // }
 
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
         // create UserRoomEntity
-        const newUserRoom = await this.userRoomService.create({ user: creator, room: room, role: UserRoomRole.OWNER });
-        console.log("newUserRoom : ", newUserRoom);
+        // const newUserRoom = await this.userRoomService.create({ user: creator, room: room, role: UserRoomRole.OWNER });
+        // const newUserRoom = await this.userRoomService.create({ user: creator, room: room });
+        // console.log("newUserRoom : ", newUserRoom);
         // create RoomEntity
         const newRoom = await this.addCreatorToRoom(room, creator);
         // if (Public room)

@@ -24,6 +24,7 @@ import { UserDto } from 'src/entities/users.dto';
 import { comparePassword } from 'src/utils/bcrypt';
 import { UserInterface } from 'src/entities/users.interface';
 import { UserRoomService } from '../service/user-room/user-room.service';
+import { UserRoomRole } from '../model/user-room.entity';
 
  @WebSocketGateway({
    cors: {
@@ -78,10 +79,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
+    console.log(">>>>>> gateway createRoom");
     // TODO : Check validity of all users before create the room
     const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
-
     for (const user of createRoom.users) {
+      console.log("user : ", user);
+      const newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.OWNER });
+      console.log("newUserRoom : ", newUserRoom);
+  
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
       const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
 
