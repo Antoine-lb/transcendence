@@ -5,19 +5,19 @@ import { UserRoomI } from 'src/chat/model/user-room.interface';
 import { RoomI } from 'src/chat/model/room.interface';
 import { UserDto } from 'src/entities/users.dto';
 import { createQueryBuilder, Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class UserRoomService {
 
     constructor(
+        private readonly userService: UsersService,
+
         @InjectRepository(UserRoomEntity)
         private readonly userRoomRepository: Repository<UserRoomEntity>
     ) { }
     
     async create(userRoom: UserRoomI): Promise<UserRoomI> {
-        console.log(">>>>>> UserRoomService create : ", userRoom);
-        // console.log("find : ", await this.userRoomRepository.find());
-        // return await this.userRoomRepository.update(userRoom);
         return await this.userRoomRepository.save( userRoom );
     }
     
@@ -25,15 +25,18 @@ export class UserRoomService {
         return await this.userRoomRepository.find({ user });
     }
 
-    // async findByRoomSocket(user: UserDto, room: RoomI, socketID: string): Promise<UserRoomI[]> { 
-    //     return await this.userRoomRepository.find({
-    //         where: {
-    //             user: user,
-    //             room: room,
-    //             socketID: socketID,
-    //         },
-    //     });
-    // }
+    async getUsersForRoom(room: RoomI): Promise<UserDto[]> { 
+        var userRoomsForRoom: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+            },
+        });
+        var users = [];
+        for (var userRoom of userRoomsForRoom)
+            users.push(userRoom.user);
+        return users;
+    }
     
     async findByRoom(room: RoomI) : Promise<UserRoomI[]> { 
         return await this.userRoomRepository.find({ room });

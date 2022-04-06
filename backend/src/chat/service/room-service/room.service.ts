@@ -22,27 +22,8 @@ export class RoomService {
         @InjectRepository(RoomEntity)
         private readonly roomRepository: Repository<RoomEntity>
     ){}
-    
-    // async addAllUsers(room: RoomI, creator: UserDto)
-    // {
-    //     console.log(">>>>>> addAllUsers");
-    //     const allUsers = await this.usersService.findAll();
-    //     console.log("allUsers : ", allUsers);
-    //     for (var user of allUsers)
-    //     {
-    //         if (user && (user != creator))
-    //         {
-    //             var newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
-    //             console.log("newUserRoom : ", newUserRoom);
-    //         }
-    //     }
-    // }
 
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        // create UserRoomEntity
-        // const newUserRoom = await this.userRoomService.create({ user: creator, room: room, role: UserRoomRole.OWNER });
-        // const newUserRoom = await this.userRoomService.create({ user: creator, room: room });
-        // console.log("newUserRoom : ", newUserRoom);
         // create RoomEntity
         const newRoom = await this.addCreatorToRoom(room, creator);
         // if (Public room)
@@ -52,8 +33,6 @@ export class RoomService {
                 newRoom.password = encodePassword(room.password);
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
-            // NEW ROLES
-            // this.addAllUsers(room, creator);
         }
         return await this.roomRepository.save(newRoom);
     }
@@ -205,13 +184,13 @@ export class RoomService {
         return adminsIds;
     }
 
-    async getUsersForRoom(roomId: number) {
+    // async getUsersForRoom(roomId: number) { // in UserRoom from now on
 
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        return ret.users;
-    }
+    //     var ret = await this.roomRepository.findOne(roomId, {
+    //         relations: ['users', 'admins']
+    //     });
+    //     return ret.users;
+    // }
 
     async getUsersIdsForRoom(roomId: number) {
         var ret = await this.roomRepository.findOne(roomId, {

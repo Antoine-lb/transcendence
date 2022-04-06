@@ -76,27 +76,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       return this.disconnect(socket);
     }
   }
-   
-  @SubscribeMessage('createRoom')
-  async onCreateRoom(socket: Socket, room: RoomI) {
-    console.log(">>>>>> gateway createRoom");
-    // TODO : Check validity of all users before create the room
-    const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
-    for (const user of createRoom.users) {
-      console.log("user : ", user);
-      const newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.OWNER });
-      console.log("newUserRoom : ", newUserRoom);
-  
+
+  async emitRoomsForConnectedUsers(room: RoomI) {
+    const users = await this.userRoomService.getUsersForRoom(room);
+    for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
       const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
-
       for (const connection of connections) {
         await this.server.to(connection.socketID).emit('rooms', rooms)
       }
     }
   }
 
-     
+  async createUserRooms(room: RoomI, owner: UserDto, users: UserDto[]) {
+    for (const user of users) {
+      if (user.id == owner.id)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.OWNER });
+      else
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
+    }
+  }
+
+  @SubscribeMessage('createRoom')
+  async onCreateRoom(socket: Socket, room: RoomI) {
+    // TODO : Check validity of all users before create the room
+    const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
+    var users: UserDto[] = [];
+    // si public
+    if (newRoom.status == true)
+      users = await this.userService.findAll(); 
+    else
+      users.push(socket.data.user);
+    await this.createUserRooms(room, socket.data.user, users);
+    await this.emitRoomsForConnectedUsers(newRoom);
+  }
+
   @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, { room, password }) {
     if (room.protected == true) {
@@ -128,17 +142,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
       
   //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
-
-  async emitRoomsForConnectedUsers(room: RoomI) {
-    const users = await this.roomService.getUsersForRoom(room.id);
-    for (const user of users) {
-      const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
-      for (const connection of connections) {
-        await this.server.to(connection.socketID).emit('rooms', rooms)
-      }
-    }
-  }
 
   @SubscribeMessage('deletePassword')
   async onDeletePassword(socket: Socket, { room, modifier }) {
@@ -173,7 +176,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('getUsers')
   async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
     
-    users = await this.roomService.getUsersForRoom(room.id);
+    users = await this.userRoomService.getUsersForRoom(room);
     return this.server.to(socket.id).emit('getUsers', users)
   }
 
