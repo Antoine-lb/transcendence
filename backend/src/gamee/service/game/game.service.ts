@@ -176,6 +176,8 @@ export class GameService {
   
   getRoomById(rooms: StateI[], id: number): number {
 
+    console.log(id);
+    console.log(rooms);
     let index: number = 0;
       for (const room of rooms) {
         if (room.id == id)

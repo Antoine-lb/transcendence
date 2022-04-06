@@ -58,6 +58,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       else {
         socket.data.user = user;
         socket.data.number = null;
+        socket.data.roomId = 0;
         return;
       }
     }
@@ -213,16 +214,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.emitGameState(this.state, roomId);
       }
       else {
-        clearInterval(this.intervalId);
-        this.emitGameOver(this.state[index], winner);
+        this.emitGameOver(this.state, winner, roomId);
 
           // TODO : save the score
         this.state.splice(index, 1);
+        clearInterval(this.intervalId);
 
-        console.log('------------after SPLIRCE------------------------');
-        console.log(index);
-        
-        console.log(this.state);
       }
     }, 1000 / FRAME_RATE);
     }
@@ -231,16 +228,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
      let index: number = this.GameService.getRoomById(this.state, roomId);
      
-     console.log(index);
-     
     // Send this event to everyone in the room.
     this.server.to(state[index].id.toString())
       .emit('gameState', JSON.stringify(state[index]));
     }
     
-    emitGameOver(state: StateI, winner) {
-      
-      this.server.to(state.id.toString())
+    emitGameOver(state: StateI[], winner, roomId: number) {
+
+      let index: number = this.GameService.getRoomById(this.state, roomId);
+
+      this.server.to(state[index].id.toString())
       .emit('gameOver', JSON.stringify({ winner }));
     }
  }
