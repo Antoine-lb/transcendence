@@ -161,19 +161,4 @@ export class UserController {
       // res.redirect('/api/users/me');
     }
 
-    // route qui valide les parametres et l'enregistre dans la base de donnees
-    // @Get('/me/update-params')
-    // async setUserParams(@Res() res, @Request() req, @Param('username') username: string, @Param('avatar') avatar: string) {
-    //   const user = await this.userService.findById(id);
-    //   if (!user)
-    //     throw new NotFoundException('params : User not found')
-    //   // username
-    //      // update
-    //   // avatar
-    //      // update
-    //   // 2fa
-    //      // turnOff/OnTwoFA
-    //   // return user;
-    // }
-
   }

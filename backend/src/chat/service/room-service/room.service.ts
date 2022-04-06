@@ -9,18 +9,40 @@ import { createQuery } from 'mysql2/typings/mysql/lib/Connection';
 import { UserDto } from 'src/entities/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { encodePassword } from 'src/utils/bcrypt';
+import { UserRoomService } from '../user-room/user-room.service';
+import { UserRoomRole, UserRoomEntity } from 'src/chat/model/user-room.entity';
 
 
 @Injectable()
 export class RoomService {
     constructor(
         private readonly usersService: UsersService,
+        private readonly userRoomService: UserRoomService,
 
         @InjectRepository(RoomEntity)
         private readonly roomRepository: Repository<RoomEntity>
     ){}
     
+    async addAllUsers(room: RoomI, creator: UserDto)
+    {
+        console.log(">>>>>> addAllUsers");
+        const allUsers = await this.usersService.findAll();
+        console.log("allUsers : ", allUsers);
+        for (var user of allUsers)
+        {
+            if (user && (user != creator))
+            {
+                var newUserRoom = await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
+                console.log("newUserRoom : ", newUserRoom);
+            }
+        }
+    }
+
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
+        // create UserRoomEntity
+        const newUserRoom = await this.userRoomService.create({ user: creator, room: room, role: UserRoomRole.OWNER });
+        console.log("newUserRoom : ", newUserRoom);
+        // create RoomEntity
         const newRoom = await this.addCreatorToRoom(room, creator);
         // if (Public room)
         if (newRoom.status == true) {
@@ -29,6 +51,8 @@ export class RoomService {
                 newRoom.password = encodePassword(room.password);
             // add all users to the Room
             newRoom.users = await this.usersService.findAll();
+            // NEW ROLES
+            // this.addAllUsers(room, creator);
         }
         return await this.roomRepository.save(newRoom);
     }
@@ -66,84 +90,7 @@ export class RoomService {
 
     ////////////////////////////////////////// ROLES FUNCTIONS //////////////////////////////////////////////////////////////
 
-    async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
-        
-        return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
-        .leftJoinAndSelect('rooms.admins', 'admins') // load "admins" relation (user entity) and select results as "admins"
-        .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
-        .getMany(); // get many results
-    }
-
-    async isAdmin(userId: number, roomId: number) : Promise<boolean> {
-        var admins = await this.getAdminsForRoom(roomId);
-        for (var admin of admins)
-        {
-            if (admin.id == userId)
-                return true;
-        }
-        return false;
-     }
-    
-    async isOwner(userId: number, roomId: number) : Promise<boolean> {
-        var room = await this.roomRepository.findOne(roomId);
-        if (userId == room.ownerId)
-            return true;
-        return false;
-     }
-    
-    async getAdminsForRoom(roomId: number) {
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        return ret.admins;
-    }
-
-    async getAdminsIdsForRoom(roomId: number) {
-
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        var adminsIds = [];
-        for (const admin of ret.admins) {
-            adminsIds.push(admin.id);
-        }
-        return adminsIds;
-    }
-
-    async getUsersForRoom(roomId: number) {
-
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        return ret.users;
-    }
-
-    async getUsersIdsForRoom(roomId: number) {
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        var usersIds = [];
-        for (const user of ret.users) {
-            usersIds.push(user.id);
-        }
-        return usersIds;
-    }
-
-    async getRoom(roomID: number): Promise<RoomI> {
-        return await this.roomRepository.findOne(roomID, {
-            relations: ['users', 'admins']
-        })
-    }
-
-    async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
-
-        const query = this.roomRepository
-        .createQueryBuilder('room')
-        .leftJoin('room.users', 'users')
-        .where('users.id = :userID', { userID })
-        
-        return paginate(query, options);
-    }
+    ////////////////////////////////////////// ROLES FUNCTIONS - ADD/CHANGE ROLE //////////////////////////////////////////////
 
     async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
         // initialize empty array for the admins
@@ -228,8 +175,71 @@ export class RoomService {
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
+    ////////////////////////////////////////// ROLES FUNCTIONS - GETTERS ////////////////////////////////////////////////////
 
-    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> { // not userd at the moment
+    async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
+        
+        return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
+        .leftJoinAndSelect('rooms.admins', 'admins') // load "admins" relation (user entity) and select results as "admins"
+        .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
+        .getMany(); // get many results
+    }
+
+    async getAdminsForRoom(roomId: number) {
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.admins;
+    }
+
+    async getAdminsIdsForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var adminsIds = [];
+        for (const admin of ret.admins) {
+            adminsIds.push(admin.id);
+        }
+        return adminsIds;
+    }
+
+    async getUsersForRoom(roomId: number) {
+
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        return ret.users;
+    }
+
+    async getUsersIdsForRoom(roomId: number) {
+        var ret = await this.roomRepository.findOne(roomId, {
+            relations: ['users', 'admins']
+        });
+        var usersIds = [];
+        for (const user of ret.users) {
+            usersIds.push(user.id);
+        }
+        return usersIds;
+    }
+
+    async getRoom(roomID: number): Promise<RoomI> {
+        return await this.roomRepository.findOne(roomID, {
+            relations: ['users', 'admins']
+        })
+    }
+
+    async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
+
+        const query = this.roomRepository
+        .createQueryBuilder('room')
+        .leftJoin('room.users', 'users')
+        .where('users.id = :userID', { userID })
+        
+        return paginate(query, options);
+    }
+
+    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> { // not used at the moment
         // console.log(">>>>>> findAdminForRoom");
         for (const admin of room.admins) {
             if (admin.id == id)
@@ -237,4 +247,24 @@ export class RoomService {
         }
         return;
     }
+    
+    ////////////////////////////////////////// ROLES FUNCTIONS - CHECK ROLE ////////////////////////////////////////////////
+
+    async isAdmin(userId: number, roomId: number) : Promise<boolean> {
+        var admins = await this.getAdminsForRoom(roomId);
+        for (var admin of admins)
+        {
+            if (admin.id == userId)
+                return true;
+        }
+        return false;
+     }
+    
+    async isOwner(userId: number, roomId: number) : Promise<boolean> {
+        var room = await this.roomRepository.findOne(roomId);
+        if (userId == room.ownerId)
+            return true;
+        return false;
+     }
+    
 }

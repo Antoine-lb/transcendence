@@ -2,6 +2,7 @@ import { UserEntity } from "src/entities/users.entity";
 import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn, CreateDateColumn, ManyToMany, JoinTable, OneToMany, ManyToOne } from "typeorm";
 import { JoinedRoomEntity } from "./joined-room.entity";
 import { MessageEntity } from "./message.entity";
+import { UserRoomEntity } from "./user-room.entity";
 
 
 @Entity()
@@ -50,4 +51,8 @@ export class RoomEntity {
 
     @CreateDateColumn()
     updated_date: Date;
+
+    @OneToMany(() => UserRoomEntity, userRoom => userRoom.room)
+    roleUsers: UserRoomEntity[];
+
 }

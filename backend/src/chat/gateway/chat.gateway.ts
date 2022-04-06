@@ -23,6 +23,7 @@ import { MessageService } from '../service/message/message.service';
 import { UserDto } from 'src/entities/users.dto';
 import { comparePassword } from 'src/utils/bcrypt';
 import { UserInterface } from 'src/entities/users.interface';
+import { UserRoomService } from '../service/user-room/user-room.service';
 
  @WebSocketGateway({
    cors: {
@@ -38,6 +39,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      private connectedUserService: ConnectedUserService,
      private joinedRoomService: JoinedRoomService,
      private messageService: MessageService,
+     private userRoomService: UserRoomService
     ) { }
 
    @WebSocketServer() server: Server;
@@ -109,7 +111,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
     // Save Connection to Room in DB
     if (found.length == 0)
-      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
+      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
     await this.server.to(socket.id).emit('messages', messages);
   }
