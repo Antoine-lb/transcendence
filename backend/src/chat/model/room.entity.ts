@@ -14,9 +14,6 @@ export class RoomEntity {
     @Column()
     name: string;
 
-    @Column()
-    ownerId: number;
-
     // true = public
     @Column({ default: true })
     status: boolean;

@@ -54,20 +54,19 @@ export class UserRoomService {
         return users;
     }
     
-    // pas encore utilisee
-    // async getRole(room: RoomI, user: UserDto) { 
-    //     var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
-    //         relations: ['user'],
-    //         where: {
-    //             room: room,
-    //             user: user,
-    //         },
-    //     });
-    //     var roles = {};
-    //     for (var userRoom of userRoomRoles)
-    //         roles[userRoom.user.id] = userRoom.role;
-    //     return roles[user.id];       
-    // }
+    async getRole(room: RoomI, user: UserDto) { 
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+                user: user,
+            },
+        });
+        var roles = {};
+        for (var userRoom of userRoomRoles)
+            roles[userRoom.user.id] = userRoom.role;
+        return roles[user.id];       
+    }
 
     async getRoles(room: RoomI) { 
         var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({

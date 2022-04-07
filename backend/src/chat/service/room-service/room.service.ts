@@ -38,9 +38,16 @@ export class RoomService {
     }
 
     //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
-    
+        
+    async isOwner(user: UserDto, room: RoomI) : Promise<boolean> {
+        var role = await this.userRoomService.getRole(room, user);
+        if (role == UserRoomRole.OWNER)
+            return true;
+        return false;
+    }
+
     async deletePassword(room: RoomI, modifier: UserDto): Promise<RoomI> {
-        if (await this.isOwner(modifier.id, room.id) == false)
+        if (await this.isOwner(modifier, room) == false)
             throw new UnauthorizedException();
         if (room.status == false || room.protected == false || room.password == null)
             throw new UnauthorizedException();
@@ -50,7 +57,7 @@ export class RoomService {
     }
  
     async modifyPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
-        if (await this.isOwner(modifier.id, room.id) == false)
+        if (await this.isOwner(modifier, room) == false)
             throw new UnauthorizedException();
         if (room.status == false || room.protected == false || room.password == null)
             throw new UnauthorizedException();
@@ -59,7 +66,7 @@ export class RoomService {
     }
 
     async addPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
-        if (await this.isOwner(modifier.id, room.id) == false)
+        if (await this.isOwner(modifier, room) == false)
             throw new UnauthorizedException();
         if (room.status == false)
             throw new UnauthorizedException();
@@ -80,7 +87,6 @@ export class RoomService {
         // Save creator as Admin
         admins.push(creator);
         room.admins = admins;
-        room.ownerId = creator.id;
         return room;
     }
 
@@ -160,24 +166,4 @@ export class RoomService {
         }
         return;
     }
-    
-    ////////////////////////////////////////// ROLES FUNCTIONS - CHECK ROLE ////////////////////////////////////////////////
-
-    async isAdmin(userId: number, roomId: number) : Promise<boolean> {
-        var admins = await this.getAdminsForRoom(roomId);
-        for (var admin of admins)
-        {
-            if (admin.id == userId)
-                return true;
-        }
-        return false;
-     }
-    
-    async isOwner(userId: number, roomId: number) : Promise<boolean> {
-        var room = await this.roomRepository.findOne(roomId);
-        if (userId == room.ownerId)
-            return true;
-        return false;
-     }
-    
 }

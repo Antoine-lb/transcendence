@@ -13,7 +13,6 @@ export interface roomInterface {
   created_date: string;
   id: number;
   name: string;
-  ownerId: number;
   password: string;
   protected: boolean;
   status: boolean;
