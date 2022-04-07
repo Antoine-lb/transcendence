@@ -17,9 +17,7 @@ import {
 @Injectable()
 export class GameService {
 
-  constructor(
-  ) {
-  }
+  constructor() {}
 
    initGame() {
     let state: StateI = {

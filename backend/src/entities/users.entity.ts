@@ -79,6 +79,9 @@ export class UserEntity {
   @ManyToMany(() => RoomEntity, room => room.admins)
   adminOF: RoomEntity[];
 
+  @OneToMany(() => LeaderBoardEntity, leaderBoard => leaderBoard.user)
+  leaderBoard: LeaderBoardEntity[];
+
   // @ManyToOne(() => GameEntity, game => game.players)
   // @JoinTable()
   // game: GameEntity;

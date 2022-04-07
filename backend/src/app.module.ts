@@ -19,7 +19,7 @@ import { MessageEntity } from './chat/model/message.entity';
 import { JoinedRoomEntity } from './chat/model/joined-room.entity';
 import { GameGateway } from './gamee/gateway/game.gateway';
 import { GameService } from './gamee/service/game/game.service';
-import { TestService } from './gamee/service/test/test.service';
+import { TestService } from './gamee/service/leaderBoard/leaderBoard.service';
 import { GameEntity } from './gamee/model/game.entity';
 
 @Module({
