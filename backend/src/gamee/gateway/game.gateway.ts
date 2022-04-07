@@ -38,7 +38,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
    @WebSocketServer() server: Server;
 
-  intervalId: NodeJS.Timer;
 
    state: StateI[] = [];
    
@@ -202,9 +201,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
    async afterInit() { }
 
-    startGameInterval(roomName, roomId: number) {
+   startGameInterval(roomName, roomId: number) {
+      
+    let index: number = this.GameService.getRoomById(this.state, roomId);
      
-    this.intervalId =  setInterval(() =>  {
+    this.state[index].intervalId = setInterval(() =>  {
     
       let index: number = this.GameService.getRoomById(this.state, roomId);
       
@@ -217,8 +218,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.emitGameOver(this.state, winner, roomId);
 
           // TODO : save the score
+        clearInterval(this.state[index].intervalId);
         this.state.splice(index, 1);
-        clearInterval(this.intervalId);
 
       }
     }, 1000 / FRAME_RATE);

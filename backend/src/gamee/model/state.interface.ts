@@ -33,4 +33,5 @@ export interface StateI {
     }];
     powerUp_t: string;
     launchPowerUp: Boolean;
+    intervalId: NodeJS.Timer;
 }
