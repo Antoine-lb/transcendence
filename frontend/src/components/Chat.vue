@@ -48,6 +48,7 @@ export default {
       selectedRoomAdmins: [],
       selectedRoomBans: [],
       selectedRoomUsers: [],
+      selectedRoomRoles: [],
       room: {},
       // Pwd when trying to join room
       roomPasswordRequired: 0,
@@ -89,12 +90,16 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
-    joinedRoom(room: roomInterface) {
-      this.room = room;
-      this.socket.emit("joinRoom", { room: room, password: this.joiningPassword });
+    getUpdatedRoles(room: roomInterface) {
       this.socket.emit("getAdmins", room);
       this.socket.emit("getBans", room);
       this.socket.emit("getUsers", room);
+      this.socket.emit("getRoles", room);
+    },
+    joinedRoom(room: roomInterface) {
+      this.room = room;
+      this.socket.emit("joinRoom", { room: room, password: this.joiningPassword });
+      this.getUpdatedRoles(room);
       this.wrongPassword = false;
       this.joiningPassword = null;
     },
@@ -147,9 +152,35 @@ export default {
         }
       }
     },
+    // room getter
+    getRoom(roomId: Number) {
+      for (var room of this.myRooms)
+      {
+        if (room.id == roomId)
+          return room;
+      }
+      return null;
+    },
+    // roles update
+    addAdmin(room: roomInterface, user: UserInterface) {
+      this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+      this.getUpdatedRoles(room);
+    },
+    banUser(room: roomInterface, user: UserInterface) {
+      if (!this.isBanned(user.id))
+        this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
+      else
+        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
+      this.getUpdatedRoles(room);
+    },
+    getRole(user: UserInterface, room: roomInterface)
+    // getRole(userId: number, roomId: number)
+    {
+        this.socket.emit("getRole",{ user, room });
+        // this.socket.emit("getRole",{ userId, roomId });
+    },
+    // roles getter
     findRoleInSelectedRoom(userId: number) {
-      // console.log("this.selectedRoomBans : ", this.selectedRoomBans);
-      // console.log("this.selectedRoomAdmins : ", this.selectedRoomAdmins);
       for (var ban of this.selectedRoomBans)
       {
         if (ban.id == userId)
@@ -164,6 +195,7 @@ export default {
       }
       return "lambda";
     },
+    // roles check
     isAdmin(userId: number) {
       var role = this.findRoleInSelectedRoom(userId);
       if (role == "admin" || role == "owner")
@@ -192,19 +224,7 @@ export default {
         return true;
       return false;
     },
-    addAdmin(room: roomInterface, user: UserInterface) {
-      this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
-      // this.socket.emit("getAdmins", room);
-      this.socket.emit("getUsers", room);
-    },
-    getRoom(roomId: Number) {
-      for (var room of this.myRooms)
-      {
-        if (room.id == roomId)
-          return room;
-      }
-      return null;
-    },
+    // password functions
     joiningPasswordSubmit(roomId: Number, inputPassword: string) {
       var room: roomInterface = this.getRoom(roomId);
       this.joiningPassword = inputPassword;
@@ -222,15 +242,7 @@ export default {
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
-    banUser(room: roomInterface, user: UserInterface) {
-      if (!this.isBanned(user.id))
-        this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
-      else
-        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
-      // this.socket.emit("getAdmins", room);
-      this.socket.emit("getUsers", room);
-      this.socket.emit("getBans", room);
-    },
+
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -244,6 +256,10 @@ export default {
     });
     this.socket.on("getAdmins", (admins: number[]) => {
       this.selectedRoomAdmins = admins;
+    });
+    this.socket.on("getRoles", (roles) => {
+      this.selectedRoomRoles = roles;
+      console.log("this.selectedRoomRoles : ", this.selectedRoomRoles);
     });
     this.socket.on("getBans", (bans: number[]) => {
       this.selectedRoomBans = bans;

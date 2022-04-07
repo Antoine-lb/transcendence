@@ -167,6 +167,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+  @SubscribeMessage('getRoles')
+  // async onGetRole(socket: Socket, userId: number, roomId: number) {
+  async onGetRole(socket: Socket, room: RoomI) {
+
+    var roles = await this.userRoomService.getRoles(room);
+    return await this.server.to(socket.id).emit('getRoles', roles);
+    // return await this.server.to(socket.id).emit('getAdmins', admins)
+  }
+
   @SubscribeMessage('getAdmins')
   async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
     admins = await this.roomService.getAdminsForRoom(room.id);
@@ -175,7 +184,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('getUsers')
   async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
-    
     users = await this.userRoomService.getUsersForRoom(room);
     return this.server.to(socket.id).emit('getUsers', users)
   }

@@ -38,6 +38,21 @@ export class UserRoomService {
         return users;
     }
     
+    // async getRoles(room: RoomI): Promise<UserDto[]> { 
+    async getRoles(room: RoomI): Promise<UserRoomEntity[]>{ 
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+            },
+        });
+        console.log("getRoles userRooms : ", userRoomRoles);
+        var roles = [];
+        for (var userRoom of userRoomRoles)
+            roles.push({ userRoom.user.id, userRoom.role });
+        return roles;
+    }
+
     async findByRoom(room: RoomI) : Promise<UserRoomI[]> { 
         return await this.userRoomRepository.find({ room });
     }
