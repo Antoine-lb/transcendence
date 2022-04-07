@@ -45,8 +45,6 @@ export default {
       userStore: useUserStore(),
       myRooms: null,
       selectedRoom: {},
-      selectedRoomAdmins: [],
-      selectedRoomBans: [],
       selectedRoomUsers: [],
       selectedRoomRoles: [],
       room: {},
@@ -91,8 +89,6 @@ export default {
       return this.text.length > 0;
     },
     getUpdatedRoles(room: roomInterface) {
-      this.socket.emit("getAdmins", room);
-      this.socket.emit("getBans", room);
       this.socket.emit("getUsers", room);
       this.socket.emit("getRoles", room);
     },
@@ -163,57 +159,44 @@ export default {
     },
     // roles update
     addAdmin(room: roomInterface, user: UserInterface) {
-      this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+      if (!this.isAdmin(user))
+        this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+      else
+        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
       this.getUpdatedRoles(room);
     },
     banUser(room: roomInterface, user: UserInterface) {
-      if (!this.isBanned(user.id))
+      if (!this.isBanned(user))
         this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
       else
         this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
       this.getUpdatedRoles(room);
     },
-    getRole(user: UserInterface, room: roomInterface)
-    // getRole(userId: number, roomId: number)
-    {
-        this.socket.emit("getRole",{ user, room });
-        // this.socket.emit("getRole",{ userId, roomId });
-    },
     // roles getter
-    findRoleInSelectedRoom(userId: number) {
-      for (var ban of this.selectedRoomBans)
-      {
-        if (ban.id == userId)
-          return "banned";
-      }
-      for (var admin of this.selectedRoomAdmins)
-      {
-        if (this.selectedRoom.ownerId == userId)
-          return "owner";
-        if (admin.id == userId)
-          return "admin";
-      }
-      return "lambda";
+    getRole(user: UserInterface)
+    {
+      return this.selectedRoomRoles[user.id];
     },
     // roles check
-    isAdmin(userId: number) {
-      var role = this.findRoleInSelectedRoom(userId);
+    isAdmin(user: UserInterface) {
+      var role = this.getRole(user);
       if (role == "admin" || role == "owner")
         return true;
       return false;
     },
-    isBanned(userId: number) {
-      var role = this.findRoleInSelectedRoom(userId);
+    isBanned(user: UserInterface) {
+      var role = this.getRole(user);
       if (role == "banned")
         return true;
       return false;
     },
-    isOwner(userId: number) {
-      var role = this.findRoleInSelectedRoom(userId);
+    isOwner(user: UserInterface) {
+      var role = this.getRole(user);
       if (role == "owner")
         return true;
       return false;
     },
+    // room status check
     isProtected() {
       if (this.selectedRoom.status == true && this.selectedRoom.protected == true && this.selectedRoom.password != null)
         return true;
@@ -242,7 +225,6 @@ export default {
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
-
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -254,15 +236,9 @@ export default {
       // console.log("------------ rooms.items : ", rooms.items);
       this.myRooms = rooms.items;
     });
-    this.socket.on("getAdmins", (admins: number[]) => {
-      this.selectedRoomAdmins = admins;
-    });
     this.socket.on("getRoles", (roles) => {
       this.selectedRoomRoles = roles;
-      console.log("this.selectedRoomRoles : ", this.selectedRoomRoles);
-    });
-    this.socket.on("getBans", (bans: number[]) => {
-      this.selectedRoomBans = bans;
+      console.log("getRoles : ", this.selectedRoomRoles);
     });
     this.socket.on("getUsers", (users: number[]) => {
       this.selectedRoomUsers = users;
@@ -326,7 +302,7 @@ export default {
       <!-- Selected room - params -->
 
       <h1 class="text-center small-text">
-        <div v-if="isOwner(userStore.user.id) && (userStore.user.id == user.id)" class="empty">
+        <div v-if="isOwner(userStore.user) && (userStore.user.id == user.id)" class="empty">
           <div v-if="isProtected()">
             <p>You are the owner of this protected room.
               <p>
@@ -361,14 +337,14 @@ export default {
         <p>Users in <span class="bold-colored">{{ this.selectedRoom.name }}</span> :</p>
           <!-- this.selectedRoomBans => {{ this.selectedRoomBans }} -->
         <li v-for="user in this.selectedRoomUsers" :key="user.username">
-          <span :class="isBanned(user.id) ? 'bold-red' : 'bold-colored'">{{ user.username }}</span> ({{ findRoleInSelectedRoom(user.id) }})
+          <span :class="isBanned(user) ? 'bold-red' : 'bold-colored'">{{ user.username }}</span> ({{ getRole(user) }})
           <!-- If admin => Ban user -->
-          <div v-if="isAdmin(userStore.user.id) && userStore.user.id != user.id" class="empty">
-              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user.id) ? 'Accept' : 'Ban'}} user</button>
+          <div v-if="isAdmin(userStore.user) && userStore.user.id != user.id" class="empty">
+              <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
           </div>
           <!-- If admin and other not admin => set as admin -->
-          <div v-if="isAdmin(userStore.user.id) && !isAdmin(user.id) && !isBanned(user.id)" class="empty">
-            <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">Set as admin</button>
+          <div v-if="isAdmin(userStore.user) && !isOwner(user) && userStore.user.id != user.id && !isBanned(user)" class="empty">
+            <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
           </div>
         </li>
       </h1>

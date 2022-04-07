@@ -21,6 +21,10 @@ export class UserRoomService {
         return await this.userRoomRepository.save( userRoom );
     }
     
+    async updateRole(room: RoomI, user: UserDto, newRole: UserRoomRole) {
+        return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
+    }
+    
     async findByUser(user: UserDto): Promise<UserRoomI[]> { 
         return await this.userRoomRepository.find({ user });
     }
@@ -38,28 +42,22 @@ export class UserRoomService {
         return users;
     }
     
-    // async getRoles(room: RoomI): Promise<UserDto[]> { 
-    async getRoles(room: RoomI): Promise<UserRoomEntity[]>{ 
+    async getRoles(room: RoomI) { 
         var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
             relations: ['user'],
             where: {
                 room: room,
             },
         });
-        console.log("getRoles userRooms : ", userRoomRoles);
-        var roles = [];
+        var roles = {};
         for (var userRoom of userRoomRoles)
-            roles.push({ userRoom.user.id, userRoom.role });
+            roles[userRoom.user.id] = userRoom.role;
         return roles;
     }
 
     async findByRoom(room: RoomI) : Promise<UserRoomI[]> { 
         return await this.userRoomRepository.find({ room });
     }
-    
-    // async deleteBySocketID(socketID: string) { 
-    //     return await this.userRoomRepository.delete({ socketID })
-    // }
     
     async deleteAll() {
         await this.userRoomRepository

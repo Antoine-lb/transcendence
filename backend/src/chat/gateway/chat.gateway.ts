@@ -88,6 +88,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  async emitRolesForConnectedUsers(room: RoomI) {
+    var roles = await this.userRoomService.getRoles(room);
+    const users = await this.userRoomService.getUsersForRoom(room);
+    for (const user of users) {
+      const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
+      for (const connection of connections) {
+        await this.server.to(connection.socketID).emit('getRoles', roles)
+      }
+    }
+  }
+
   async createUserRooms(room: RoomI, owner: UserDto, users: UserDto[]) {
     for (const user of users) {
       if (user.id == owner.id)
@@ -168,18 +180,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 
   @SubscribeMessage('getRoles')
-  // async onGetRole(socket: Socket, userId: number, roomId: number) {
-  async onGetRole(socket: Socket, room: RoomI) {
+  async onGetRoles(socket: Socket, room: RoomI) {
 
     var roles = await this.userRoomService.getRoles(room);
     return await this.server.to(socket.id).emit('getRoles', roles);
-    // return await this.server.to(socket.id).emit('getAdmins', admins)
-  }
-
-  @SubscribeMessage('getAdmins')
-  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
-    admins = await this.roomService.getAdminsForRoom(room.id);
-    return await this.server.to(socket.id).emit('getAdmins', admins)
   }
 
   @SubscribeMessage('getUsers')
@@ -189,9 +193,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   @SubscribeMessage('addAdmin')
-  async onAddAdmin(socket: Socket, { room, user, modifier }) {
+  async onAddAdmin(socket: Socket, { room, user, modifier }) { // check modifier
     try {
-      await this.roomService.addAdminsToRoom(room, [ user ], modifier);
+      await this.userRoomService.updateRole(room, user, UserRoomRole.ADMIN);
+      this.emitRolesForConnectedUsers(room);
       const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
       for (const joinedUser of joinedUsers) {
         await this.server.to(joinedUser.socketID).emit('getAdmins', room.admins);
@@ -203,9 +208,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
     
   @SubscribeMessage('banUser')
-  async onBanUser(socket: Socket, { room, user, modifier }) {
+  async onBanUser(socket: Socket, { room, user, modifier }) { // check modifier
     try {
-      await this.roomService.banUsers(room, [ user ], modifier);
+      await this.userRoomService.updateRole(room, user, UserRoomRole.BANNED);
+      this.emitRolesForConnectedUsers(room);
       const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
       for (const joinedUser of joinedUsers) {
         await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
@@ -217,9 +223,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
     
   @SubscribeMessage('unbanUser')
-  async onUnbanUser(socket: Socket, { room, user, modifier }) {
+  async onUnbanUser(socket: Socket, { room, user, modifier }) { // check modifier
     try {
-      await this.roomService.unbanUsers(room, [ user ], modifier);
+      await this.userRoomService.updateRole(room, user, UserRoomRole.LAMBDA);
+      this.emitRolesForConnectedUsers(room);
       const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
       for (const joinedUser of joinedUsers) {
         await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
@@ -232,17 +239,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
-
-  // @SubscribeMessage('addAdmins') // not use for now
-  // async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
-  //   // Add admins to the Rooms
-  //   try {
-  //     await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
-  //   }
-  //   catch {
-  //     socket.emit('Error', new UnauthorizedException());
-  //   }
-  // }
 
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  

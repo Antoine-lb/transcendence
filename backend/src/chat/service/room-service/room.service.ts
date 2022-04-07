@@ -84,24 +84,24 @@ export class RoomService {
         return room;
     }
 
-    async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-        // Check if the modifier User is an Admin
-        if (await this.isAdmin(modifier.id, room.id) == false)
-            throw new UnauthorizedException();
-        if (!room.admins)
-        {
-            room.admins = [];
-            room.admins.push(modifier);
-        }
-        for (const admin of admins) {
-            // Save User's'  as  Admin's' if (not already admin to the room)
-            if (await this.isAdmin(admin.id, room.id) == false)
-            {
-                room.admins.push(admin);
-            }
-        }
-        return await this.roomRepository.save(room);
-    }
+    // async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
+    //     // Check if the modifier User is an Admin
+    //     if (await this.isAdmin(modifier.id, room.id) == false)
+    //         throw new UnauthorizedException();
+    //     if (!room.admins)
+    //     {
+    //         room.admins = [];
+    //         room.admins.push(modifier);
+    //     }
+    //     for (const admin of admins) {
+    //         // Save User's'  as  Admin's' if (not already admin to the room)
+    //         if (await this.isAdmin(admin.id, room.id) == false)
+    //         {
+    //             room.admins.push(admin);
+    //         }
+    //     }
+    //     return await this.roomRepository.save(room);
+    // }
 
     arrayRemove(array, value) { 
         return array.filter(function(element) { 
@@ -109,49 +109,49 @@ export class RoomService {
         });
     }
 
-    async banUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
-        console.log(">>>>>> banUsers");
-        // Check if the modifier User is an Admin
-        if (await this.isAdmin(modifier.id, room.id) == false)
-            throw new UnauthorizedException();
-        if (!room.bans)
-            room.bans = [];
-        for (const ban of bans) {
-            // TODO: CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
-            // remove from admins if admin
-            if (this.isAdmin(ban.id, room.id))
-            {
-                // console.log("room.admins BEFORE : ", room.admins);
-                if (room.admins)
-                    room.admins = this.arrayRemove(room.admins, ban);
-                // console.log("room.admins AFTER : ", room.admins);
-            }
-            // Save Users as Ban
-            room.bans.push(ban);
-        }
-        console.log("room.admins : ", room.admins);
-        console.log("room.bans : ", room.bans);
-        return await this.roomRepository.save(room);    
-    }
+    // async banUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
+    //     console.log(">>>>>> banUsers");
+    //     // Check if the modifier User is an Admin
+    //     if (await this.isAdmin(modifier.id, room.id) == false)
+    //         throw new UnauthorizedException();
+    //     if (!room.bans)
+    //         room.bans = [];
+    //     for (const ban of bans) {
+    //         // TODO: CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
+    //         // remove from admins if admin
+    //         if (this.isAdmin(ban.id, room.id))
+    //         {
+    //             // console.log("room.admins BEFORE : ", room.admins);
+    //             if (room.admins)
+    //                 room.admins = this.arrayRemove(room.admins, ban);
+    //             // console.log("room.admins AFTER : ", room.admins);
+    //         }
+    //         // Save Users as Ban
+    //         room.bans.push(ban);
+    //     }
+    //     console.log("room.admins : ", room.admins);
+    //     console.log("room.bans : ", room.bans);
+    //     return await this.roomRepository.save(room);    
+    // }
 
 
-    async unbanUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
-        console.log(">>>>>> unbanUsers");
-        // Check if the modifier User is an Admin
-        if (await this.isAdmin(modifier.id, room.id) == false)
-            throw new UnauthorizedException();
-        if (!room.bans)
-            room.bans = [];
-        for (const ban of bans) {
-            // CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
-            // Save Users as Ban
-            // console.log("room.bans BEFORE : ", room.bans);
-            this.arrayRemove(room.bans, ban);
-            // console.log("room.bans AFTER  : ", room.bans);
-        }
+    // async unbanUsers(room: RoomI, bans: UserDto[], modifier: UserDto) {
+    //     console.log(">>>>>> unbanUsers");
+    //     // Check if the modifier User is an Admin
+    //     if (await this.isAdmin(modifier.id, room.id) == false)
+    //         throw new UnauthorizedException();
+    //     if (!room.bans)
+    //         room.bans = [];
+    //     for (const ban of bans) {
+    //         // CHANGE OWNER IF NEEDED + REMOVE FROM ADMINS
+    //         // Save Users as Ban
+    //         // console.log("room.bans BEFORE : ", room.bans);
+    //         this.arrayRemove(room.bans, ban);
+    //         // console.log("room.bans AFTER  : ", room.bans);
+    //     }
 
-        return await this.roomRepository.save(room);    
-    }
+    //     return await this.roomRepository.save(room);    
+    // }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }
