@@ -107,17 +107,19 @@ export default {
     <h1>Créer un salon</h1>
     <div>
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
-      <li v-for="user in newRoomUsers" :key="user.username">
-        {{ user.username }}
-        <button class="add-user" @click="removeUser(user)">Remove user</button>
-      </li>
-      <div>
-        <input type="text" v-model="newRoomUser" placeholder="Room Users" />
-        <button class="add-user" @click="newUser">Add user</button>
+      <div v-if="!isPublic">
+        <div>
+          <input type="text" v-model="newRoomUser" placeholder="Room Users" />
+          <button class="add-user" @click="newUser">Add user</button>
+        </div>
+        <li v-for="user in newRoomUsers" :key="user.username">
+          {{ user.username }}
+          <button class="add-user" @click="removeUser(user)">Remove user</button>
+        </li>
+        <p v-if="newRoomUserShowError" class="error-paragraf">
+          Username not found
+        </p>
       </div>
-      <p v-if="newRoomUserShowError" class="error-paragraf">
-        Username not found
-      </p>
       <div>
         <button @click="toggleStatus" :class="[isPublic ? 'new-room-button on-colors' : 'new-room-button off-colors']">Public</button>
         <button @click="toggleStatus" :class="[!isPublic ?'new-room-button on-colors' : 'new-room-button off-colors']">Private</button>

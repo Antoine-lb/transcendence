@@ -24,17 +24,17 @@ export class RoomService {
     ){}
 
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        // create RoomEntity
-        const newRoom = await this.addCreatorToRoom(room, creator);
+        // add creator to users
+        room.users.push(creator);
         // if (Public room)
-        if (newRoom.status == true) {
+        if (room.status == true) {
             // hash and store the password
-            if (newRoom.protected == true && room.password)
-                newRoom.password = encodePassword(room.password);
+            if (room.protected == true && room.password)
+                room.password = encodePassword(room.password);
             // add all users to the Room
-            newRoom.users = await this.usersService.findAll();
+            room.users = await this.usersService.findAll();
         }
-        return await this.roomRepository.save(newRoom);
+        return await this.roomRepository.save(room);
     }
 
     //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
@@ -78,17 +78,6 @@ export class RoomService {
     ////////////////////////////////////////// ROLES FUNCTIONS //////////////////////////////////////////////////////////////
 
     ////////////////////////////////////////// ROLES FUNCTIONS - ADD/CHANGE ROLE //////////////////////////////////////////////
-
-    async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        // initialize empty array for the admins
-        const admins: UserDto[] = [];
-        // Save creator as Creator
-        room.users.push(creator);
-        // Save creator as Admin
-        admins.push(creator);
-        room.admins = admins;
-        return room;
-    }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
     }

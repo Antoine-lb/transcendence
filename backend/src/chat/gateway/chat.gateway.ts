@@ -112,13 +112,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onCreateRoom(socket: Socket, room: RoomI) {
     // TODO : Check validity of all users before create the room
     const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
-    var users: UserDto[] = [];
-    // si public
-    if (newRoom.status == true)
-      users = await this.userService.findAll(); 
-    else
-      users.push(socket.data.user);
-    await this.createUserRooms(room, socket.data.user, users);
+    await this.createUserRooms(newRoom, socket.data.user, newRoom.users);
     await this.emitRoomsForConnectedUsers(newRoom);
   }
 
