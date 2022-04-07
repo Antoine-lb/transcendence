@@ -35,6 +35,13 @@ export interface UserInterface {
     isOnline: boolean;
 }
 
+export enum UserRoomRole {
+  OWNER = "owner",
+  ADMIN = "admin",
+  BANNED = "banned",
+  LAMBDA = "lambda",
+}
+
 export default {
   name: "Chat",
   data() {
@@ -158,19 +165,21 @@ export default {
       return null;
     },
     // roles update
+    updateRole(room: roomInterface, user: UserInterface, newRole: UserRoomRole) {
+      this.socket.emit("updateRole",{ room: room, user: user, modifier: this.userStore.user, newRole: newRole });
+      this.getUpdatedRoles(room);
+    },
     addAdmin(room: roomInterface, user: UserInterface) {
       if (!this.isAdmin(user))
-        this.socket.emit("addAdmin",{ room: room, user: user, modifier: this.userStore.user });
+        this.updateRole(room, user, UserRoomRole.ADMIN)
       else
-        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
-      this.getUpdatedRoles(room);
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
     banUser(room: roomInterface, user: UserInterface) {
       if (!this.isBanned(user))
-        this.socket.emit("banUser",{ room: room, user: user, modifier: this.userStore.user });
+        this.updateRole(room, user, UserRoomRole.BANNED)
       else
-        this.socket.emit("unbanUser",{ room: room, user: user, modifier: this.userStore.user });
-      this.getUpdatedRoles(room);
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
     // roles getter
     getRole(user: UserInterface)
@@ -180,19 +189,17 @@ export default {
     // roles check
     isAdmin(user: UserInterface) {
       var role = this.getRole(user);
-      if (role == "admin" || role == "owner")
+      if (role == UserRoomRole.ADMIN || role == UserRoomRole.OWNER)
         return true;
       return false;
     },
     isBanned(user: UserInterface) {
-      var role = this.getRole(user);
-      if (role == "banned")
+      if (this.getRole(user) == UserRoomRole.BANNED)
         return true;
       return false;
     },
     isOwner(user: UserInterface) {
-      var role = this.getRole(user);
-      if (role == "owner")
+      if (this.getRole(user) == UserRoomRole.OWNER)
         return true;
       return false;
     },
@@ -238,7 +245,6 @@ export default {
     });
     this.socket.on("getRoles", (roles) => {
       this.selectedRoomRoles = roles;
-      console.log("getRoles : ", this.selectedRoomRoles);
     });
     this.socket.on("getUsers", (users: number[]) => {
       this.selectedRoomUsers = users;

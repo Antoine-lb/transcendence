@@ -93,7 +93,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
       for (const connection of connections) {
         await this.server.to(connection.socketID).emit('getRoles', roles)
       }
@@ -192,51 +191,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     return this.server.to(socket.id).emit('getUsers', users)
   }
 
-  @SubscribeMessage('addAdmin')
-  async onAddAdmin(socket: Socket, { room, user, modifier }) { // check modifier
+  @SubscribeMessage('updateRole')
+  async onUpdateRole(socket: Socket, { room, user, modifier, newRole }) {
     try {
-      await this.userRoomService.updateRole(room, user, UserRoomRole.ADMIN);
+      await this.userRoomService.updateRole(room, user, modifier, newRole);
       this.emitRolesForConnectedUsers(room);
-      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
-      for (const joinedUser of joinedUsers) {
-        await this.server.to(joinedUser.socketID).emit('getAdmins', room.admins);
-      }
     }
     catch {
       socket.emit('Error', new UnauthorizedException());
     }
   }
-    
-  @SubscribeMessage('banUser')
-  async onBanUser(socket: Socket, { room, user, modifier }) { // check modifier
-    try {
-      await this.userRoomService.updateRole(room, user, UserRoomRole.BANNED);
-      this.emitRolesForConnectedUsers(room);
-      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
-      for (const joinedUser of joinedUsers) {
-        await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
-      }
-    }
-    catch {
-      socket.emit('Error', new UnauthorizedException());
-    }
-  }
-    
-  @SubscribeMessage('unbanUser')
-  async onUnbanUser(socket: Socket, { room, user, modifier }) { // check modifier
-    try {
-      await this.userRoomService.updateRole(room, user, UserRoomRole.LAMBDA);
-      this.emitRolesForConnectedUsers(room);
-      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
-      for (const joinedUser of joinedUsers) {
-        await this.server.to(joinedUser.socketID).emit('getBans', room.bans);
-      }
-    }
-    catch {
-      socket.emit('Error', new UnauthorizedException());
-    }
-  }
-  
+
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
 
@@ -256,7 +221,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-   
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
     await this.connectedUserService.deleteBySocketID(socket.id);
