@@ -75,61 +75,7 @@ export class RoomService {
         return await this.roomRepository.save(room);
     }
 
-    ////////////////////////////////////////// ROLES FUNCTIONS //////////////////////////////////////////////////////////////
-
-    ////////////////////////////////////////// ROLES FUNCTIONS - ADD/CHANGE ROLE //////////////////////////////////////////////
-
-    async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
-    }
-
-    ////////////////////////////////////////// ROLES FUNCTIONS - GETTERS ////////////////////////////////////////////////////
-
-    async getAdminRoomsForUser(userId: number): Promise<RoomI[]> {
-        
-        return this.roomRepository.createQueryBuilder('rooms') // query builder name ('adminRooms') is completely customisable
-        .leftJoinAndSelect('rooms.admins', 'admins') // load "admins" relation (user entity) and select results as "admins"
-        .where('admins.id = :id', { id: userId }) // search where users have the "user.id" as "adminId"
-        .getMany(); // get many results
-    }
-
-    async getAdminsForRoom(roomId: number) {
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        return ret.admins;
-    }
-
-    async getAdminsIdsForRoom(roomId: number) {
-
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        var adminsIds = [];
-        for (const admin of ret.admins) {
-            adminsIds.push(admin.id);
-        }
-        return adminsIds;
-    }
-
-    // Plus utilisee => on utilise celle de UserRoom
-    // async getUsersForRoom(roomId: number) { 
-
-    //     var ret = await this.roomRepository.findOne(roomId, {
-    //         relations: ['users', 'admins']
-    //     });
-    //     return ret.users;
-    // }
-
-    async getUsersIdsForRoom(roomId: number) {
-        var ret = await this.roomRepository.findOne(roomId, {
-            relations: ['users', 'admins']
-        });
-        var usersIds = [];
-        for (const user of ret.users) {
-            usersIds.push(user.id);
-        }
-        return usersIds;
-    }
+    ////////////////////////////////////////// GETTER FUNCTIONS //////////////////////////////////////////////////////////////
 
     async getRoom(roomID: number): Promise<RoomI> {
         return await this.roomRepository.findOne(roomID, {
@@ -147,12 +93,7 @@ export class RoomService {
         return paginate(query, options);
     }
 
-    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> { // not used at the moment
-        // console.log(">>>>>> findAdminForRoom");
-        for (const admin of room.admins) {
-            if (admin.id == id)
-                return admin;
-        }
-        return;
+    async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
+
     }
 }

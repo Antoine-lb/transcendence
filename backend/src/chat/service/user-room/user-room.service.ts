@@ -17,29 +17,27 @@ export class UserRoomService {
         private readonly userRoomRepository: Repository<UserRoomEntity>
     ) { }
     
+    ////////////////////////////////////////// SAVE/UPDATE FUNCTIONS //////////////////////////////////////////////////////////////
+
     async create(userRoom: UserRoomI): Promise<UserRoomI> {
         return await this.userRoomRepository.save( userRoom );
     }
     
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         var roles = await this.getRoles(room);
-        var modifierRole = roles[modifier.id];
-        var userRole = roles[user.id];
         // check that modifier is an admin
-        if (modifierRole != UserRoomRole.OWNER && modifierRole != UserRoomRole.ADMIN)
+        if (roles[modifier.id] != UserRoomRole.OWNER && roles[modifier.id] != UserRoomRole.ADMIN)
             throw new UnauthorizedException();
-        // check that user !- modifier
+        // check that user != modifier
         if (user.id == modifier.id)
             throw new UnauthorizedException();
         // si on modifie l'owner, le modifier devient owner
-        if (userRole == UserRoomRole.OWNER)
+        if (roles[user.id] == UserRoomRole.OWNER)
             await this.userRoomRepository.update({ user: modifier, room: room }, { role: UserRoomRole.OWNER } );
         return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
     }
-    
-    async findByUser(user: UserDto): Promise<UserRoomI[]> { 
-        return await this.userRoomRepository.find({ user });
-    }
+
+    ////////////////////////////////////////// FIND FUNCTIONS //////////////////////////////////////////////////////////////
 
     async getUsersForRoom(room: RoomI): Promise<UserDto[]> { 
         var userRoomsForRoom: UserRoomEntity[] = await this.userRoomRepository.find({
@@ -79,9 +77,5 @@ export class UserRoomService {
         for (var userRoom of userRoomRoles)
             roles[userRoom.user.id] = userRoom.role;
         return roles;
-    }
-
-    async findByRoom(room: RoomI) : Promise<UserRoomI[]> { 
-        return await this.userRoomRepository.find({ room });
     }
 }
