@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRoomEntity, UserRoomRole } from 'src/chat/model/user-room.entity';
 import { UserRoomI } from 'src/chat/model/user-room.interface';
@@ -11,6 +11,7 @@ import { UsersService } from 'src/users/users.service';
 export class UserRoomService {
 
     constructor(
+        @Inject(forwardRef(() => UsersService))
         private readonly userService: UsersService,
 
         @InjectRepository(UserRoomEntity)

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
@@ -16,7 +16,10 @@ import { UserRoomRole, UserRoomEntity } from 'src/chat/model/user-room.entity';
 @Injectable()
 export class RoomService {
     constructor(
+        @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
+        
+        @Inject(forwardRef(() => UserRoomService))
         private readonly userRoomService: UserRoomService,
 
         @InjectRepository(RoomEntity)
@@ -82,6 +85,45 @@ export class RoomService {
             relations: ['users', 'admins']
         })
     }
+
+    // async getUsersForRoom(roomId: number) {
+
+    //     var ret = await this.roomRepository.findOne(roomId, {
+    //         relations: ['users', 'admins']
+    //     });
+    //     return ret.users;
+    // }
+
+    // async getUsersIdsForRoom(roomId: number) {
+    //     var ret = await this.roomRepository.findOne(roomId, {
+    //         relations: ['users', 'admins']
+    //     });
+    //     var usersIds = [];
+    //     for (const user of ret.users) {
+    //         usersIds.push(user.id);
+    //     }
+    //     return usersIds;
+    // }
+
+    // async updateUsers(roomId: number, newUsers: UserDto[])
+    // {
+    //     return await this.roomRepository.update({ id: roomId }, { users: newUsers } );        
+    // }
+
+    // async findAll(): Promise<RoomI[]> {
+    //     return await this.roomRepository.createQueryBuilder().getMany();
+    // }
+
+    // async findAllPublic(): Promise<RoomI[]> {
+    //     var allRooms = await this.roomRepository.createQueryBuilder().getMany();
+    //     var publicRooms = [];
+    //     for (var room of allRooms)
+    //     {
+    //         if (room.status = true)
+    //             publicRooms.push(room);
+    //     }
+    //     return publicRooms;
+    // }
 
     async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
 
