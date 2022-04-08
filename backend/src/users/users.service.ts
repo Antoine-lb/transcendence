@@ -27,16 +27,11 @@ export class UsersService {
 
 
     async addUserToPublicRooms(user: UserDto) {
-      console.log(">>>>>> addUserToPublicRooms");
       // find all public rooms
       var publicRooms = await this.roomService.findAllPublic();
       // add user to userroom as LAMBDA
       for (var room of publicRooms)
-      {
-        // creer la relation UserRoom si elle n'existe pas
         await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
-        
-      }
     }
 
     async addUser(user: UserDto) : Promise<UserEntity> {
@@ -55,10 +50,12 @@ export class UsersService {
             username: user.username,
             avatar: defaultfile
       })
+      console.log('...saving new user : ' + new_user.username)
+      var savedUser = await this.usersRepository.save(new_user);
       // ajoute l'utilisateur aux public room existantes
       await this.addUserToPublicRooms(user);
-      console.log('...saving new user : ' + new_user.username)
-      return await this.usersRepository.save(new_user);
+      return savedUser;
+
     }
 
     // ############################################ find functions ############################################ 

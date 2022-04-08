@@ -25,7 +25,6 @@ export class UserRoomService {
         var exists = await this.getRole(userRoom.room, userRoom.user);
         if (exists)
             return;
-        console.log(">>>>>> saving userRoom");
         return await this.userRoomRepository.save( userRoom );
     }
     

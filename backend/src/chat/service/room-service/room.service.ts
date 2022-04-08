@@ -91,7 +91,7 @@ export class RoomService {
         var publicRooms = [];
         for (var room of allRooms)
         {
-            if (room.status = true)
+            if (room.status == true)
                 publicRooms.push(room);
         }
         return publicRooms;
