@@ -21,6 +21,11 @@ export class UserRoomService {
     ////////////////////////////////////////// SAVE/UPDATE FUNCTIONS //////////////////////////////////////////////////////////////
 
     async create(userRoom: UserRoomI): Promise<UserRoomI> {
+        // s'il existe deja, ne pas creer
+        var exists = await this.getRole(userRoom.room, userRoom.user);
+        if (exists)
+            return;
+        console.log(">>>>>> saving userRoom");
         return await this.userRoomRepository.save( userRoom );
     }
     
@@ -51,6 +56,19 @@ export class UserRoomService {
         for (var userRoom of userRoomsForRoom)
             users.push(userRoom.user);
         return users;
+    }
+
+    async getRoomsForUser(user: UserDto): Promise<RoomI[]> { 
+        var userRoomsForUser: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['room'],
+            where: {
+                user: user,
+            },
+        });
+        var rooms = [];
+        for (var userRoom of userRoomsForUser)
+            rooms.push(userRoom.room);
+        return rooms;
     }
     
     async getRole(room: RoomI, user: UserDto) { 

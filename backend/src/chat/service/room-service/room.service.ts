@@ -86,8 +86,18 @@ export class RoomService {
         })
     }
 
-    // async getUsersForRoom(roomId: number) {
+    async findAllPublic(): Promise<RoomI[]> {
+        var allRooms = await this.roomRepository.createQueryBuilder().getMany();
+        var publicRooms = [];
+        for (var room of allRooms)
+        {
+            if (room.status = true)
+                publicRooms.push(room);
+        }
+        return publicRooms;
+    }
 
+    // async getUsersForRoom(roomId: number) {
     //     var ret = await this.roomRepository.findOne(roomId, {
     //         relations: ['users', 'admins']
     //     });
@@ -114,26 +124,15 @@ export class RoomService {
     //     return await this.roomRepository.createQueryBuilder().getMany();
     // }
 
-    // async findAllPublic(): Promise<RoomI[]> {
-    //     var allRooms = await this.roomRepository.createQueryBuilder().getMany();
-    //     var publicRooms = [];
-    //     for (var room of allRooms)
-    //     {
-    //         if (room.status = true)
-    //             publicRooms.push(room);
-    //     }
-    //     return publicRooms;
-    // }
+    // async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
 
-    async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
-
-        const query = this.roomRepository
-        .createQueryBuilder('room')
-        .leftJoin('room.users', 'users')
-        .where('users.id = :userID', { userID })
+    //     const query = this.roomRepository
+    //     .createQueryBuilder('room')
+    //     .leftJoin('room.users', 'users')
+    //     .where('users.id = :userID', { userID })
         
-        return paginate(query, options);
-    }
+    //     return paginate(query, options);
+    // }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
 

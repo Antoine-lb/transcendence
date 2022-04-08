@@ -26,24 +26,18 @@ export class UsersService {
     // ############################################ create user ############################################ 
 
 
-    // async addUserToPublicRooms(user: UserDto) {
-    //   console.log(">>>>>> addUserToPublicRooms");
-    //   // find all public rooms
-    //   var publicRooms = await this.roomService.findAllPublic();
-    //   // add user to userroom as LAMBDA
-    //   for (var room of publicRooms)
-    //   {
-    //     // creer la relation UserRoom
-    //     // TO DO : check if exists
-    //     await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
-    //     // ajouter user a room.users
-    //     var users = await this.roomService.getUsersForRoom(room.id);
-    //     users.push(user);
-    //     // console.log("users : ", users);
-    //     await this.roomService.updateUsers(room.id, users);
+    async addUserToPublicRooms(user: UserDto) {
+      console.log(">>>>>> addUserToPublicRooms");
+      // find all public rooms
+      var publicRooms = await this.roomService.findAllPublic();
+      // add user to userroom as LAMBDA
+      for (var room of publicRooms)
+      {
+        // creer la relation UserRoom si elle n'existe pas
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
         
-    //   }
-    // }
+      }
+    }
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
@@ -61,7 +55,8 @@ export class UsersService {
             username: user.username,
             avatar: defaultfile
       })
-      // this.addUserToPublicRooms(user);
+      // ajoute l'utilisateur aux public room existantes
+      await this.addUserToPublicRooms(user);
       console.log('...saving new user : ' + new_user.username)
       return await this.usersRepository.save(new_user);
     }

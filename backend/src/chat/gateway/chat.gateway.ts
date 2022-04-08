@@ -54,20 +54,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
-
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user) {
         return this.disconnect(socket);
       }
       else {
-
         socket.data.user = user;
-        const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
-        
-        // Save connection to DB 
+        const rooms = await this.userRoomService.getRoomsForUser(user)
+        // Save connection to database 
         await this.connectedUserService.create({ socketID: socket.id, user });
-
         // Only emit rooms to the specific connected client
         return this.server.to(socket.id).emit('rooms', rooms)
       }
@@ -81,7 +77,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
+      const rooms = await this.userRoomService.getRoomsForUser(user)
       for (const connection of connections) {
         await this.server.to(connection.socketID).emit('rooms', rooms)
       }

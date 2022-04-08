@@ -238,9 +238,9 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    this.socket.on("rooms", (rooms: rawServerRoomsInterface) => {
-      // console.log("------------ rooms.items : ", rooms.items);
-      this.myRooms = rooms.items;
+    this.socket.on("rooms", (rooms: roomInterface[]) => {
+      this.myRooms = rooms;
+      console.log("------------ rooms : ", rooms);
     });
     this.socket.on("getRoles", (roles) => {
       this.selectedRoomRoles = roles;
