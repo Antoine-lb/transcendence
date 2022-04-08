@@ -28,6 +28,11 @@ export class UserRoomService {
         return await this.userRoomRepository.save( userRoom );
     }
     
+
+    async delete(room: RoomI, user: UserDto) { 
+        return await this.userRoomRepository.delete({ room: room, user: user });
+    }
+
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         var roles = await this.getRoles(room);
         // check that modifier is an admin
@@ -96,4 +101,5 @@ export class UserRoomService {
             roles[userRoom.user.id] = userRoom.role;
         return roles;
     }
+    
 }

@@ -84,6 +84,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  async emitRoomsForOneUser(socket: Socket, user: UserDto) {
+    const rooms = await this.userRoomService.getRoomsForUser(user);
+    await this.server.to(socket.id).emit('rooms', rooms);
+  }
+
   async emitRolesForConnectedUsers(room: RoomI) {
     var roles = await this.userRoomService.getRoles(room);
     const users = await this.userRoomService.getUsersForRoom(room);
@@ -110,6 +115,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
     await this.createUserRooms(newRoom, socket.data.user, newRoom.users);
     await this.emitRoomsForConnectedUsers(newRoom);
+  }
+  @SubscribeMessage('quitRoom')
+  async onQuitRoom(socket: Socket, { room, user }) {
+    // TODO : Check validity of all users before create the room
+    await this.userRoomService.delete(room, user);
+    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+    await this.emitRoomsForConnectedUsers(room);
   }
 
   @SubscribeMessage('joinRoom')

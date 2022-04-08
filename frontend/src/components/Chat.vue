@@ -231,6 +231,9 @@ export default {
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
+    quitRoom(room: roomInterface, user: UserInterface) {
+      this.socket.emit("quitRoom", { room: room, user: user });
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -241,6 +244,7 @@ export default {
     this.socket.on("rooms", (rooms: roomInterface[]) => {
       this.myRooms = rooms;
       console.log("------------ rooms : ", rooms);
+      this.getUpdatedRoles(this.selectedRoom);
     });
     this.socket.on("getRoles", (roles) => {
       this.selectedRoomRoles = roles;
@@ -297,6 +301,8 @@ export default {
           <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom.id) ? 'selected' : '')">
             💬 {{ room.name }}
           </div>
+           <button class="new-room-button" @click="quitRoom(room, userStore.user)">Quit room</button>
+
         </div>
       </ul>
     </div>
