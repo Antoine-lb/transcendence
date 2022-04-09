@@ -35,7 +35,7 @@ export class RoomService {
             if (room.protected == true && room.password)
                 room.password = encodePassword(room.password);
             // add all users to the Room
-            room.users = await this.usersService.findAll();
+            // room.users = await this.usersService.findAll();
         }
         return await this.roomRepository.save(room);
     }

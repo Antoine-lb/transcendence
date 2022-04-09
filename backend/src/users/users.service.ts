@@ -25,13 +25,12 @@ export class UsersService {
     
     // ############################################ create user ############################################ 
 
-
     async addUserToPublicRooms(user: UserDto) {
       // find all public rooms
       var publicRooms = await this.roomService.findAllPublic();
       // add user to userroom as LAMBDA
       for (var room of publicRooms)
-        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.AVAILABLE });
     }
 
     async addUser(user: UserDto) : Promise<UserEntity> {

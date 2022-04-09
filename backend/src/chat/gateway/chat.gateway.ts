@@ -61,11 +61,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       }
       else {
         socket.data.user = user;
-        const rooms = await this.userRoomService.getRoomsForUser(user)
+        const myRooms = await this.userRoomService.getAllRoomsForUser(user)
         // Save connection to database 
         await this.connectedUserService.create({ socketID: socket.id, user });
         // Only emit rooms to the specific connected client
-        return this.server.to(socket.id).emit('rooms', rooms)
+        // console.log(">>>>>> handleConnection");
+        this.server.to(socket.id).emit('rooms', myRooms)
+        this.server.to(socket.id).emit('getRoomsForUser', myRooms)
       }
     }
     catch {
@@ -74,23 +76,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   async emitRoomsForConnectedUsers(room: RoomI) {
+    // console.log(">>>>>> emitRoomsForConnectedUsers");
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-      const rooms = await this.userRoomService.getRoomsForUser(user)
+      const rooms = await this.userRoomService.getAllRoomsForUser(user)
       for (const connection of connections) {
         await this.server.to(connection.socketID).emit('rooms', rooms)
+        await this.server.to(connection.socketID).emit('getRoomsForUser', rooms)
       }
     }
   }
 
   async emitRoomsForOneUser(socket: Socket, user: UserDto) {
-    const rooms = await this.userRoomService.getRoomsForUser(user);
+    // console.log(">>>>>> emitRoomsForOneUser");
+    const rooms = await this.userRoomService.getAllRoomsForUser(user);
     await this.server.to(socket.id).emit('rooms', rooms);
+    await this.server.to(socket.id).emit('getRoomsForUser', rooms);
   }
 
   async emitRolesForConnectedUsers(room: RoomI) {
-    var roles = await this.userRoomService.getRoles(room);
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
@@ -107,15 +113,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       else
         await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
     }
+    var allUsers = await this.userService.findAll();
+    if (room.status == true)
+    {
+      for (var user of allUsers)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.AVAILABLE });
+    }
+    else
+    {
+      for (var user of allUsers)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.FORBIDDEN });
+    }
   }
 
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
     // TODO : Check validity of all users before create the room
     const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
-    await this.createUserRooms(newRoom, socket.data.user, newRoom.users);
+    await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
     await this.emitRoomsForConnectedUsers(newRoom);
   }
+
+  @SubscribeMessage('getRoomsForUser')
+  async onGetRoomsForUser(socket: Socket, user: UserDto) {
+    const rooms = await this.userRoomService.getAllRoomsForUser(user);
+    await this.server.to(socket.id).emit('getRoomsForUser', rooms);
+  }
+
   @SubscribeMessage('quitRoom')
   async onQuitRoom(socket: Socket, { room, user }) {
     // TODO : Check validity of all users before create the room
@@ -183,8 +207,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('getRoles')
   async onGetRoles(socket: Socket, room: RoomI) {
 
-    var roles = await this.userRoomService.getRoles(room);
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
     return await this.server.to(socket.id).emit('getRoles', roles);
+  }
+
+  @SubscribeMessage('getAllRolesForUser')
+  async onGetAllRolesForUser(socket: Socket, user: UserDto) {
+    var rooms = await this.userRoomService.getAllRolesForUser(user);
+    return await this.server.to(socket.id).emit('getAllRolesForUser', rooms);
   }
 
   @SubscribeMessage('getUsers')

@@ -2,6 +2,7 @@
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatCreateRoom from "./ChatNew/ChatCreateRoom.vue";
+import ChatMyRooms from "./ChatNew/ChatMyRooms.vue";
 import PasswordBtn from "./PasswordBtn.vue";
 
 export interface newRoomInterface {
@@ -75,6 +76,7 @@ export default {
   },
   components: {
     ChatCreateRoom,
+    ChatMyRooms,
     PasswordBtn,
   },
   methods: {
@@ -284,6 +286,9 @@ export default {
 <template>
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
+    <ChatMyRooms :user="user"/>
+    <br />
+    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     <!-- Available rooms -->
     <h1 style="margin-top: 30px">Salons Disponibles</h1>
     <p v-if="wrongPassword" class="error-paragraf">

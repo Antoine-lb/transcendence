@@ -91,6 +91,8 @@ export default {
       this.isPublic = !this.isPublic;
       if (!this.isPublic)
         this.newRoomPassword = null;
+      else
+        this.newRoomUsers = [];
     },
     switchVisibility() {
       if (this.passwordFieldType == 'password')
@@ -104,7 +106,7 @@ export default {
 
 <template>
   <div class="container">
-    <h1>Créer un salon</h1>
+    <h1>Créer un salon xx</h1>
     <div>
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <div v-if="!isPublic">

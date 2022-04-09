@@ -7,6 +7,8 @@ export enum UserRoomRole {
     ADMIN = "admin",
     BANNED = "banned",
     LAMBDA = "lambda",
+    AVAILABLE = "available",
+    FORBIDDEN = "forbidden",
   }  
 
 @Entity()

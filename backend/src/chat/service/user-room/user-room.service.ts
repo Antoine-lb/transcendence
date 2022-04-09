@@ -34,7 +34,7 @@ export class UserRoomService {
     }
 
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
-        var roles = await this.getRoles(room);
+        var roles = await this.getAllRolesForRoom(room);
         // check that modifier is an admin
         if (roles[modifier.id] != UserRoomRole.OWNER && roles[modifier.id] != UserRoomRole.ADMIN)
             throw new UnauthorizedException();
@@ -49,6 +49,18 @@ export class UserRoomService {
 
     ////////////////////////////////////////// FIND FUNCTIONS //////////////////////////////////////////////////////////////
 
+    ///////////////////////////////////////////// UTILS /////////////////////////////////////////////////////////////////
+
+    async   isInRoom(user: UserDto, room: RoomI)
+    {
+        var role = await this.getRole(room, user)
+        if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA || role == UserRoomRole.BANNED)
+            return true;
+        return false;
+    }
+
+    ////////////////////////////////////////// USERS GETTERS //////////////////////////////////////////////////////////////
+
     async getUsersForRoom(room: RoomI): Promise<UserDto[]> { 
         var userRoomsForRoom: UserRoomEntity[] = await this.userRoomRepository.find({
             relations: ['user'],
@@ -62,7 +74,9 @@ export class UserRoomService {
         return users;
     }
 
-    async getRoomsForUser(user: UserDto): Promise<RoomI[]> { 
+    ////////////////////////////////////////// ROOMS GETTERS //////////////////////////////////////////////////////////////
+
+    async getAllRoomsForUser(user: UserDto): Promise<RoomI[]> { 
         var userRoomsForUser: UserRoomEntity[] = await this.userRoomRepository.find({
             relations: ['room'],
             where: {
@@ -71,10 +85,14 @@ export class UserRoomService {
         });
         var rooms = [];
         for (var userRoom of userRoomsForUser)
+        {
             rooms.push(userRoom.room);
+        }
         return rooms;
     }
-    
+
+    ////////////////////////////////////////// ROLES GETTERS //////////////////////////////////////////////////////////////
+
     async getRole(room: RoomI, user: UserDto) { 
         var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
             relations: ['user'],
@@ -89,7 +107,7 @@ export class UserRoomService {
         return roles[user.id];       
     }
 
-    async getRoles(room: RoomI) { 
+    async getAllRolesForRoom(room: RoomI) { 
         var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
             relations: ['user'],
             where: {
@@ -99,6 +117,19 @@ export class UserRoomService {
         var roles = {};
         for (var userRoom of userRoomRoles)
             roles[userRoom.user.id] = userRoom.role;
+        return roles;
+    }
+
+    async getAllRolesForUser(user: UserDto) { 
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['room'],
+            where: {
+                user: user,
+            },
+        });
+        var roles = {};
+        for (var userRoom of userRoomRoles)
+            roles[userRoom.room.id] = userRoom.role;
         return roles;
     }
     
