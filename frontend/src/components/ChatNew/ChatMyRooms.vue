@@ -48,8 +48,6 @@ export default {
   methods: {
     quitRoom(room: RoomI, user: UserInterface) {
       console.log(">>>>>> quitRoom");
-      console.log("room : ", room);
-      console.log("user : ", user);
       this.socket.emit("quitRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {

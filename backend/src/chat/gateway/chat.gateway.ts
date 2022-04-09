@@ -143,7 +143,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('quitRoom')
   async onQuitRoom(socket: Socket, { room, user }) {
     // TODO : Check validity of all users before create the room
-    await this.userRoomService.delete(room, user);
+    await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
+    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+    await this.emitRoomsForConnectedUsers(room);
+  }
+
+  @SubscribeMessage('enterRoom')
+  async onEnterRoom(socket: Socket, { room, user }) {
+    // TODO : Check validity of all users before create the room
+    await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
     await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
     await this.emitRoomsForConnectedUsers(room);
   }

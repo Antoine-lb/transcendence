@@ -46,11 +46,9 @@ export default {
   components: {
   },
   methods: {
-    quitRoom(room: RoomI, user: UserInterface) {
-      console.log(">>>>>> quitRoom");
-      console.log("room : ", room);
-      console.log("user : ", user);
-      this.socket.emit("quitRoom", { room: room, user: user });
+    enterRoom(room: RoomI, user: UserInterface) {
+      console.log(">>>>>> enterRoom");
+      this.socket.emit("enterRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {
       var role = this.userRoomsRoles[room.id];
@@ -89,7 +87,7 @@ export default {
         <div v-for="(room, index) in userRooms" :key="index">
           <div v-if="isRoomAvailable(room)" :class="'list-group-item list-group-item-action '">
             💬 {{ room.name }}
-            <button class="new-room-button" @click="quitRoom(room, this.user)">Join room</button>
+            <button class="new-room-button" @click="enterRoom(room, this.user)">Join room</button>
           </div>
         </div>
       </ul>

@@ -35,6 +35,9 @@ export class UserRoomService {
 
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         var roles = await this.getAllRolesForRoom(room);
+        // si j'entre dans une room available ou quitte une room
+        if (user.id == modifier.id && (roles[user.id] == UserRoomRole.AVAILABLE || newRole == UserRoomRole.AVAILABLE))
+            return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
         // check that modifier is an admin
         if (roles[modifier.id] != UserRoomRole.OWNER && roles[modifier.id] != UserRoomRole.ADMIN)
             throw new UnauthorizedException();
