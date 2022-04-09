@@ -47,6 +47,7 @@ export default {
     return {
       userRooms: null,
       userRoomsRoles: [],
+      selectedRoom: null,
     };
   },
   setup() {
@@ -67,6 +68,12 @@ export default {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
+    updateSelected(room: RoomI) {
+      if (this.selectedRoom && (room.id == this.selectedRoom.id))
+        this.selectedRoom = {};
+      else
+        this.selectedRoom = room;     
+    }
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -76,12 +83,12 @@ export default {
     });
     this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
       this.userRooms = rooms;
-      console.log("ChatNew ------------ getRoomsForUser : ", rooms);
+      // console.log("ChatNew ------------ getRoomsForUser : ", rooms);
       this.socket.emit("getAllRolesForUser", this.user);
     });
     this.socket.on("getAllRolesForUser", (roles) => {
       this.userRoomsRoles = roles;
-      console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
+      // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
     });
   },
 };
@@ -89,7 +96,7 @@ export default {
 <template>
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatMyRooms :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatMyRooms @updateSelected="updateSelected" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatAvailableRooms :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>
 </template>

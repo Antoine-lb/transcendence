@@ -42,12 +42,15 @@ export default {
     user: Object, // = userStore.user
     userRooms: Object,
     userRoomsRoles: Object,
+    selectedRoom: {
+      type: Object as () => RoomI,
+    },
+    joiningPassword: null,
   },
   components: {
   },
   methods: {
     quitRoom(room: RoomI, user: UserInterface) {
-      console.log(">>>>>> quitRoom");
       this.socket.emit("quitRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {
@@ -68,12 +71,30 @@ export default {
         return true;
       return false;
     },
+    selectRoom(room: RoomI) {
+      this.socket.emit("selectRoom", { room: room, password: this.joiningPassword });
+      // this.wrongPassword = false;
+      // this.joiningPassword = null;
+    },
+    leaveRoom(room: RoomI) {
+      this.socket.emit("leaveRoom", room);
+      // this.resetProtectedRoom();
+    },
+    updateSelected(room: RoomI) {
+      if (this.selectedRoom && (room.id == this.selectedRoom.id))
+        this.leaveRoom(room);
+      else
+        this.selectRoom(room);
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
       extraHeaders: {
         Authorization: this.user.access_token,
       },
+    });
+    this.socket.on("updateSelected", (room) => {
+      this.$emit('updateSelected', room);
     });
   },
 };
@@ -82,10 +103,11 @@ export default {
   <div class="container">
     <!-- My rooms -->
     <h1 style="margin-top: 30px">My rooms</h1>
+    <!-- selectedRoom => {{ this.selectedRoom }} -->
     <div class="list-group">
       <ul>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="isRoomInMyRooms(room)" :class="'list-group-item list-group-item-action '">
+          <div v-if="isRoomInMyRooms(room)" @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
             💬 {{ room.name }}
             <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
           </div>

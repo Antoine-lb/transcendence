@@ -47,7 +47,6 @@ export default {
   },
   methods: {
     enterRoom(room: RoomI, user: UserInterface) {
-      console.log(">>>>>> enterRoom");
       this.socket.emit("enterRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {

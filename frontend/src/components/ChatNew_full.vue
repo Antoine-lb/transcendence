@@ -10,7 +10,7 @@ export interface newRoomInterface {
   users: [{ id: number }];
 }
 
-export interface roomInterface {
+export interface RoomI {
   created_date: string;
   id: number;
   name: string;
@@ -23,7 +23,7 @@ export interface roomInterface {
 }
 
 export interface rawServerRoomsInterface {
-  items: [roomInterface?];
+  items: [RoomI?];
 }
 
 export interface UserInterface {
@@ -96,18 +96,18 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
-    getUpdatedRoles(room: roomInterface) {
+    getUpdatedRoles(room: RoomI) {
       this.socket.emit("getUsers", room);
       this.socket.emit("getRoles", room);
     },
-    joinedRoom(room: roomInterface) {
+    joinedRoom(room: RoomI) {
       this.room = room;
       this.socket.emit("joinRoom", { room: room, password: this.joiningPassword });
       this.getUpdatedRoles(room);
       this.wrongPassword = false;
       this.joiningPassword = null;
     },
-    leaveRoom(room: roomInterface) {
+    leaveRoom(room: RoomI) {
       this.socket.emit("leaveRoom", room);
       this.selectedRoom = {};
     },
@@ -128,7 +128,7 @@ export default {
         this.showModifyPassword = false;
         this.showAddPassword = false;
     },
-    updateSelected(selectedItem: roomInterface) {
+    updateSelected(selectedItem: RoomI) {
       // console.log("updateSelected", selectedItem);
       this.resetValidationMsgs();
       // If we click on currently selected room => leave room
@@ -166,17 +166,17 @@ export default {
       return null;
     },
     // roles update
-    updateRole(room: roomInterface, user: UserInterface, newRole: UserRoomRole) {
+    updateRole(room: RoomI, user: UserInterface, newRole: UserRoomRole) {
       this.socket.emit("updateRole",{ room: room, user: user, modifier: this.userStore.user, newRole: newRole });
       this.getUpdatedRoles(room);
     },
-    addAdmin(room: roomInterface, user: UserInterface) {
+    addAdmin(room: RoomI, user: UserInterface) {
       if (!this.isAdmin(user))
         this.updateRole(room, user, UserRoomRole.ADMIN)
       else
         this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
-    banUser(room: roomInterface, user: UserInterface) {
+    banUser(room: RoomI, user: UserInterface) {
       if (!this.isBanned(user))
         this.updateRole(room, user, UserRoomRole.BANNED)
       else
@@ -217,13 +217,13 @@ export default {
     },
     // password functions
     joiningPasswordSubmit(roomId: Number, inputPassword: string) {
-      var room: roomInterface = this.getRoom(roomId);
+      var room: RoomI = this.getRoom(roomId);
       this.joiningPassword = inputPassword;
       this.selectedRoom = room;
       this.joinedRoom(room);
       this.roomPasswordRequired = 0;
     },
-    deletePassword(room: roomInterface, modifier: UserInterface) {
+    deletePassword(room: RoomI, modifier: UserInterface) {
       this.roomPasswordRequired = 0;
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
@@ -233,7 +233,7 @@ export default {
     addingPasswordSubmit(roomId: Number, inputPassword: string) {
       this.socket.emit("addPassword", { room: this.getRoom(roomId), modifier: this.userStore.user, password: inputPassword });
     },
-    quitRoom(room: roomInterface, user: UserInterface) {
+    quitRoom(room: RoomI, user: UserInterface) {
       this.socket.emit("quitRoom", { room: room, user: user });
     },
   },
@@ -243,7 +243,7 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    this.socket.on("rooms", (rooms: roomInterface[]) => {
+    this.socket.on("rooms", (rooms: RoomI[]) => {
       this.myRooms = rooms;
       console.log("------------ rooms : ", rooms);
       this.getUpdatedRoles(this.selectedRoom);
@@ -265,15 +265,15 @@ export default {
       this.selectedRoom = {};
       this.wrongPassword = true;
     });
-    this.socket.on("updateSelectedRoom", (room: roomInterface) => {
+    this.socket.on("updateSelectedRoom", (room: RoomI) => {
       this.selectedRoom = room;
     });
-    this.socket.on("modifyingPasswordSuccess", (room: roomInterface) => {
+    this.socket.on("modifyingPasswordSuccess", (room: RoomI) => {
       this.modifyingPasswordSuccess = true;
       this.showModifyPassword = false;
       // this.selectedRoom = room;
     });
-    this.socket.on("addingPasswordSuccess", (room: roomInterface) => {
+    this.socket.on("addingPasswordSuccess", (room: RoomI) => {
       this.addingPasswordSuccess = true;
       this.showAddPassword = false;
       this.selectedRoom = room;
