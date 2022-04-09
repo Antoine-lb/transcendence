@@ -1,4 +1,3 @@
-import { GameEntity } from 'src/gamee/model/game.entity';
 
 export interface UserInterface {
     id?: number;
@@ -7,5 +6,4 @@ export interface UserInterface {
     isTwoFA?: boolean;
     secret?: string;
     isOnline?: boolean;
-    game?: GameEntity;
 }

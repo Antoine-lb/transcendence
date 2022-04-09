@@ -19,8 +19,7 @@ import { MessageEntity } from './chat/model/message.entity';
 import { JoinedRoomEntity } from './chat/model/joined-room.entity';
 import { GameGateway } from './gamee/gateway/game.gateway';
 import { GameService } from './gamee/service/game/game.service';
-import { TestService } from './gamee/service/matchHistory/matchHistory.service';
-import { GameEntity } from './gamee/model/game.entity';
+import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
 
 @Module({
   imports: [
@@ -39,7 +38,7 @@ import { GameEntity } from './gamee/model/game.entity';
 				ConnectedUserEntity,
 				MessageEntity,
 				JoinedRoomEntity,
-				GameEntity,
+				GamePlayedEntity,
 			],
 			synchronize: true,
 			keepConnectionAlive: true,
@@ -52,7 +51,7 @@ import { GameEntity } from './gamee/model/game.entity';
 		MulterModule
 	],
 	controllers: [UserController, TwoFAController, FriendsController],
-	providers: [TwoFAService, GameGateway, GameService, TestService]
+	providers: [TwoFAService, GameGateway, GameService]
 })
 	export class AppModule implements NestModule {
 		configure(consumer: MiddlewareConsumer) {

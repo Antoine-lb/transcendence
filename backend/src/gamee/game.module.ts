@@ -4,7 +4,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
 import { GameGateway } from './gateway/game.gateway';
 import { GameService } from './service/game/game.service';
-import { GameEntity } from './model/game.entity';
+import { GamePlayedEntity } from './model/gamePlayed.entity';
 import { StateEntity } from './model/state.entity';
 
 const FRAME_RATE = 50;
@@ -21,7 +21,7 @@ const canvas = { width : 750, height : 585};
 
 @Module({
   imports: [AuthModule, UsersModule, TypeOrmModule.forFeature([
-      GameEntity,
+      GamePlayedEntity,
       StateEntity,
     ]),
   ],

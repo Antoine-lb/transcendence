@@ -62,7 +62,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (room)
       roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
-      console.log("room", room)
 
     if (roomSize === 0) {
       socket.emit('unknownCode');
