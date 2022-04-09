@@ -177,6 +177,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     if (found.length == 0)
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
+    console.log(">>>>>> emit messages JOIN in gateway");
     await this.server.to(socket.id).emit('messages', messages);
   }
 
@@ -201,6 +202,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     if (found.length == 0)
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
+    console.log(">>>>>> emit messages SELECT in gateway");
     await this.server.to(socket.id).emit('messages', messages);
     await this.server.to(socket.id).emit('updateSelected', room);
   }
@@ -275,12 +277,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
  
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
+    console.log(">>>>>> onAddMessage");
 
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
     // Send New Message to all joineds Users (online on the room)
     for (const user of joinedUsers) {
+      console.log(">>>>>> emit messageAdded in gateway");
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
   }

@@ -1,16 +1,5 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
-import ChatCreateRoom from "./ChatNew/ChatCreateRoom.vue";
-import ChatMyRooms from "./ChatNew/ChatMyRooms.vue";
-import ChatAvailableRooms from "./ChatNew/ChatAvailableRooms.vue";
-import ChatSelectedRoom from "./ChatNew/ChatSelectedRoom.vue";
-import PasswordBtn from "./PasswordBtn.vue";
-
-export interface newRoomInterface {
-  name: string;
-  users: [{ id: number }];
-}
 
 export interface RoomI {
   created_date: string;
@@ -43,39 +32,42 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatNew",
+  name: "ChatMyRooms",
   data() {
     return {
-      userRooms: null,
-      userRoomsRoles: [],
-      selectedRoom: null,
+      socket: null,
+      text: "",
+      messages: [],
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
-  },
   props: {
-    user: Object,
+    user: Object, // = this.user
+    userRooms: Object,
+    userRoomsRoles: Object,
+    selectedRoom: {
+      type: Object as () => RoomI,
+    },
   },
   components: {
-    ChatCreateRoom,
-    ChatMyRooms,
-    ChatAvailableRooms,
-    ChatSelectedRoom,
-    PasswordBtn,
   },
   methods: {
-    createRoom(room: newRoomInterface) {
-      console.log("createRoom", room);
-      this.socket.emit("createRoom", room);
+    sendMessage() {
+      console.log(">>>> sendMessage room", this.selectedRoom);
+      if (this.validateInput()) {
+        const message = {
+          user: this.user,
+          text: this.text,
+          room: this.selectedRoom,
+        };
+        console.log("message : ", message);
+        this.socket.emit("addMessage", message);
+        this.text = "";
+        console.log("after sendMessage emit");
+      }
     },
-    updateSelected(room: RoomI) {
-      if (this.selectedRoom && (room.id == this.selectedRoom.id))
-        this.selectedRoom = {};
-      else
-        this.selectedRoom = room;     
-    }
+    validateInput() {
+      return this.text.length > 0;
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -83,33 +75,55 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
-      this.userRooms = rooms;
-      // console.log("ChatNew ------------ getRoomsForUser : ", rooms);
-      this.socket.emit("getAllRolesForUser", this.user);
-    });
-    this.socket.on("getAllRolesForUser", (roles) => {
-      this.userRoomsRoles = roles;
-      // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
+    this.socket.on("updateSelected", (room) => {
+      this.$emit('updateSelected', room);
     });
     this.socket.on("messageAdded", (message) => {
-      console.log(">>>>>> return on messageAdded in PARENT");
-      // this.messages.items.push(message);
+      console.log(">>>>>> return on messageAdded in COMPONENT");
+      this.messages.items.push(message);
     });
     this.socket.on("messages", (messages) => {
-      console.log(">>>>>> return on messages in PARENT");
-      // this.messages = messages;
+      console.log(">>>>>> return on messages in COMPONENT");
+      this.messages = messages;
     });
   },
 };
 </script>
 <template>
   <div class="container">
-    <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatMyRooms @updateSelected="updateSelected" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoom :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatAvailableRooms :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-  </div>
+      <div id="status"></div>
+      <div id="chat">
+        <br />
+        <div class="message-box">
+          <div id="messages-box" class="card-block">
+            <!-- Received messages -->
+            <div v-for="message of messages.items" :key="message.id">
+              <div class="message-box">
+                <div v-if="this.user.id !== message?.user.id" class="message" >
+                  <div class="message-user">
+                    {{ message?.user.username }}
+                  </div>
+                  <div class="message-content">{{ message?.text }}</div>
+                </div>
+              </div>
+            <!-- Sent messages -->
+            <div class="message-box" style="flex-direction: row-reverse">
+              <div v-if="this.user.id === message?.user.id" class="my-message" >
+                <div class="my-message-user">
+                  {{ message?.user.username }}
+                </div>
+                <div class="my-message-content">{{ message?.text }}</div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+        <br />
+        <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
+        <br />
+        <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
+      </div>
+    </div>
 </template>
 
 <style scoped>
