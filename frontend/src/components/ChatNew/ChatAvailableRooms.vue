@@ -32,7 +32,7 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatMyRooms",
+  name: "ChatAvailableRooms",
   data() {
     return {
       socket: null,
@@ -82,14 +82,14 @@ export default {
 </script>
 <template>
   <div class="container">
-    <!-- My rooms -->
-    <h1 style="margin-top: 30px">My rooms</h1>
+    <!-- Available rooms -->
+    <h1 style="margin-top: 30px">Available rooms</h1>
     <div class="list-group">
       <ul>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="isRoomInMyRooms(room)" :class="'list-group-item list-group-item-action '">
+          <div v-if="isRoomAvailable(room)" :class="'list-group-item list-group-item-action '">
             💬 {{ room.name }}
-            <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
+            <button class="new-room-button" @click="quitRoom(room, this.user)">Join room</button>
           </div>
         </div>
       </ul>
