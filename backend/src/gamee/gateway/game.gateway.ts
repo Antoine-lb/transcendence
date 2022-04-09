@@ -1,22 +1,16 @@
 import {
   SubscribeMessage,
   WebSocketGateway,
-  OnGatewayInit,
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
  } from '@nestjs/websockets';
-import { Logger, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
-import { runInThisContext } from 'vm';
-import { UserDto } from 'src/entities/users.dto';
-import { comparePassword } from 'src/utils/bcrypt';
 import { GameService } from 'src/gamee/service/game/game.service';
 import { FRAME_RATE, maxPaddleY, grid, canvas, paddleHeight, } from 'src/utils/constants';
-import { RoomEntity } from 'src/chat/model/room.entity';
-import { RoomI } from 'src/chat/model/room.interface';
 import { StateI } from 'src/gamee/model/state.interface';
 
  
@@ -26,7 +20,7 @@ import { StateI } from 'src/gamee/model/state.interface';
      origin: '*',
    },
  })
-export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
  
    constructor(
      private authService: AuthService,
@@ -37,15 +31,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    
    
    @WebSocketServer() server: Server;
-
-
    state: StateI[] = [];
    
-
-   
-   async onModuleInit() {
-   }
- 
   async handleConnection(socket: Socket, payload: string) {
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
@@ -71,9 +58,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    handleJoinGame(socket: Socket, roomName: string) {
 
     let roomSize = 0;
-    console.log('------------after Join------------------------')
-
-    console.log(this.state);
   	const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
@@ -89,49 +73,83 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
 
     let roomNameINT: number = parseInt(roomName);
-    let index: number =  this.GameService.getRoomById(this.state, roomNameINT);
-
-
+    let index: number = this.GameService.getRoomById(this.state, roomNameINT);
+  
     this.state[index].id = roomNameINT;
     // set the creator to player 1
     socket.data.number = 2;
     // set the room game id to the current user socket
     socket.data.roomId = roomName;
-
     // join the room socket
     socket.join(roomName);
-
-
     // init the front for player 2
     socket.emit('init', 2);
-
     // start the game when both player are connected
-    this.startGameInterval(roomName, roomNameINT);
+    this.startGameInterval(roomNameINT);
   }
+   
+   
+   
+   @SubscribeMessage('joinQueue')
+   handleJoinQueue(socket: Socket) {
+
+    let index: number = this.GameService.getRoomForQueue(this.state);
+
+     // [CREATE] game state and wait other player if(nobody is in queue)
+     if (index == -1) {
+      // create random ID for the new room
+      let roomName = this.GameService.makeid(5);
+      // init the game state 
+      let newState: StateI = this.GameService.initGame(true)
+      newState.gameState = "play";
+      newState.status = 1;
+      newState.id = parseInt(roomName);
+      // save the new game state
+      this.state.push(newState);
+      // set the creator to player 1
+      socket.data.number = 1;
+      // set the room game id to the current user socket
+      socket.data.roomId = roomName;
+      // join the room socket
+      socket.join(roomName);
+
+      // init the front for player 1
+      socket.emit('init', 1);
+     }
+     // [JOIN] the game if somebody is already in queue
+     else {
+      // set the creator to player 1
+      socket.data.number = 2;
+      // set the room game id to the current user socket
+      socket.data.roomId = this.state[index].id;
+      // join the room socket
+      socket.join(this.state[index].id.toString());
+      // init the front for player 2
+      socket.emit('init', 2);
+      // start the game when both player are connected
+      this.startGameInterval(this.state[index].id);
+    }
+ }
    
   @SubscribeMessage('newGame')
   handleNewGame(socket: Socket) {
-
+    
+    // create random ID for the new room
     let roomName = this.GameService.makeid(5);
-	
-    // clientRooms[socket.id] = roomName;
+    // emit the new game ID to other player;
     socket.emit('gameCode', roomName);
-
-    let newState: StateI =  this.GameService.initGame()
-
+    // init the game state 
+    let newState: StateI =  this.GameService.initGame(false)
     newState.gameState = "play";
     newState.id = parseInt(roomName);
-
+    // save the new game state
     this.state.push(newState);
-
     // set the creator to player 1
     socket.data.number = 1;
     // set the room game id to the current user socket
     socket.data.roomId = roomName;
-
     // join the room socket
     socket.join(roomName);
-
     // init the front for player 1
     socket.emit('init', 1);
   }
@@ -159,10 +177,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   // }
    
   @SubscribeMessage('keydown')
-  async handleKeyDown(socket: Socket, keyCode: string) {
+ handleKeyDown(socket: Socket, keyCode: string) {
 
     let keyCodeInt: number;
-    let index: number = await this.GameService.getRoomById(this.state,  socket.data.roomId);
+    let index: number = this.GameService.getRoomById(this.state,  socket.data.roomId);
     if (!this.state[index]) {
       return;
     }
@@ -199,46 +217,43 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.disconnect();
   }
    
-   async afterInit() { }
-
-   startGameInterval(roomName, roomId: number) {
+  startGameInterval(roomId: number) {
       
     let index: number = this.GameService.getRoomById(this.state, roomId);
      
     this.state[index].intervalId = setInterval(() =>  {
-    
-      let index: number = this.GameService.getRoomById(this.state, roomId);
-      
-      const winner = this.GameService.gameLoop(this.state[index]);
-        
-      if (!winner) {
-        this.emitGameState(this.state, roomId);
-      }
-      else {
-        this.emitGameOver(this.state, winner, roomId);
+        let index: number = this.GameService.getRoomById(this.state, roomId);
+          
+        const winner = this.GameService.gameLoop(this.state[index]);
+            
+        if (!winner) {
+          this.emitGameState(this.state, roomId);
+        }
+        else {
+          this.emitGameOver(this.state, winner, roomId);
 
-          // TODO : save the score
-        clearInterval(this.state[index].intervalId);
-        this.state.splice(index, 1);
+            // TODO : save the score
+          clearInterval(this.state[index].intervalId);
+          this.state.splice(index, 1);
 
-      }
+        }
     }, 1000 / FRAME_RATE);
-    }
+  }
    
-   emitGameState(state: StateI[], roomId: number) {
+  emitGameState(state: StateI[], roomId: number) {
 
-     let index: number = this.GameService.getRoomById(this.state, roomId);
+    let index: number = this.GameService.getRoomById(this.state, roomId);
      
     // Send this event to everyone in the room.
     this.server.to(state[index].id.toString())
-      .emit('gameState', JSON.stringify(state[index]));
-    }
+    .emit('gameState', JSON.stringify(state[index]));
+  }
     
-    emitGameOver(state: StateI[], winner, roomId: number) {
+  emitGameOver(state: StateI[], winner: number, roomId: number) {
 
-      let index: number = this.GameService.getRoomById(this.state, roomId);
+    let index: number = this.GameService.getRoomById(this.state, roomId);
 
-      this.server.to(state[index].id.toString())
-      .emit('gameOver', JSON.stringify({ winner }));
-    }
- }
+    this.server.to(state[index].id.toString())
+    .emit('gameOver', JSON.stringify({ winner }));
+   }
+}

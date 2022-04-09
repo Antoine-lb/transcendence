@@ -6,7 +6,6 @@ import {
     BORDURE,
     paddleHeight,
     paddleWidth,
-    FRAME_RATE,
     GRID_SIZE_H,
     GRID_SIZE_L,
     canvas,
@@ -19,7 +18,7 @@ export class GameService {
 
   constructor() {}
 
-   initGame() {
+   initGame(is_public: Boolean) {
     let state: StateI = {
       id: 0,
       gameState: "pending",
@@ -54,7 +53,9 @@ export class GameService {
       
       powerUp_t: "lightblue",
       launchPowerUp: false,
-      intervalId: null
+      intervalId: null,
+      is_public: is_public,
+      status: 0,
 
     };
     return state;
@@ -179,6 +180,17 @@ export class GameService {
     let index: number = 0;
       for (const room of rooms) {
         if (room.id == id)
+          return index;
+        index++;
+    }
+    return -1;    
+  }
+
+  getRoomForQueue(rooms: StateI[]): number {
+
+    let index: number = 0;
+      for (const room of rooms) {
+        if (room.status == 1 && room.is_public == true)
           return index;
         index++;
     }

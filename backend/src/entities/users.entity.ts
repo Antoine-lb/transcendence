@@ -10,7 +10,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 import { RoomEntity } from 'src/chat/model/room.entity';
-import { GameEntity } from 'src/gamee/model/game.entity';
+import { GamePlayedEntity } from 'src/gamee/model/gamePlayed.entity';
 import { userInfo } from 'os';
 import { ConnectedUserEntity } from 'src/chat/model/connected.user.entity';
 import { JoinedRoomEntity } from 'src/chat/model/joined-room.entity';
@@ -79,8 +79,8 @@ export class UserEntity {
   @ManyToMany(() => RoomEntity, room => room.admins)
   adminOF: RoomEntity[];
 
-  @OneToMany(() => LeaderBoardEntity, leaderBoard => leaderBoard.user)
-  leaderBoard: LeaderBoardEntity[];
+  @ManyToMany(() => GamePlayedEntity, GamePlayedEntity => GamePlayedEntity.players)
+  gamePlayed: GamePlayedEntity[];
 
   // @ManyToOne(() => GameEntity, game => game.players)
   // @JoinTable()

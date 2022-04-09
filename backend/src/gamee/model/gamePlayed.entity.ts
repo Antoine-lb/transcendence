@@ -10,20 +10,26 @@ import {
     JoinTable,
     OneToMany,
     OneToOne,
+    JoinColumn,
+    ManyToMany
 } from "typeorm";
 
 
 @Entity()
-export class LeaderBoardEntity {
+export class GamePlayedEntity {
     
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    winner: UserEntity;
+    @ManyToMany(() => UserEntity)
+    @JoinTable()
+    players: UserEntity[];
 
     @Column()
-    loser: UserEntity;
+    winnerId: number;
+
+    @Column()
+    loserId: number;
 
     @Column()
     score: number;

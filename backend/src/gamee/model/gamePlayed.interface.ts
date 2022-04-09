@@ -1,10 +1,11 @@
 import { UserDto } from "src/entities/users.dto";
 
-export interface LeaderBoardI {
+export interface GamePlayedI {
     
     id?: number;
-    winner: UserDto;
-    loser: UserDto;
+    players: UserDto[];
+    winnerId: number;
+    loserId: number;
     score: number;
     created_at: Date;
 }

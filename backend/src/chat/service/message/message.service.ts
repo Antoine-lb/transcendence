@@ -13,7 +13,7 @@ export class MessageService {
     constructor(
         @InjectRepository(MessageEntity)
         private readonly messageRepository: Repository<MessageEntity>
-    ) { }
+    ) {}
     
     async create(message: MessageI): Promise<MessageI> {
         return this.messageRepository.save(this.messageRepository.create(message));
@@ -26,7 +26,6 @@ export class MessageService {
             .where('room.id = :roomID', { roomID: room.id })
             .leftJoinAndSelect('message.user', 'user')
             .orderBy('message.created_at', 'ASC');
-        
         return paginate(query, options);
     }
 }
