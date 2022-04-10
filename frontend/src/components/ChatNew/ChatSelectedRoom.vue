@@ -35,7 +35,6 @@ export default {
   name: "ChatMyRooms",
   data() {
     return {
-      socket: null,
       text: "",
       messages: [],
     };
@@ -47,6 +46,7 @@ export default {
     selectedRoom: {
       type: Object as () => RoomI,
     },
+    socket: Object,
   },
   components: {
   },
@@ -59,7 +59,7 @@ export default {
           text: this.text,
           room: this.selectedRoom,
         };
-        console.log("message : ", message);
+        console.log("sendMessage : ", message);
         this.socket.emit("addMessage", message);
         this.text = "";
         console.log("after sendMessage emit");
@@ -70,20 +70,18 @@ export default {
     },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
+    // this.socket = io("http://127.0.0.1:3000", {
+    //   extraHeaders: {
+    //     Authorization: this.user.access_token,
+    //   },
+    // });
     this.socket.on("updateSelected", (room) => {
       this.$emit('updateSelected', room);
     });
     this.socket.on("messageAdded", (message) => {
-      console.log(">>>>>> return on messageAdded in COMPONENT");
       this.messages.items.push(message);
     });
-    this.socket.on("messages", (messages) => {
-      console.log(">>>>>> return on messages in COMPONENT");
+    this.socket.on("getMessages", (messages) => {
       this.messages = messages;
     });
   },
@@ -92,8 +90,11 @@ export default {
 <template>
   <div class="container">
       <div id="status"></div>
-      <div id="chat">
+      <div v-if="this.selectedRoom?.id" id="chat">
         <br />
+        <!-- {{ this.messages}} -->
+        <h1 style="margin-top: 30px">Selected room => {{ this.selectedRoom.name }} </h1>
+        <!-- {{ this.socket.id }} -->
         <div class="message-box">
           <div id="messages-box" class="card-block">
             <!-- Received messages -->

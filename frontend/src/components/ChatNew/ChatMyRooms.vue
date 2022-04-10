@@ -35,10 +35,11 @@ export default {
   name: "ChatMyRooms",
   data() {
     return {
-      socket: null,
+      // socket: null,
     };
   },
   props: {
+    socket: Object,
     user: Object, // = userStore.user
     userRooms: Object,
     userRoomsRoles: Object,
@@ -88,11 +89,11 @@ export default {
     },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
+    // this.socket = io("http://127.0.0.1:3000", {
+    //   extraHeaders: {
+    //     Authorization: this.user.access_token,
+    //   },
+    // });
     this.socket.on("updateSelected", (room) => {
       this.$emit('updateSelected', room);
     });

@@ -35,10 +35,10 @@ export default {
   name: "ChatAvailableRooms",
   data() {
     return {
-      socket: null,
     };
   },
   props: {
+    socket: Object,
     user: Object, // = userStore.user
     userRooms: Object,
     userRoomsRoles: Object,
@@ -69,11 +69,6 @@ export default {
     },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
   },
 };
 </script>

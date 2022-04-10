@@ -92,23 +92,23 @@ export default {
       this.userRoomsRoles = roles;
       // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
     });
-    this.socket.on("messageAdded", (message) => {
-      console.log(">>>>>> return on messageAdded in PARENT");
-      // this.messages.items.push(message);
-    });
-    this.socket.on("messages", (messages) => {
-      console.log(">>>>>> return on messages in PARENT");
-      // this.messages = messages;
-    });
+    // this.socket.on("messageAdded", (message) => {
+    //   // console.log(">>>>>> return on messageAdded in PARENT");
+    //   // this.messages.items.push(message);
+    // });
+    // this.socket.on("getMessages", (messages) => {
+    //   // console.log(">>>>>> return on getMessages in PARENT");
+    //   // this.messages = messages;
+    // });
   },
 };
 </script>
 <template>
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatMyRooms @updateSelected="updateSelected" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoom :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatAvailableRooms :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoom :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>
 </template>
 
