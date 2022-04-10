@@ -182,7 +182,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
-    console.log(">>>>>> onSelectRoom");
+    // console.log(">>>>>> onSelectRoom");
     if (room.protected == true) {
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());

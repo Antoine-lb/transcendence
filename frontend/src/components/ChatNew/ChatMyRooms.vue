@@ -1,5 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
+import PasswordBtn2 from "../PasswordBtn2.vue";
 
 export interface RoomI {
   created_date: string;
@@ -35,7 +36,8 @@ export default {
   name: "ChatMyRooms",
   data() {
     return {
-      // socket: null,
+      showPasswordToJoin: 0,
+      wrongPassword: false, // error
     };
   },
   props: {
@@ -46,12 +48,13 @@ export default {
     selectedRoom: {
       type: Object as () => RoomI,
     },
-    joiningPassword: null,
   },
   components: {
+    PasswordBtn2,
   },
   methods: {
     quitRoom(room: RoomI, user: UserInterface) {
+      this.resetProtectedRoom();
       this.socket.emit("quitRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {
@@ -66,49 +69,55 @@ export default {
         return true;
       return false;
     },
-    isRoomForbidden(room: RoomI) {
-      var role = this.userRoomsRoles[room.id];
-      if (role == UserRoomRole.FORBIDDEN || role == UserRoomRole.BANNED)
-        return true;
-      return false;
+    resetProtectedRoom() {
+      this.showPasswordToJoin = 0;
+      this.joiningPassword = null;
     },
-    selectRoom(room: RoomI) {
-      this.socket.emit("selectRoom", { room: room, password: this.joiningPassword });
-      // this.wrongPassword = false;
-      // this.joiningPassword = null;
+    selectRoom(room: RoomI, password: string) {
+      this.socket.emit("selectRoom", { room: room, password: password });
+      this.wrongPassword = false;
+      this.resetProtectedRoom();
     },
     leaveRoom(room: RoomI) {
       this.socket.emit("leaveRoom", room);
-      // this.resetProtectedRoom();
+      this.resetProtectedRoom();
     },
     updateSelected(room: RoomI) {
       if (this.selectedRoom && (room.id == this.selectedRoom.id))
         this.leaveRoom(room);
       else
-        this.selectRoom(room);
+      {
+        if (room.protected == false)
+          this.selectRoom(room, null);
+        else
+          this.showPasswordToJoin = room.id; // affiche jsute la possibilite d'entrer un password
+      }
     },
   },
   async created() {
-    // this.socket = io("http://127.0.0.1:3000", {
-    //   extraHeaders: {
-    //     Authorization: this.user.access_token,
-    //   },
-    // });
     this.socket.on("updateSelected", (room) => {
       this.$emit('updateSelected', room);
+    });
+    this.socket.on("WrongPassword", () => {
+      this.wrongPassword = true;
     });
   },
 };
 </script>
 <template>
   <div class="container">
-    <!-- My rooms -->
     <h1 style="margin-top: 30px">My rooms</h1>
-    <!-- selectedRoom => {{ this.selectedRoom }} -->
+    <p v-if="wrongPassword" class="error-paragraf">
+      Password not matching
+    </p>
     <div class="list-group">
       <ul>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="isRoomInMyRooms(room)" @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
+          <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
+            💬 {{ room.name }}
+            <PasswordBtn2 @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
+          </div>
+          <div v-else-if="isRoomInMyRooms(room)" @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
             💬 {{ room.name }}
             <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
           </div>
