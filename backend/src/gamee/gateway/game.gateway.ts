@@ -109,32 +109,70 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     this.startGameInterval(roomNameINT);
   }
 
+  @SubscribeMessage('joinQueue')
+  handleJoinQueue(socket: Socket) {
+
+    let index: number = this.GameService.getRoomForQueue(this.state);
+
+    // [CREATE] game state and wait other player if(nobody is in queue)
+    if (index == -1) {
+      // create random ID for the new room
+      let roomName = this.GameService.makeid(5);
+      // init the game state 
+      let newState: StateI = this.GameService.initGame(true)
+      newState.gameState = "play";
+      newState.status = 1;
+      newState.id = parseInt(roomName);
+      // save the new game state
+      this.state.push(newState);
+      // set the creator to player 1
+      socket.data.number = 1;
+      // set the room game id to the current user socket
+      socket.data.roomId = roomName;
+      // join the room socket
+      socket.join(roomName);
+
+      // init the front for player 1
+      socket.emit('init', 1);
+    }
+    // [JOIN] the game if somebody is already in queue
+    else {
+      // set the creator to player 1
+      socket.data.number = 2;
+      // set the room game id to the current user socket
+      socket.data.roomId = this.state[index].id;
+      // join the room socket
+      socket.join(this.state[index].id.toString());
+      // init the front for player 2
+      socket.emit('init', 2);
+      // start the game when both player are connected
+      this.startGameInterval(this.state[index].id);
+    }
+  }
+
   @SubscribeMessage('newGame')
   handleNewGame(socket: Socket) {
 
+    // create random ID for the new room
     let roomName = this.GameService.makeid(5);
-
-    // clientRooms[socket.id] = roomName;
+    // emit the new game ID to other player;
     socket.emit('gameCode', roomName);
-
-    let newState: StateI = this.GameService.initGame()
-
+    // init the game state 
+    let newState: StateI = this.GameService.initGame(false)
     newState.gameState = "play";
     newState.id = parseInt(roomName);
-
+    // save the new game state
     this.state.push(newState);
-
     // set the creator to player 1
     socket.data.number = 1;
     // set the room game id to the current user socket
     socket.data.roomId = roomName;
-
     // join the room socket
     socket.join(roomName);
-
     // init the front for player 1
     socket.emit('init', 1);
   }
+
 
   // @SubscribeMessage('pause')
   // async handlePause(socket: Socket) {

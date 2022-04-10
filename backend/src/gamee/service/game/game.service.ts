@@ -3,11 +3,8 @@ import { StateI } from 'src/gamee/model/state.interface';
 import { PlayerI } from 'src/gamee/model/player.interfae';
 import {
   grid,
-  BORDURE,
   paddleHeight,
   paddleWidth,
-  GRID_SIZE_H,
-  GRID_SIZE_L,
   canvas,
   powerUp_color
 } from 'src/utils/constants';
