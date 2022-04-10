@@ -32,7 +32,7 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatMyRooms",
+  name: "ChatSelectedRoomChat",
   data() {
     return {
       text: "",

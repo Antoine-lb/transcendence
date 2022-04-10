@@ -1,17 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
-import ChatCreateRoom from "./ChatNew/ChatCreateRoom.vue";
-import ChatMyRooms from "./ChatNew/ChatMyRooms.vue";
-import ChatAvailableRooms from "./ChatNew/ChatAvailableRooms.vue";
-import ChatSelectedRoomChat from "./ChatNew/ChatSelectedRoomChat.vue";
-import ChatSelectedRoomParams from "./ChatNew/ChatSelectedRoomParams.vue";
-import PasswordBtn from "./PasswordBtn.vue";
-
-export interface newRoomInterface {
-  name: string;
-  users: [{ id: number }];
-}
+import PasswordBtn from "../PasswordBtn.vue";
 
 export interface RoomI {
   created_date: string;
@@ -44,75 +33,108 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatNew",
+  name: "ChatSelectedRoomParams",
   data() {
     return {
-      userRooms: null,
-      userRoomsRoles: [],
-      selectedRoom: null,
+      showAddPassword: false,
+      addingPasswordSuccess: false, // validation
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
-  },
   props: {
-    user: Object,
+    user: Object, // = this.user
+    userRooms: Object,
+    userRoomsRoles: Object,
+    selectedRoom: {
+      type: Object as () => RoomI,
+    },
+    socket: Object,
   },
   components: {
-    ChatCreateRoom,
-    ChatMyRooms,
-    ChatAvailableRooms,
-    ChatSelectedRoomChat,
-    ChatSelectedRoomParams,
     PasswordBtn,
   },
   methods: {
-    createRoom(room: newRoomInterface) {
-      console.log("createRoom", room);
-      this.socket.emit("createRoom", room);
+    getRole()
+    {
+      return this.userRoomsRoles[this.selectedRoom?.id];
     },
-    updateSelected(room: RoomI) {
-      if (this.selectedRoom && (room.id == this.selectedRoom.id))
-        this.selectedRoom = {};
-      else
-        this.selectedRoom = room;     
-    }
+    isOwner() {
+      if (this.getRole() == UserRoomRole.OWNER)
+        return true;
+      return false;
+    },   
+    isPublic() {
+      if (this.selectedRoom.status == true && this.selectedRoom.protected == false && this.selectedRoom.password == null)
+        return true;
+      return false;
+    },
+    addingPasswordSubmit(room: RoomI, inputPassword: string) {
+      console.log(">>>>>> emitting addPassword");
+      this.socket.emit("addPassword", { room: room, modifier: this.user, password: inputPassword });
+    },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
+    this.socket.on("addingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on addingPasswordSuccess COMPONENT");
+      this.addingPasswordSuccess = true;
+      this.showAddPassword = false;
+      // this.selectedRoom = room;
+      // console.log("room : ", room);
+      // console.log("this.selectedRoom : ", this.selectedRoom);
     });
-    this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
-      this.userRooms = rooms;
-      // console.log("ChatNew ------------ getRoomsForUser : ", rooms);
-      this.socket.emit("getAllRolesForUser", this.user);
-    });
-    this.socket.on("getAllRolesForUser", (roles) => {
-      this.userRoomsRoles = roles;
-      // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
-    });
-    // this.socket.on("messageAdded", (message) => {
-    //   // console.log(">>>>>> return on messageAdded in PARENT");
-    //   // this.messages.items.push(message);
-    // });
-    // this.socket.on("getMessages", (messages) => {
-    //   // console.log(">>>>>> return on getMessages in PARENT");
-    //   // this.messages = messages;
-    // });
   },
 };
 </script>
 <template>
-  <div class="container">
-    <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <!-- <ChatSelectedRoomParams :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/> -->
-    <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-  </div>
+  <div class="container" style="margin: 20px">
+    <div v-if="isOwner()">
+      <div v-if="isPublic()">
+        <p>You are the owner of this public room.
+          <p>
+            <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
+            <p v-if="showAddPassword">
+              <PasswordBtn @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
+            </p>
+            <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
+              Password added
+            </p>
+          </p>
+        </p>
+      </div>
+    </div>
+      <!-- <div v-if="this.selectedRoom?.id" id="params">
+        <br />
+        <h1 style="margin-top: 30px">Selected room => {{ this.selectedRoom.name }} </h1>
+        <div v-if="isOwner(this.user) && (this.user.id == user.id)" class="empty">
+          <div v-if="isProtected()">
+            <p>You are the owner of this protected room.
+              <p>
+                <button class="new-room-button" @click="deletePassword(this.selectedRoom, this.user)">Delete Password</button>
+                <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
+                <div v-if="showModifyPassword">
+                  <PasswordBtn @onSubmit="modifyingPasswordSubmit" :roomId="room.id" :msg="'MODIFY PASSWORD'"/>
+                </div>
+                <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
+                  Password updated
+                </p>
+              </p>
+            </p>
+          </div>
+          <div v-if="isPublic()">
+            <p>You are the owner of this public room.
+              <p>
+                <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
+                <p v-if="showAddPassword">
+                  <PasswordBtn @onSubmit="addingPasswordSubmit" :roomId="room.id" :msg="'ADD PASSWORD'"/>
+                </p>
+                <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
+                  Password added
+                </p>
+              </p>
+            </p>
+          </div>
+        </div>
+      </div> -->
+    </div>
 </template>
 
 <style scoped>

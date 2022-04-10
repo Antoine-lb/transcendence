@@ -184,6 +184,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onSelectRoom(socket: Socket, { room, password }) {
     // console.log(">>>>>> onSelectRoom");
     if (room.protected == true) {
+      console.log(">>>>>> room is protected");
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
@@ -218,21 +219,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('deletePassword')
   async onDeletePassword(socket: Socket, { room, modifier }) {
     await this.roomService.deletePassword(room, modifier);
-    this.emitRoomsForConnectedUsers(room);
+    await this.emitRoomsForConnectedUsers(room);
     return await this.server.to(socket.id).emit('updateSelectedRoom', room);
   }
 
   @SubscribeMessage('modifyPassword')
   async onModifyPassword(socket: Socket, { room, modifier, password }) {
       await this.roomService.modifyPassword(room, modifier, password);
-      this.emitRoomsForConnectedUsers(room);
+      await this.emitRoomsForConnectedUsers(room);
       return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
   }
 
   @SubscribeMessage('addPassword')
   async onAddPassword(socket: Socket, { room, modifier, password }) {
     await this.roomService.addPassword(room, modifier, password);
-    this.emitRoomsForConnectedUsers(room);
+    await this.emitRoomsForConnectedUsers(room);
+    // console.log(">>>>>> emitting addingPasswordSuccess");
     return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
   }
 
