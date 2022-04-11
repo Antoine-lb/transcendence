@@ -255,37 +255,37 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const winner = this.GameService.gameLoop(this.state[index]);
 
       if (!winner) {
-        this.emitGameState(this.state, roomId);
+        this.emitGameState(roomId);
       }
       else {
         clearInterval(this.state[index].intervalId);
-        this.emitGameOver(this.state, winner, roomId);
+        this.emitGameOver(winner, roomId);
 
         // TODO : save the score
       }
     }, 1000 / FRAME_RATE);
   }
 
-  emitGameState(state: StateI[], roomId: number) {
+  emitGameState(roomId: number) {
 
     let index: number = this.GameService.getRoomById(this.state, roomId);
 
     // Send this event to everyone in the room.
-    this.server.to(state[index].id.toString())
-      .emit('gameState', JSON.stringify(state[index]));
+    this.server.to(this.state[index].id.toString())
+      .emit('gameState', JSON.stringify(this.state[index]));
   }
     
-   async emitGameOver(state: StateI[], winner: number, roomId: number) {
+   async emitGameOver(winner: number, roomId: number) {
     
     let index: number = this.GameService.getRoomById(this.state, roomId);
 
 
-    this.server.to(state[index].id.toString())
+    this.server.to(this.state[index].id.toString())
       .emit('gameOver', JSON.stringify({ winner }));
      
-    const players: UserEntity[] = await this.userService.findManyIds([state[index].player1Id, state[index].player2Id]);
-    let loser: number = (winner == state[index].player1Id) ? state[index].player2Id : state[index].player1Id;
-    let score: number = state[index].score.p1 + state[index].score.p2;
+    const players: UserEntity[] = await this.userService.findManyIds([this.state[index].player1Id, this.state[index].player2Id]);
+    let loser: number = (winner == this.state[index].player1Id) ? this.state[index].player2Id : this.state[index].player1Id;
+    let score: number = this.state[index].score.p1 + this.state[index].score.p2;
      
     // save the game score for Match History
      this.MatchHistoryService.create({
