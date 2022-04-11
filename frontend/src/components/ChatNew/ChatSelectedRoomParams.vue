@@ -39,9 +39,9 @@ export default {
       roles: {
         OWNER: "owner",
         ADMIN: "admin",
-        BANNED: "banned",
         LAMBDA: "lambda",
-        AVAILABLE: "available",
+        BANNED: "banned",
+        // AVAILABLE: "available",
         // FORBIDDEN: "forbidden",
       },
       // showAddPassword: false,
@@ -120,26 +120,25 @@ export default {
 </script>
 <template>
   <div class="container" style="margin: 20px">
-    <div v-if="this.selectedRoom">
+    <div v-if="this.selectedRoom?.name">
       <h1 style="margin-top: 30px">Selected room => users in {{ this.selectedRoom?.name }} </h1>
       <div v-for="role in roles" class="users-list" :key="role">
         <p class="table-title">
           {{ role }}
         </p>
-        <li v-for="user in this.usersForRoom" class="table-body" :key="user.id">
-          <p v-if="getRole(user) == role">
+        <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
+          <p v-if="getRole(user) == role" class="">
             {{ user.username }}
-            <div v-if="role != 'available'">
-              <span v-if="user.id != this.user.id && role != 'owner'  && role != 'banned'">
-                <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
+            <span v-if="role != 'available' && user.id != this.user.id">
+              <span v-if="role != 'owner' && role != 'banned'">
+                <button v-if="isAdmin(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
               </span>
-              <span v-if="user.id != this.user.id && role != 'owner'">
-                <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
+              <span v-if="role != 'owner'">
+                <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
               </span>
-            </div>
-
+            </span>
           </p>
-        </li>
+        </p>
       </div>
       <p> - - - - - - - - </p>
       <li v-for="user in this.usersForRoom" :key="user.id">
@@ -220,6 +219,10 @@ input[type="submit"]:hover {
   color: red;
 }
 
+.debug {
+  border: #703ab8 1px solid;
+}
+
 .validation-paragraf {
   color: green;
   font-weight: bold;
@@ -246,7 +249,6 @@ input[type="submit"]:hover {
 .table-body {
   background-color: white;
   font-size: 15px;
-  display: inline-block;
   color: black;
 }
 

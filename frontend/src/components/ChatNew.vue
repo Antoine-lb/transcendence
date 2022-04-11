@@ -94,10 +94,10 @@ export default {
     });
     this.socket.on("getAllRolesForUser", (roles) => {
       this.userRoomsRoles = roles;
-      // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
     });
     this.socket.on("getRoles", (roles) => {
       this.userRolesInRoom = roles;
+      this.socket.emit("getAllRolesForUser", this.user);
     });
     this.socket.on("getUsers", (users) => {
       this.usersForRoom = users;
