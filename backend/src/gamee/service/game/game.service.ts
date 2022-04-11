@@ -127,16 +127,14 @@ export class GameService {
     // See if ball passed the paddle
     if (ball.x < 0) {
       state.score.p2++
-      console.log("joueur 1 perds")
       this.resetState(state)
-      if (state.score.p2 > 15)
+      if (state.score.p2 > 5)
         return 2;
     }
     if (ball.x > canvas.width) {
       state.score.p1++
       this.resetState(state)
-      console.log("joueur 2 perds", ball.x, canvas.width)
-      if (state.score.p1 > 15)
+      if (state.score.p1 > 5)
         return 1;
     }
     return 0;

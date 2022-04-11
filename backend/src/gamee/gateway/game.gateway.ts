@@ -194,6 +194,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     else {
       this.startGameInterval(this.state[index].id);
+      socket.broadcast.emit('notify', {
+        title: "Important message",
+        text: "Game Resumed by your opponent",
+        duration: 6000
+      });
     }
   }
 
@@ -281,7 +286,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async emitGameOver(winner: number, roomId: number) {
 
     let index: number = this.GameService.getRoomById(this.state, roomId);
-
 
     this.server.to(this.state[index].id.toString())
       .emit('gameOver', JSON.stringify({ winner }));

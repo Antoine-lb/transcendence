@@ -1,7 +1,6 @@
 <script lang="ts">
 import { ref, onMounted } from 'vue'
 import { io } from "socket.io-client";
-import { notify } from "@kyvg/vue3-notification"; 
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -38,6 +37,7 @@ export default {
       gameStatus : String("paused"),
       socket: ref(),
       ctx: null,
+      gameActive : Boolean(false),
       // myRooms: null,
       // friendList: [],
       // newRoomName: null,
@@ -45,40 +45,6 @@ export default {
       // selectedRoom: {},
       // room: {},
     };
-  },
-  created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
-    // this.socket.on("test", (msg) => {
-    //   console.log(msg)
-    //   console.log("connected :", this.socket.connected);
-    //   console.log("this.socket.id", this.socket.id);
-
-    // })
-    console.log("connected :", this.socket.connected);
-  },
-  mounted() {
-
-    this.socket.on("connect", () => {this.gameStatus = "idle"})
-    this.socket.on("init", this.handleInit);
-    this.socket.on("gameState", this.handleGameState);
-    this.socket.on("gameOver", this.handleGameOver);
-    this.socket.on("gameCode", this.handleGameCode);
-    this.socket.on("unknownCode", this.handleUnknownCode);
-    this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
-    this.socket.on("paused", this.handlePause);
-    this.socket.on("notify", this.handleNotification);
-    this.socket.on("disconnection", this.handleDisconnection);
-    this.socket.on("disconnect", (reason) => {
-      if (reason === "io server disconnect") {
-        // the disconnection was initiated by the server, you need to reconnect manually
-        this.socket.connect();
-      }
-      // else the socket will automatically try to reconnect
-    });
   },
   methods: {
     socketSetter() {
@@ -223,7 +189,6 @@ export default {
 
       data = JSON.parse(data);
       this.gameActive = false;
-
       if (data.winner === this.playerNumber) {
         this.$notify({
           position : "center",
@@ -267,7 +232,6 @@ export default {
 
     handlePause(msg) {
       console.log(`%c your opponent paused ${msg}`, 'background: #222; color: #bada55')
-      this.$notify(msg);
       this.socket.emit('pause');
     },
 

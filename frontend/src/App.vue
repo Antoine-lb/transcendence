@@ -21,7 +21,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
       </nav>
     </div>
   </header>
-
+  <notifications />
   <RouterView />
 </template>
 
