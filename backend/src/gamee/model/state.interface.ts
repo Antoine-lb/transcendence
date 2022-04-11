@@ -1,7 +1,7 @@
 import { PlayerI } from "./player.interfae"
 
 export interface StateI {
-    
+
     id?: number;
     gameState: string;
     score: { p1: number, p2: number };
@@ -11,26 +11,26 @@ export interface StateI {
         dx: number;
         dy: number;
         resetting: Boolean;
-    }; 
+    };
     players: [{
+        paddleH: number,
         x: number,
         y: number,
         vel: number,
-        option: string,
     }, {
+        paddleH: number,
         x: number,
         y: number,
         vel: number,
-        option: string,
     }];
     powerUp: [{
         x: number;
         y: number;
     },
-    {
-        x: number;
-        y: number;
-    }];
+        {
+            x: number;
+            y: number;
+        }];
     powerUp_t: string;
     launchPowerUp: Boolean;
     intervalId: NodeJS.Timer;
