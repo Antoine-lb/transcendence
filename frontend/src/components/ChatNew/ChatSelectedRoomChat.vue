@@ -70,11 +70,6 @@ export default {
     },
   },
   async created() {
-    // this.socket = io("http://127.0.0.1:3000", {
-    //   extraHeaders: {
-    //     Authorization: this.user.access_token,
-    //   },
-    // });
     this.socket.on("updateSelected", (room) => {
       this.$emit('updateSelected', room);
     });
@@ -92,9 +87,7 @@ export default {
       <div id="status"></div>
       <div v-if="this.selectedRoom?.id" id="chat">
         <br />
-        <!-- {{ this.messages}} -->
         <h1 style="margin-top: 30px">Selected room => {{ this.selectedRoom.name }} </h1>
-        <!-- {{ this.socket.id }} -->
         <div class="message-box">
           <div id="messages-box" class="card-block">
             <!-- Received messages -->

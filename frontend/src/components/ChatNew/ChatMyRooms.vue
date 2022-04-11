@@ -113,12 +113,14 @@ export default {
     <div class="list-group">
       <ul>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
-            💬 {{ room.name }}
-            <PasswordBtn2 @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
-          </div>
-          <div v-else-if="isRoomInMyRooms(room)" @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
-            💬 {{ room.name }}
+          <div v-if="isRoomInMyRooms(room)" >
+            <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
+              💬 {{ room.name }}
+              <PasswordBtn2 @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
+            </div>
+            <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
+              💬 {{ room.name }}
+            </div>
             <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
           </div>
         </div>

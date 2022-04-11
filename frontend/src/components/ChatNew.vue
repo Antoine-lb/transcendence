@@ -48,8 +48,10 @@ export default {
   data() {
     return {
       userRooms: null,
-      userRoomsRoles: [],
+      userRoomsRoles: [], // roles in all rooms for current user
       selectedRoom: null,
+      userRolesInRoom: [], // all roles in current room
+      usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
     };
   },
   setup() {
@@ -94,14 +96,12 @@ export default {
       this.userRoomsRoles = roles;
       // console.log("ChatNew this.userRoomsRoles  : ", this.userRoomsRoles );
     });
-    // this.socket.on("messageAdded", (message) => {
-    //   // console.log(">>>>>> return on messageAdded in PARENT");
-    //   // this.messages.items.push(message);
-    // });
-    // this.socket.on("getMessages", (messages) => {
-    //   // console.log(">>>>>> return on getMessages in PARENT");
-    //   // this.messages = messages;
-    // });
+    this.socket.on("getRoles", (roles) => {
+      this.userRolesInRoom = roles;
+    });
+    this.socket.on("getUsers", (users) => {
+      this.usersForRoom = users;
+    });
   },
 };
 </script>
@@ -109,7 +109,7 @@ export default {
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
     <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <!-- <ChatSelectedRoomParams :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/> -->
+    <ChatSelectedRoomParams :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>

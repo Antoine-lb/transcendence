@@ -204,6 +204,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
     await this.server.to(socket.id).emit('updateSelected', room);
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
+    await this.server.to(socket.id).emit('getRoles', roles);
+    var users = await this.userRoomService.getUsersForRoom(room);
+    await this.server.to(socket.id).emit('getUsers', users)
     return await this.server.to(socket.id).emit('getMessages', messages);
   }
    

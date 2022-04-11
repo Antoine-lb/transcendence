@@ -36,8 +36,16 @@ export default {
   name: "ChatSelectedRoomParams",
   data() {
     return {
-      showAddPassword: false,
-      addingPasswordSuccess: false, // validation
+      roles: {
+        OWNER: "owner",
+        ADMIN: "admin",
+        BANNED: "banned",
+        LAMBDA: "lambda",
+        AVAILABLE: "available",
+        // FORBIDDEN: "forbidden",
+      },
+      // showAddPassword: false,
+      // addingPasswordSuccess: false, // validation
     };
   },
   props: {
@@ -48,17 +56,37 @@ export default {
       type: Object as () => RoomI,
     },
     socket: Object,
+    userRolesInRoom: Object,
+    usersForRoom: Object,
   },
   components: {
     PasswordBtn,
   },
   methods: {
-    getRole()
+    getRole(user: UserInterface)
     {
-      return this.userRoomsRoles[this.selectedRoom?.id];
+      return this.userRolesInRoom[user?.id];
     },
     isOwner() {
       if (this.getRole() == UserRoomRole.OWNER)
+        return true;
+      return false;
+    },   
+    isInRoom(user: UserInterface) {
+      var role = this.getRole(user)
+      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA)
+        return true;
+      return false;
+    },     
+    isAdmin(user: UserInterface) {
+      var role = this.getRole(user)
+      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN)
+        return true;
+      return false;
+    },   
+    isBanned(user: UserInterface) {
+      var role = this.getRole(user)
+      if (role == UserRoomRole.BANNED)
         return true;
       return false;
     },   
@@ -67,26 +95,65 @@ export default {
         return true;
       return false;
     },
-    addingPasswordSubmit(room: RoomI, inputPassword: string) {
-      console.log(">>>>>> emitting addPassword");
-      this.socket.emit("addPassword", { room: room, modifier: this.user, password: inputPassword });
+    // roles update
+    updateRole(room: RoomI, user: UserInterface, newRole: UserRoomRole) {
+      this.socket.emit("updateRole",{ room: room, user: user, modifier: this.user, newRole: newRole });
+    },
+    addAdmin(room: RoomI, user: UserInterface) {
+      if (!this.isAdmin(user))
+        this.updateRole(room, user, UserRoomRole.ADMIN)
+      else
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
+    },
+    banUser(room: RoomI, user: UserInterface) {
+      if (!this.isBanned(user))
+        this.updateRole(room, user, UserRoomRole.BANNED)
+      else
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
   },
   async created() {
-    this.socket.on("addingPasswordSuccess", (room: RoomI) => {
-      console.log(">>>>>> return on addingPasswordSuccess COMPONENT");
-      this.addingPasswordSuccess = true;
-      this.showAddPassword = false;
-      // this.selectedRoom = room;
-      // console.log("room : ", room);
-      // console.log("this.selectedRoom : ", this.selectedRoom);
-    });
+
   },
 };
+
 </script>
 <template>
   <div class="container" style="margin: 20px">
-    <div v-if="isOwner()">
+    <div v-if="this.selectedRoom">
+      <h1 style="margin-top: 30px">Selected room => users in {{ this.selectedRoom?.name }} </h1>
+      <div v-for="role in roles" class="users-list" :key="role">
+        <p class="table-title">
+          {{ role }}
+        </p>
+        <li v-for="user in this.usersForRoom" class="table-body" :key="user.id">
+          <p v-if="getRole(user) == role">
+            {{ user.username }}
+            <div v-if="role != 'available'">
+              <span v-if="user.id != this.user.id && role != 'owner'  && role != 'banned'">
+                <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
+              </span>
+              <span v-if="user.id != this.user.id && role != 'owner'">
+                <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
+              </span>
+            </div>
+
+          </p>
+        </li>
+      </div>
+      <p> - - - - - - - - </p>
+      <li v-for="user in this.usersForRoom" :key="user.id">
+        <span :class="isBanned(user) ? 'bold-red' : 'bold-colored'">{{ user.username }}</span> ({{ getRole(user) }})
+        <div v-if="isAdmin(this.user) && this.user.id != user.id" class="empty">
+            <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
+        </div>
+        <div v-if="isAdmin(this.user) && !isOwner(user) && this.user.id != user.id && !isBanned(user)" class="empty">
+          <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
+        </div>
+      </li>
+    </div>
+
+    <!-- <div v-if="isOwner()">
       <div v-if="isPublic()">
         <p>You are the owner of this public room.
           <p>
@@ -100,7 +167,7 @@ export default {
           </p>
         </p>
       </div>
-    </div>
+    </div> -->
       <!-- <div v-if="this.selectedRoom?.id" id="params">
         <br />
         <h1 style="margin-top: 30px">Selected room => {{ this.selectedRoom.name }} </h1>
@@ -168,6 +235,25 @@ input[type="submit"]:hover {
   font-weight: bold;
 }
 
+.table-title {
+  color: #703ab8;
+  font-weight: bold;
+  font-size: 18px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.table-body {
+  background-color: white;
+  font-size: 15px;
+  display: inline-block;
+  color: black;
+}
+
+.users-list {
+  margin: 30px;
+}
+
 .bold-red {
   color: darkred;
   font-weight: bold;
@@ -177,6 +263,7 @@ input[type="submit"]:hover {
   background-color: white;
   font-size: 15px;
   display: inline-block;
+  color: black;
 }
 
 .new-room-button {
