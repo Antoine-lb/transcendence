@@ -1,5 +1,6 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
+import PublicAccount from "@/components/PublicAccount.vue";
 
 function fetchWithHeaders(url) {
   return fetch(url, {
@@ -19,6 +20,7 @@ export default {
       loading: false,
       userNotFound: false,
       user: {},
+      userAvatar: null,
     };
   },
   setup() {
@@ -27,6 +29,9 @@ export default {
   },
   created() {
     this.fetchAllData();
+  },
+  components: {
+    PublicAccount,
   },
   methods: {
     fetchAllData: function () {
@@ -41,6 +46,8 @@ export default {
         if (response.status == 200) {
           this.user = await response.json();
           console.log("this.user", this.user);
+          if (this.user)
+            this.userAvatar = "http://localhost:3000" + this.user.avatar
           this.userNotFound = false;
         } else {
           this.userNotFound = true;
@@ -61,11 +68,7 @@ export default {
     <div v-if="!loading">
       <div v-if="userNotFound">L'utilisateur est introuvable</div>
       <div v-if="!userNotFound">
-        <h1 style="text-transform: capitalize">{{ user.username }}</h1>
-        <p>Is Online: {{ user.isOnline }}</p>
-        <p>Played: {{ user.played }}</p>
-        <p>Victories: {{ user.victory }}</p>
-        <p>Defeats: {{ user.defeats }}</p>
+        <PublicAccount :user="user" :avatar="this.userAvatar" />
       </div>
     </div>
   </main>

@@ -99,6 +99,9 @@ export default {
       else
         this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
+    seeProfile(user: UserInterface) {
+      this.$router.push('/user/' + user.id);
+    }
   },
   async created() {
 
@@ -117,13 +120,12 @@ export default {
           </p>
           <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
             <p v-if="getRole(user) == role" class="">
-                {{ user.username }}
+                <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
                 <span v-if="user.id != this.user.id">
                   <span v-if="role != 'owner' && role != 'banned'">
                     <button v-if="isAdmin(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
                   </span>
                   <span v-if="role != 'owner'">
-                  <!-- <span v-if="role != 'owner'"> -->
                     <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
                   </span>
                 </span>
@@ -214,6 +216,25 @@ input[type="submit"]:hover {
   /* display: block; */
   margin: 10px;
   border: 2px solid #703ab8;
+  display: inline-block;
+  max-width: 300px;
+  max-height: 50px;
+}
+
+.profile-button {
+  background-color: white;
+  border: none;
+  color: rgba(0, 0, 0, 0.7);
+  font-weight: bold;
+  font-size: 20px;
+  box-shadow: none;
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: none;
   display: inline-block;
   max-width: 300px;
   max-height: 50px;
