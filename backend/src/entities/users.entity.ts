@@ -81,11 +81,4 @@ export class UserEntity {
 
   @ManyToMany(() => GamePlayedEntity, GamePlayedEntity => GamePlayedEntity.players)
   gamePlayed: GamePlayedEntity[];
-
-  // @ManyToOne(() => GameEntity, game => game.players)
-  // @JoinTable()
-  // game: GameEntity;
-
-  // @Column()
-  // playerId: number;
 }

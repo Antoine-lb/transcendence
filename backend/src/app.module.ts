@@ -20,6 +20,8 @@ import { JoinedRoomEntity } from './chat/model/joined-room.entity';
 import { GameGateway } from './gamee/gateway/game.gateway';
 import { GameService } from './gamee/service/game/game.service';
 import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
+import { GameModule } from './gamee/game.module';
+import { StateEntity } from './gamee/model/state.entity';
 
 @Module({
   imports: [
@@ -48,10 +50,10 @@ import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
 		UsersModule,
 		FriendsModule,
 		ChatModule,
-		MulterModule
-	],
+		MulterModule,
+		GameModule,	],
 	controllers: [UserController, TwoFAController, FriendsController],
-	providers: [TwoFAService, GameGateway, GameService]
+	providers: [TwoFAService]
 })
 	export class AppModule implements NestModule {
 		configure(consumer: MiddlewareConsumer) {

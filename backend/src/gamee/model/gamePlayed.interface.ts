@@ -7,5 +7,5 @@ export interface GamePlayedI {
     winnerId: number;
     loserId: number;
     score: number;
-    created_at: Date;
+    created_at?: Date;
 }

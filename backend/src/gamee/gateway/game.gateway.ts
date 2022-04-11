@@ -12,6 +12,8 @@ import { UsersService } from 'src/users/users.service';
 import { GameService } from 'src/gamee/service/game/game.service';
 import { FRAME_RATE, maxPaddleY, grid, canvas, paddleHeight, } from 'src/utils/constants';
 import { StateI } from 'src/gamee/model/state.interface';
+import { UserEntity } from 'src/entities/users.entity';
+import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service'
 
  
 
@@ -26,6 +28,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
      private authService: AuthService,
      private userService: UsersService,
      private GameService: GameService,
+     private MatchHistoryService: MatchHistoryService
     ) { }
   
    
@@ -75,6 +78,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let index: number = this.GameService.getRoomById(this.state, roomNameINT);
   
     this.state[index].id = roomNameINT;
+    this.state[index].player2Id = socket.data.user.id;
+
     // set the creator to player 1
     socket.data.number = 2;
     // set the room game id to the current user socket
@@ -103,6 +108,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       newState.gameState = "play";
       newState.status = 1;
       newState.id = parseInt(roomName);
+      newState.player1Id = socket.data.user.id; 
       // save the new game state
       this.state.push(newState);
       // set the creator to player 1
@@ -121,6 +127,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.data.number = 2;
       // set the room game id to the current user socket
       socket.data.roomId = this.state[index].id;
+      this.state[index].player2Id = socket.data.user.id; 
       // join the room socket
       socket.join(this.state[index].id.toString());
       // init the front for player 2
@@ -141,6 +148,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let newState: StateI =  this.GameService.initGame(false)
     newState.gameState = "play";
     newState.id = parseInt(roomName);
+    // save playerId to state
+    newState.player1Id = socket.data.user.id;
     // save the new game state
     this.state.push(newState);
     // set the creator to player 1
@@ -248,11 +257,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     .emit('gameState', JSON.stringify(state[index]));
   }
     
-  emitGameOver(state: StateI[], winner: number, roomId: number) {
+  async emitGameOver(state: StateI[], winner: number, roomId: number) {
 
     let index: number = this.GameService.getRoomById(this.state, roomId);
 
     this.server.to(state[index].id.toString())
-    .emit('gameOver', JSON.stringify({ winner }));
+      .emit('gameOver', JSON.stringify({ winner }));
+     
+    const players: UserEntity[] = await this.userService.findManyIds([state[index].player1Id, state[index].player2Id]);
+    let loser: number = (winner == state[index].player1Id) ? state[index].player2Id : state[index].player1Id;
+    let score: number = state[index].score.p1 + state[index].score.p2;
+     
+    // save the game score for Match History
+     this.MatchHistoryService.create({
+        players: players,
+        winnerId: winner,
+        loserId: loser,
+        score: score,
+      })
    }
 }
