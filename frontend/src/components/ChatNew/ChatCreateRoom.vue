@@ -106,7 +106,7 @@ export default {
 
 <template>
   <div class="container">
-    <h1>Créer un salon xx</h1>
+    <h1>Room creation</h1>
     <div>
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <div v-if="!isPublic">

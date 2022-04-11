@@ -1,5 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
+import PasswordBtn from "../PasswordBtn.vue";
 
 export interface RoomI {
   created_date: string;
@@ -32,11 +33,17 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatSelectedRoomChat",
+  name: "ChatSelectedRoomUsers",
   data() {
     return {
-      text: "",
-      messages: [],
+      roles: {
+        OWNER: "owner",
+        ADMIN: "admin",
+        LAMBDA: "lambda",
+        BANNED: "banned",
+        // AVAILABLE: "available",
+        // FORBIDDEN: "forbidden",
+      },
     };
   },
   props: {
@@ -47,77 +54,85 @@ export default {
       type: Object as () => RoomI,
     },
     socket: Object,
+    userRolesInRoom: Object,
+    usersForRoom: Object,
   },
   components: {
+    PasswordBtn,
   },
   methods: {
-    sendMessage() {
-      console.log(">>>> sendMessage room", this.selectedRoom);
-      if (this.validateInput()) {
-        const message = {
-          user: this.user,
-          text: this.text,
-          room: this.selectedRoom,
-        };
-        console.log("sendMessage : ", message);
-        this.socket.emit("addMessage", message);
-        this.text = "";
-        console.log("after sendMessage emit");
-      }
+    // roles check
+    getRole(user: UserInterface)
+    {
+      return this.userRolesInRoom[user?.id];
     },
-    validateInput() {
-      return this.text.length > 0;
+    isOwner(user: UserInterface) {
+      if (this.getRole(user) == UserRoomRole.OWNER)
+        return true;
+      return false;
+    },        
+    isAdmin(user: UserInterface) {
+      var role = this.getRole(user)
+      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN)
+        return true;
+      return false;
+    },   
+    isBanned(user: UserInterface) {
+      var role = this.getRole(user)
+      if (role == UserRoomRole.BANNED)
+        return true;
+      return false;
+    },   
+    // roles update
+    updateRole(room: RoomI, user: UserInterface, newRole: UserRoomRole) {
+      this.socket.emit("updateRole",{ room: room, user: user, modifier: this.user, newRole: newRole });
+    },
+    addAdmin(room: RoomI, user: UserInterface) {
+      if (!this.isAdmin(user))
+        this.updateRole(room, user, UserRoomRole.ADMIN)
+      else
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
+    },
+    banUser(room: RoomI, user: UserInterface) {
+      if (!this.isBanned(user))
+        this.updateRole(room, user, UserRoomRole.BANNED)
+      else
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
   },
   async created() {
-    this.socket.on("updateSelected", (room) => {
-      this.$emit('updateSelected', room);
-    });
-    this.socket.on("messageAdded", (message) => {
-      this.messages.items.push(message);
-    });
-    this.socket.on("getMessages", (messages) => {
-      this.messages = messages;
-    });
+
   },
 };
+
 </script>
 <template>
-  <div class="container">
-      <div id="status"></div>
-      <div v-if="this.selectedRoom?.id" id="chat">
-        <br />
-        <h1 style="margin-top: 30px">Chat in {{ this.selectedRoom.name }} </h1>
-        <div class="message-box">
-          <div id="messages-box" class="card-block">
-            <!-- Received messages -->
-            <div v-for="message of messages.items" :key="message.id">
-              <div class="message-box">
-                <div v-if="this.user.id !== message?.user.id" class="message" >
-                  <div class="message-user">
-                    {{ message?.user.username }}
-                  </div>
-                  <div class="message-content">{{ message?.text }}</div>
-                </div>
-              </div>
-            <!-- Sent messages -->
-            <div class="message-box" style="flex-direction: row-reverse">
-              <div v-if="this.user.id === message?.user.id" class="my-message" >
-                <div class="my-message-user">
-                  {{ message?.user.username }}
-                </div>
-                <div class="my-message-content">{{ message?.text }}</div>
-              </div>
-            </div>
-            </div>
-          </div>
-        </div>
-        <br />
-        <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
-        <br />
-        <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
+  <div class="container" style="margin: 20px">
+    <div v-if="this.selectedRoom?.name">
+      <h1 style="margin-top: 30px">Users in {{ this.selectedRoom?.name }} </h1>
+      <div v-for="role in roles" class="users-list" :key="role">
+        <p v-if="role != 'banned' || isAdmin(this.user)">
+          <p class="table-title">
+            {{ role }}
+          </p>
+          <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
+            <p v-if="getRole(user) == role" class="">
+                {{ user.username }}
+                <span v-if="user.id != this.user.id">
+                  <span v-if="role != 'owner' && role != 'banned'">
+                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
+                  </span>
+                  <span v-if="role != 'owner'">
+                  <!-- <span v-if="role != 'owner'"> -->
+                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
+                  </span>
+                </span>
+            </p>
+          </p>
+        </p>
       </div>
     </div>
+  </div>
 </template>
 
 <style scoped>
@@ -136,6 +151,10 @@ input[type="submit"]:hover {
   color: red;
 }
 
+.debug {
+  border: #703ab8 1px solid;
+}
+
 .validation-paragraf {
   color: green;
   font-weight: bold;
@@ -151,6 +170,24 @@ input[type="submit"]:hover {
   font-weight: bold;
 }
 
+.table-title {
+  color: #703ab8;
+  font-weight: bold;
+  font-size: 18px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.table-body {
+  background-color: white;
+  font-size: 15px;
+  color: black;
+}
+
+.users-list {
+  margin: 30px;
+}
+
 .bold-red {
   color: darkred;
   font-weight: bold;
@@ -160,6 +197,7 @@ input[type="submit"]:hover {
   background-color: white;
   font-size: 15px;
   display: inline-block;
+  color: black;
 }
 
 .new-room-button {

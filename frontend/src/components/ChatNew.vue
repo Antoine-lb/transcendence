@@ -6,6 +6,7 @@ import ChatMyRooms from "./ChatNew/ChatMyRooms.vue";
 import ChatAvailableRooms from "./ChatNew/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./ChatNew/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./ChatNew/ChatSelectedRoomParams.vue";
+import ChatSelectedRoomUsers from "./ChatNew/ChatSelectedRoomUsers.vue";
 import PasswordBtn from "./PasswordBtn.vue";
 
 export interface newRoomInterface {
@@ -67,6 +68,7 @@ export default {
     ChatAvailableRooms,
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
+    ChatSelectedRoomUsers,
     PasswordBtn,
   },
   methods: {
@@ -79,6 +81,11 @@ export default {
         this.selectedRoom = {};
       else
         this.selectedRoom = room;     
+    },
+    refreshSelected(room: RoomI) {
+      console.log(">>>>>> refreshSelected in PARENT");
+      this.socket.emit("getRoles", room);
+      this.selectedRoom = room;     
     }
   },
   async created() {
@@ -108,9 +115,10 @@ export default {
 <template>
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoomParams :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoomParams @refreshSelected="refreshSelected" :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoomUsers :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>
 </template>

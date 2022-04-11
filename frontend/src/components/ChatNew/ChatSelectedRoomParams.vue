@@ -1,6 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import PasswordBtn from "../PasswordBtn.vue";
+import PasswordBtn2 from "../PasswordBtn2.vue";
 
 export interface RoomI {
   created_date: string;
@@ -36,16 +36,14 @@ export default {
   name: "ChatSelectedRoomParams",
   data() {
     return {
-      roles: {
-        OWNER: "owner",
-        ADMIN: "admin",
-        LAMBDA: "lambda",
-        BANNED: "banned",
-        // AVAILABLE: "available",
-        // FORBIDDEN: "forbidden",
-      },
-      // showAddPassword: false,
-      // addingPasswordSuccess: false, // validation
+      // Modification
+      showModifyPassword: false,
+      modifyingPasswordSuccess: false, // validation
+      // Addition
+      showAddPassword: false,
+      addingPasswordSuccess: false, // validation
+      // Deletion
+      deletingPasswordSuccess: false, // validation
     };
   },
   props: {
@@ -60,105 +58,72 @@ export default {
     usersForRoom: Object,
   },
   components: {
-    PasswordBtn,
+    PasswordBtn2,
   },
   methods: {
+    // roles check
     getRole(user: UserInterface)
     {
       return this.userRolesInRoom[user?.id];
     },
-    isOwner() {
-      if (this.getRole() == UserRoomRole.OWNER)
+    isOwner(user: UserInterface) {
+      if (this.getRole(user) == UserRoomRole.OWNER)
         return true;
       return false;
-    },   
-    isInRoom(user: UserInterface) {
-      var role = this.getRole(user)
-      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA)
+    },
+    // room status check
+    isProtected() {
+      if (this.selectedRoom.status == true && this.selectedRoom.protected == true && this.selectedRoom.password != null)
         return true;
       return false;
-    },     
-    isAdmin(user: UserInterface) {
-      var role = this.getRole(user)
-      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN)
-        return true;
-      return false;
-    },   
-    isBanned(user: UserInterface) {
-      var role = this.getRole(user)
-      if (role == UserRoomRole.BANNED)
-        return true;
-      return false;
-    },   
+    },
     isPublic() {
       if (this.selectedRoom.status == true && this.selectedRoom.protected == false && this.selectedRoom.password == null)
         return true;
       return false;
     },
-    // roles update
-    updateRole(room: RoomI, user: UserInterface, newRole: UserRoomRole) {
-      this.socket.emit("updateRole",{ room: room, user: user, modifier: this.user, newRole: newRole });
+    deletePassword(room: RoomI, modifier: UserInterface) {
+      this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
-    addAdmin(room: RoomI, user: UserInterface) {
-      if (!this.isAdmin(user))
-        this.updateRole(room, user, UserRoomRole.ADMIN)
-      else
-        this.updateRole(room, user, UserRoomRole.LAMBDA)
+    modifyingPasswordSubmit(room: RoomI, inputPassword: string) {
+      this.socket.emit("modifyPassword", { room: room, modifier: this.user, password: inputPassword });
     },
-    banUser(room: RoomI, user: UserInterface) {
-      if (!this.isBanned(user))
-        this.updateRole(room, user, UserRoomRole.BANNED)
-      else
-        this.updateRole(room, user, UserRoomRole.LAMBDA)
+    addingPasswordSubmit(room: RoomI, inputPassword: string) {
+      this.socket.emit("addPassword", { room: room, modifier: this.user, password: inputPassword });
     },
   },
   async created() {
-
+    this.socket.on("modifyingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on modifyingPasswordSuccess in COMPONENT");
+      this.modifyingPasswordSuccess = true;
+      this.showModifyPassword = false;
+      this.$emit('refreshSelected', room);
+    });
+    this.socket.on("addingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on addingPasswordSuccess in COMPONENT");
+      this.addingPasswordSuccess = true;
+      this.showAddPassword = false;
+      this.$emit('refreshSelected', room);
+    });
+    this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on deletingPasswordSuccess in COMPONENT");
+      this.deletingPasswordSuccess = true;
+      this.$emit('refreshSelected', room);
+    });
   },
 };
 
 </script>
 <template>
   <div class="container" style="margin: 20px">
-    <div v-if="this.selectedRoom?.name">
-      <h1 style="margin-top: 30px">Selected room => users in {{ this.selectedRoom?.name }} </h1>
-      <div v-for="role in roles" class="users-list" :key="role">
-        <p class="table-title">
-          {{ role }}
-        </p>
-        <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
-          <p v-if="getRole(user) == role" class="">
-            {{ user.username }}
-            <span v-if="role != 'available' && user.id != this.user.id">
-              <span v-if="role != 'owner' && role != 'banned'">
-                <button v-if="isAdmin(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
-              </span>
-              <span v-if="role != 'owner'">
-                <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
-              </span>
-            </span>
-          </p>
-        </p>
-      </div>
-      <p> - - - - - - - - </p>
-      <li v-for="user in this.usersForRoom" :key="user.id">
-        <span :class="isBanned(user) ? 'bold-red' : 'bold-colored'">{{ user.username }}</span> ({{ getRole(user) }})
-        <div v-if="isAdmin(this.user) && this.user.id != user.id" class="empty">
-            <button class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
-        </div>
-        <div v-if="isAdmin(this.user) && !isOwner(user) && this.user.id != user.id && !isBanned(user)" class="empty">
-          <button class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Set as admin'}}</button>
-        </div>
-      </li>
-    </div>
-
-    <!-- <div v-if="isOwner()">
+    <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())">
+      <h1 style="margin-top: 30px">Room password settings {{ this.selectedRoom?.name }} </h1>
       <div v-if="isPublic()">
         <p>You are the owner of this public room.
           <p>
             <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
             <p v-if="showAddPassword">
-              <PasswordBtn @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
+              <PasswordBtn2 @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
             </p>
             <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
               Password added
@@ -166,40 +131,24 @@ export default {
           </p>
         </p>
       </div>
-    </div> -->
-      <!-- <div v-if="this.selectedRoom?.id" id="params">
-        <br />
-        <h1 style="margin-top: 30px">Selected room => {{ this.selectedRoom.name }} </h1>
-        <div v-if="isOwner(this.user) && (this.user.id == user.id)" class="empty">
-          <div v-if="isProtected()">
-            <p>You are the owner of this protected room.
-              <p>
-                <button class="new-room-button" @click="deletePassword(this.selectedRoom, this.user)">Delete Password</button>
-                <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
-                <div v-if="showModifyPassword">
-                  <PasswordBtn @onSubmit="modifyingPasswordSubmit" :roomId="room.id" :msg="'MODIFY PASSWORD'"/>
-                </div>
-                <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
-                  Password updated
-                </p>
-              </p>
+      <div v-if="isProtected()">
+        <p>You are the owner of this protected room.
+          <p>
+            <button class="new-room-button" @click="deletePassword(this.selectedRoom, this.user)">Delete Password</button>
+            <p v-if="this.deletingPasswordSuccess" class="validation-paragraf">
+              Password deleted
             </p>
-          </div>
-          <div v-if="isPublic()">
-            <p>You are the owner of this public room.
-              <p>
-                <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
-                <p v-if="showAddPassword">
-                  <PasswordBtn @onSubmit="addingPasswordSubmit" :roomId="room.id" :msg="'ADD PASSWORD'"/>
-                </p>
-                <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
-                  Password added
-                </p>
-              </p>
+            <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
+            <div v-if="showModifyPassword">
+              <PasswordBtn2 @onSubmit="modifyingPasswordSubmit" :room="this.selectedRoom" :msg="'MODIFY PASSWORD'"/>
+            </div>
+            <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
+              Password updated
             </p>
-          </div>
-        </div>
-      </div> -->
+          </p>
+        </p>
+      </div>
+    </div>
     </div>
 </template>
 

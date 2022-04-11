@@ -224,26 +224,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onDeletePassword(socket: Socket, { room, modifier }) {
     await this.roomService.deletePassword(room, modifier);
     await this.emitRoomsForConnectedUsers(room);
-    return await this.server.to(socket.id).emit('updateSelectedRoom', room);
+    return await this.server.to(socket.id).emit('deletingPasswordSuccess', room);
   }
 
   @SubscribeMessage('modifyPassword')
   async onModifyPassword(socket: Socket, { room, modifier, password }) {
-      await this.roomService.modifyPassword(room, modifier, password);
-      await this.emitRoomsForConnectedUsers(room);
-      return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
+    await this.roomService.modifyPassword(room, modifier, password);
+    await this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
   }
 
   @SubscribeMessage('addPassword')
   async onAddPassword(socket: Socket, { room, modifier, password }) {
     await this.roomService.addPassword(room, modifier, password);
     await this.emitRoomsForConnectedUsers(room);
-    // console.log(">>>>>> emitting addingPasswordSuccess");
     return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
   @SubscribeMessage('getRoles')
   async onGetRoles(socket: Socket, room: RoomI) {

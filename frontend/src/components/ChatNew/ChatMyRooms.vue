@@ -38,6 +38,14 @@ export default {
     return {
       showPasswordToJoin: 0,
       wrongPassword: false, // error
+      roles: {
+        OWNER: "owner",
+        ADMIN: "admin",
+        LAMBDA: "lambda",
+        // BANNED: "banned",
+        // AVAILABLE: "available",
+        // FORBIDDEN: "forbidden",
+      },
     };
   },
   props: {
@@ -57,15 +65,23 @@ export default {
       this.resetProtectedRoom();
       this.socket.emit("quitRoom", { room: room, user: user });
     },
+    getRole(room: RoomI)
+    {
+      return this.userRoomsRoles[room.id]
+    },
     isRoomInMyRooms(room: RoomI) {
-      var role = this.userRoomsRoles[room.id];
+      var role = this.getRole(room);
       if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA)
         return true;
       return false;
     },
+    isOwner(room: RoomI) {
+      if (this.getRole(room) == UserRoomRole.OWNER)
+        return true;
+      return false;
+    },
     isRoomAvailable(room: RoomI) {
-      var role = this.userRoomsRoles[room.id];
-      if (role == UserRoomRole.AVAILABLE)
+      if (this.getRole(room) == UserRoomRole.AVAILABLE)
         return true;
       return false;
     },
@@ -112,8 +128,12 @@ export default {
     </p>
     <div class="list-group">
       <ul>
+      <div v-for="role in roles" class="users-list" :key="role"> 
+        <p class="table-title">
+          {{ role }}
+        </p>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="isRoomInMyRooms(room)" >
+          <div v-if="getRole(room) == role" >
             <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
               💬 {{ room.name }}
               <PasswordBtn2 @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
@@ -121,9 +141,10 @@ export default {
             <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
               💬 {{ room.name }}
             </div>
-            <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
+            <button v-if="!isOwner(room)" class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
           </div>
         </div>
+      </div>
       </ul>
     </div>
   </div>
@@ -155,9 +176,28 @@ input[type="submit"]:hover {
   display: inline-block;
 }
 
+
 .bold-colored {
   color: #703ab8;
   font-weight: bold;
+}
+
+.table-title {
+  color: #703ab8;
+  font-weight: bold;
+  font-size: 18px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.table-body {
+  background-color: white;
+  font-size: 15px;
+  color: black;
+}
+
+.users-list {
+  margin: 30px;
 }
 
 .bold-red {
@@ -169,6 +209,7 @@ input[type="submit"]:hover {
   background-color: white;
   font-size: 15px;
   display: inline-block;
+  color: black;
 }
 
 .new-room-button {
