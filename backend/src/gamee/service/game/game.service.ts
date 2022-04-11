@@ -56,12 +56,11 @@ export class GameService {
     return state;
   }
 
-  gameLoop(state: StateI): number {
+  gameLoop(state: StateI, powerUPenable: Boolean = true): number {
     if (!state) {
       return;
     }
     const ball = state.ball;
-    const powerUP = state.powerUp;
     const p1 = state.players[0];
     const p2 = state.players[1];
 
@@ -121,6 +120,31 @@ export class GameService {
       p2.vel = 0;
     }
 
+    if (powerUPenable)
+      this.managePowerUP(state);
+
+    // See if ball passed the paddle
+    if (ball.x < 0) {
+      state.score.p2++
+      console.log("joueur 1 perds")
+      this.resetState(state)
+      if (state.score.p2 > 15)
+        return 2;
+    }
+    if (ball.x > canvas.width) {
+      state.score.p1++
+      this.resetState(state)
+      console.log("joueur 2 perds", ball.x, canvas.width)
+      if (state.score.p1 > 15)
+        return 1;
+    }
+    return 0;
+
+  }
+
+  managePowerUP(state: StateI) {
+    const powerUP = state.powerUp;
+
     if (state.launchPowerUp) {
       powerUP[0].x -= 5
       powerUP[1].x += 5
@@ -148,26 +172,7 @@ export class GameService {
         state.powerUp_t = powerUp_color[Math.floor(Math.random() * 3)]
       }, 5000);
     }
-
-    // See if ball passed the paddle
-    if (ball.x < 0) {
-      state.score.p2++
-      console.log("joueur 1 perds")
-      this.resetState(state)
-      if (state.score.p2 > 15)
-        return 2;
-    }
-    if (ball.x > canvas.width) {
-      state.score.p1++
-      this.resetState(state)
-      console.log("joueur 2 perds", ball.x, canvas.width)
-      if (state.score.p1 > 15)
-        return 1;
-    }
-    return 0;
-
   }
-
 
   collides(ball, paddle): Boolean {
     const ballsize = grid;

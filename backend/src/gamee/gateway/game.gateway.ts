@@ -52,6 +52,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
       const user = await this.userService.findById(decodedToken.id);
+      console.log('Connection done socket:', socket.rooms, socket.id);
 
       if (!user)
         return this.disconnect(socket);
@@ -235,14 +236,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     this.GameService.getUpdatedVelocity(true, keyCode, this.state[index].players[socket.data.number - 1]);
   }
 
-
+  // C'est celui qui marche
   async handleDisconnect(socket: Socket) {
+    console.log("socket handleDisconnect:", socket.id, " juts disconnected")
 
     // remove client to connected repository
     socket.disconnect()
   }
 
   private disconnect(socket: Socket) {
+    console.log("socket disconnect:", socket.id, " juts disconnected")
 
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
@@ -262,11 +265,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         this.emitGameState(this.state, roomId);
       }
       else {
-        clearInterval(this.intervalId);
+        clearInterval(this.state[roomId].intervalId);
         this.emitGameOver(this.state[index], winner);
 
         // TODO : save the score
-        this.state.splice(index, 1);
+        // this.state.splice(index, 1);
 
         console.log('------------after SPLIRCE------------------------');
         console.log(index);
@@ -280,10 +283,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     let index: number = this.GameService.getRoomById(this.state, roomId);
 
-    console.log(index);
-
+    console.log('index', index);
+    console.log('roomId', roomId);
+    // console.log('state[index].id.toString()', state[index].id.toString())
     // Send this event to everyone in the room.
-    this.server.to(state[index].id.toString())
+    // this.server.to(state[index].id.toString())
+    this.server.to(roomId.toString())
       .emit('gameState', JSON.stringify(state[index]));
   }
 
