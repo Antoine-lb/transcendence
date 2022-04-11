@@ -63,6 +63,7 @@ export default {
       this.socket.on("paused", this.handlePause);
       this.socket.on("notify", this.handleNotification);
       this.socket.on("disconnection", this.handleDisconnection);
+      this.socket.on("startGameAnimation", this.startGameAnimation);
       this.socket.on("disconnect", (reason) => {
         if (reason === "io server disconnect") {
           // the disconnection was initiated by the server, you need to reconnect manually
@@ -70,6 +71,13 @@ export default {
         }
       // else the socket will automatically try to reconnect
       });
+    },
+    joinQueue() {
+      console.log("Join Queue");
+
+      this.socketSetter();
+      this.socket.emit("joinQueue");
+      this.init();
     },
 
     createNewGame() {
@@ -118,6 +126,23 @@ export default {
       if (!this.socket.connected)
         return;
       this.socket.emit("keyup", e.keyCode);
+    },
+
+    async startGameAnimation()
+    {
+      for (let cntDown = 5; cntDown > 0; --cntDown)
+        for (let index = 0; index < 100; ++index) {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.font = (index).toString() + "px Calibri,Geneva,Arial";
+          this.ctx.strokeStyle = "rgb(0,0,0)";
+          this.ctx.strokeText(String(cntDown), this.canvas.width / 3 - index / 3, this.canvas.height / 3 + index / 3);
+          await this.sleep(10);
+        }
+      this.socket.emit('launchGame');
+    },
+
+    sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
     },
 
     paintGame(state) {
@@ -257,14 +282,26 @@ export default {
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
             <h1>Multiplayer Pong Game</h1>
             <h1>myRoom is : {{this.socket != null ? this.socket.id : "Undefined yet"}}</h1>
+          <div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              @click="joinQueue"
+            >
+              Play 
+            </button>
+          </div>
+            <div>OR</div>
+          <div>
             <button
               type="submit"
               class="btn btn-success"
               @click="createNewGame"
             >
-              Play 
+              Create Game code 
             </button>
-            <div>OR</div>
+          </div>
+
             <div class="form-group">
               <input type="text" placeholder="Enter Game Code" ref="gameCodeInput"/>
             </div>

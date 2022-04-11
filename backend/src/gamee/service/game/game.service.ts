@@ -6,7 +6,8 @@ import {
   paddleHeight,
   paddleWidth,
   canvas,
-  powerUp_color
+  powerUp_color,
+  scoreLimit
 } from 'src/utils/constants';
 
 
@@ -128,13 +129,13 @@ export class GameService {
     if (ball.x < 0) {
       state.score.p2++
       this.resetState(state)
-      if (state.score.p2 > 5)
+      if (state.score.p2 > scoreLimit)
         return 2;
     }
     if (ball.x > canvas.width) {
       state.score.p1++
       this.resetState(state)
-      if (state.score.p1 > 5)
+      if (state.score.p1 > scoreLimit)
         return 1;
     }
     return 0;
@@ -192,7 +193,7 @@ export class GameService {
         }
         case 40: { // down
           clientPaddle.vel = 20;
-          break;
+          break; 74994
         }
       }
     }

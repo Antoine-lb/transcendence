@@ -131,6 +131,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // init the front for player 1
       socket.emit('init', 1);
+      console.log('player 1');
+
     }
     // [JOIN] the game if somebody is already in queue
     else {
@@ -145,7 +147,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('init', 2);
       // start the game when both player are connected
       this.startGameInterval(this.state[index].id);
+
+
+      // ESSAI D'INSÉRER L'ANIMATION
+      // Animation to warn players the game is starting
+      /*       
+            // socket.emit('startGameAnimation')
+            this.server.to(this.state[index].id.toString())
+              .emit('startGameAnimation')
+            // start the game when both player are connected
+            setTimeout(this.startGameInterval, 1000, this.state[this.GameService.getRoomForQueue(this.state)].id);
+            console.log('player 2'); */
     }
+  }
+
+  @SubscribeMessage('launchGame')
+  launchGame(/* roomId: number */) {
+    // console.log(`socket.data.user.id ${this.socket.data.user.id}`);
+    console.log(`socket.data.user.id`);
+
+    // let index: number = this.GameService.getRoomById(this.state, roomId);
+    // this.startGameInterval(this.state[index].id);
   }
 
   @SubscribeMessage('newGame')
