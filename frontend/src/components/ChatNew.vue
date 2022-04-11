@@ -7,7 +7,6 @@ import ChatAvailableRooms from "./ChatNew/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./ChatNew/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./ChatNew/ChatSelectedRoomParams.vue";
 import ChatSelectedRoomUsers from "./ChatNew/ChatSelectedRoomUsers.vue";
-import PasswordBtn from "./PasswordBtn.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -69,7 +68,6 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
-    PasswordBtn,
   },
   methods: {
     createRoom(room: newRoomInterface) {

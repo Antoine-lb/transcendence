@@ -1,6 +1,18 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 
+export interface RoomI {
+  created_date: string;
+  id: number;
+  name: string;
+  password: string;
+  protected: boolean;
+  status: boolean;
+  updated_date: string;
+  admins: [];
+  bans: [];
+}
+
 export default {
   name: "PasswordBtn",
   data() {
@@ -12,7 +24,9 @@ export default {
   },
   props: {
     onSubmit: Function,
-    roomId: Number,
+    room: {
+      type: Object as () => RoomI,
+    },
     msg: String,
   },
   async created() {
@@ -25,8 +39,8 @@ export default {
       else
         this.passwordFieldType = 'password'
     },
-    submitPwd(roomId, inputPassword) {
-      this.$emit("onSubmit", roomId, inputPassword);
+    submitPwd(room, inputPassword) {
+      this.$emit("onSubmit", room, inputPassword);
     }
   },
 };
@@ -36,7 +50,7 @@ export default {
   <div>
     <input :type="passwordFieldType" v-model="inputPassword" placeholder="Password" />
     <button class="pwd-btn" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
-    <button class="pwd-btn on-colors" @click="submitPwd(this.roomId, inputPassword)">{{ msg }}</button> 
+    <button class="pwd-btn on-colors" @click="submitPwd(this.room, inputPassword)">{{ msg }}</button> 
   </div>
 </template>
 

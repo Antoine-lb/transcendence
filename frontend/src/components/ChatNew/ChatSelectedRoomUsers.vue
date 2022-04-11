@@ -1,6 +1,5 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import PasswordBtn from "../PasswordBtn.vue";
 
 export interface RoomI {
   created_date: string;
@@ -58,7 +57,6 @@ export default {
     usersForRoom: Object,
   },
   components: {
-    PasswordBtn,
   },
   methods: {
     // roles check
@@ -110,9 +108,9 @@ export default {
 
 </script>
 <template>
-  <div class="container" style="margin: 20px">
-    <div v-if="this.selectedRoom?.name">
-      <h1 style="margin-top: 30px">Users in {{ this.selectedRoom?.name }} </h1>
+  <div>
+    <div v-if="this.selectedRoom?.name" class="box">
+      <h1>Users in {{ this.selectedRoom?.name }} </h1>
       <div v-for="role in roles" class="users-list" :key="role">
         <p v-if="role != 'banned' || isAdmin(this.user)">
           <p class="table-title">
@@ -147,6 +145,19 @@ main {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+.box {
+  background-color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 .error-paragraf {

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import PasswordBtn2 from "../PasswordBtn2.vue";
+import PasswordBtn from "../PasswordBtn.vue";
 
 export interface RoomI {
   created_date: string;
@@ -58,7 +58,7 @@ export default {
     usersForRoom: Object,
   },
   components: {
-    PasswordBtn2,
+    PasswordBtn,
   },
   methods: {
     // roles check
@@ -115,15 +115,15 @@ export default {
 
 </script>
 <template>
-  <div class="container" style="margin: 20px">
-    <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())">
-      <h1 style="margin-top: 30px">Room password settings {{ this.selectedRoom?.name }} </h1>
+  <div style="margin: 20px">
+    <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())" class="box">
+      <h1 >{{ this.selectedRoom?.name }} settings </h1>
       <div v-if="isPublic()">
         <p>You are the owner of this public room.
           <p>
             <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
             <p v-if="showAddPassword">
-              <PasswordBtn2 @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
+              <PasswordBtn @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
             </p>
             <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
               Password added
@@ -140,7 +140,7 @@ export default {
             </p>
             <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
             <div v-if="showModifyPassword">
-              <PasswordBtn2 @onSubmit="modifyingPasswordSubmit" :room="this.selectedRoom" :msg="'MODIFY PASSWORD'"/>
+              <PasswordBtn @onSubmit="modifyingPasswordSubmit" :room="this.selectedRoom" :msg="'MODIFY PASSWORD'"/>
             </div>
             <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
               Password updated
@@ -162,6 +162,19 @@ main {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+.box {
+  background-color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 .error-paragraf {

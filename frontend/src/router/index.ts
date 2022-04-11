@@ -19,14 +19,6 @@ const router = createRouter({
     },
     {
       path: "/chat",
-      name: "Chat",
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import("../views/Chat.vue"),
-    },
-    {
-      path: "/chat_new",
       name: "ChatNew",
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route

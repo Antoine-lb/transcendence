@@ -1,6 +1,6 @@
 <script lang="ts">
 import { io } from "socket.io-client";
-import PasswordBtn2 from "../PasswordBtn2.vue";
+import PasswordBtn from "../PasswordBtn.vue";
 
 export interface RoomI {
   created_date: string;
@@ -58,7 +58,7 @@ export default {
     },
   },
   components: {
-    PasswordBtn2,
+    PasswordBtn,
   },
   methods: {
     quitRoom(room: RoomI, user: UserInterface) {
@@ -121,8 +121,8 @@ export default {
 };
 </script>
 <template>
-  <div class="container">
-    <h1 style="margin-top: 30px">My rooms</h1>
+  <div class="box">
+    <h1>My rooms</h1>
     <p v-if="wrongPassword" class="error-paragraf">
       Password not matching
     </p>
@@ -136,7 +136,7 @@ export default {
           <div v-if="getRole(room) == role" >
             <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
               💬 {{ room.name }}
-              <PasswordBtn2 @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
+              <PasswordBtn @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
             </div>
             <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
               💬 {{ room.name }}
@@ -160,6 +160,19 @@ main {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+.box {
+  background-color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 .error-paragraf {

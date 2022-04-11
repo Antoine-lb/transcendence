@@ -83,11 +83,9 @@ export default {
 };
 </script>
 <template>
-  <div class="container">
-      <div id="status"></div>
-      <div v-if="this.selectedRoom?.id" id="chat">
-        <br />
-        <h1 style="margin-top: 30px">Chat in {{ this.selectedRoom.name }} </h1>
+  <div>
+      <div v-if="this.selectedRoom?.id" id="chat" class="box">
+        <h1>Chat in {{ this.selectedRoom.name }} </h1>
         <div class="message-box">
           <div id="messages-box" class="card-block">
             <!-- Received messages -->
@@ -130,6 +128,19 @@ main {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+.box {
+  background-color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 .error-paragraf {
@@ -301,6 +312,6 @@ textarea {
   font-size: 30px;
   padding: 10px;
   border-radius: 13px;
-  margin-bottom: 100px;
+  /* margin-bottom: 100px; */
 }
 </style>
