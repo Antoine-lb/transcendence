@@ -1,33 +1,29 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
-import TheWelcome from "@/components/TheWelcome.vue";
 import axios from "axios";
-// import PopperVue from '@soldeplata/popper-vue';
-
 
 export default {
-  setup() {
-    const userStore = useUserStore();
-    userStore.requestLogState();
-    return { userStore };
-  },
-  data () {
+  name: "PrivateAccount",
+  // setup() {
+  //   const userStore = useUserStore();
+  //   userStore.requestLogState();
+  //   return { userStore };
+  // },
+  data() {
     return {
+      userStore: useUserStore(),
       name: null,
       code: null,
       file: '',
       img: '',
       errors: [],
-    }
+    };
   },
-  watch: {
+  props: {
 
   },
-  computed: {
+  async created() {
 
-  },
-  components : {
-    TheWelcome
   },
   methods: {
     goToAccount() {
@@ -87,6 +83,11 @@ export default {
       return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
     },
     generateQrCode() {
+      if (this.img)
+      {
+        this.img = null;
+        return;
+      }
       console.log("generateQrCode()")
       const token = this.userStore.user.access_token
       axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
@@ -134,175 +135,119 @@ export default {
     },
   },
 };
-
 </script>
 
 <template>
-  <main>
-    <div v-if="userStore.isLoading">Loading...</div>
-    <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
-        <h1>Bonjour {{ userStore.user.username }}</h1>
-        <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
-        <p v-if="errors.length">
-        <b>Please correct the following error(s):</b>
-          <ul>
-            <li v-for="error in errors"> {{ error }}</li>
-          </ul>
+  <div>
+    <div class="box">
+      <!-- If errors at submit -->
+      <p class="error" v-if="errors.length">
+        Please correct the following error(s):
+        <ul> <li v-for="error in errors"> {{ error }}</li> </ul>
+      </p>
+      <!-- Update username -->
+      <div class="text space">
+        <p> Update your username :
+          <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
         </p>
+        <p><button class="pwd-btn" type="submit" @click="checkForm()" >Submit</button></p>
+      </div>
+      <!-- Update avatar -->
+      <div class="text space">
+        <p> Update your avatar :
+          <input type="file" @change="handleFileUpload( $event )"/>
+        </p>
+        <p><button class="pwd-btn" v-on:click="submitFile()">Submit</button></p>
+      </div>
+      <!-- Enable/Disable 2FA -->
+      <div class="text space">
+        <!-- Enable 2FA -->
+        <p> Update your security settings : </p>
         <div v-if="!userStore.user.isTwoFA">
-            <button type="submit" @click="generateQrCode()">Enable 2-factor authentication</button>
+          <p><button class="pwd-btn" type="submit" @click="generateQrCode()">Enable 2-factor authentication</button></p>
           <div v-if="this.img">
-            <!-- <p>{{ this.img.substring(0, 100) }}</p> -->
             <img :src="img" />
             <p>
               Please enter 2fa code below :
               <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
-              <button type="submit" @click="turnOn2fa()" >Submit</button>
+              <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>
           </div>
         </div>
+        <!-- Disable 2FA -->
         <div v-else>
-          2-factor authentication is activated
-          <button type="submit" @click="turnOff2fa()">Disable 2-factor authentication</button>
+          <p><button class="pwd-btn" type="submit" @click="turnOff2fa()">Disable 2-factor authentication</button></p>
         </div>
-          <p>
-            Update your username :
-            <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
-            <button type="submit" @click="checkForm()" >Submit</button>
-          </p>
-          <p>
-            Update your avatar :
-            <input type="file" @change="handleFileUpload( $event )"/>
-            <button v-on:click="submitFile()">Submit</button>
-          </p>
-
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-            <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
-      </div>
-      <div v-if="!userStore.isLogged">
-        <TheWelcome />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se connecter avec</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
-
       </div>
     </div>
-  </main>
+    <!-- Logout -->
+    <div class="login-container">
+      <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
+        <div class="intra-login-wrapper">
+          <p>Se deconnecter</p>
+          <img
+            alt="Invader Logo"
+            class="logo-42"
+            src="@/assets/logo-42-black.png"
+          />
+        </div>
+      </a>
+    </div>
+  </div>
 </template>
 
-<style>
-.login-container {
-  padding-top: 50px;
-  display: flex;
+<style scoped>
+
+input[type="submit"]:hover {
+  background-color: white;
+  color: #703ab8;
 }
 
-.intra-login {
-  margin: auto;
-  color: rgba(0, 0, 0, 0.822);
-  display: flex;
-  flex-direction: row;
-}
-
-.intra-login:hover {
-  background-color: rgba(0, 0, 0, 0.096);
-}
-
-.intra-login-wrapper {
-  border: 4px solid rgba(0, 0, 0, 0.822);
-  padding: 10px;
-  align-items: stretch;
-  justify-content: center;
+.pwd-btn {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.intra-login-wrapper:hover {
-  padding: 10px 25px;
-  align-items: stretch;
-  justify-content: center;
-}
-
-.intra-login-wrapper p {
-  display: inline-block;
-  font-size: 30px;
-  vertical-align: middle;
-}
-
-.logo-42 {
-  display: inline-block;
-  /* max-width: 100%; */
-  /* align: center; */
-  vertical-align: middle;
-  width: 70px;
-}
-
-/* POUR LA TICK BOX */
-input[type="checkbox"] {
-  height: 0;
-  width: 0;
-  visibility: hidden;
-}
-
-label {
+  border-radius: 3px;
+  padding: 6px 15px;
   cursor: pointer;
-  /* text-indent: -9999px; */
-  text-indent: 115px;
-  /* width: 200px; origin */
-  width: 20%;
-  /* height: 100px; origin */
-  /* height: 20%; */
-  background: grey;
-  /* display: block; */
-  border-radius: 100px;
-  position: relative;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 4px;
+  border: 2px solid #703ab8;
 }
 
-label:after {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  /* width: 90px; origin */
-  width: 35%;
-  /* height: 90px; origin */
-  height: 60%;
-  background: #fff;
-  border-radius: 90px;
-  transition: 0.3s;
+.box {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
-input:checked + label {
-  background: #bada55;
+.text {
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.822);
 }
 
-input:checked + label:after {
-  left: calc(100% - 5px);
-  transform: translateX(-100%);
+.space {
+  margin: 15px;
 }
 
-label:active:after {
-  /* width: 130px; origin */
-  width: 5%;
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
-/*  centering */
+.error {
+  color: darkred;
+  font-weight: bold;
+}
+
 </style>

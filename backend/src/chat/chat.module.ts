@@ -9,17 +9,20 @@ import { ConnectedUserService } from './service/connected-user/connected-user.se
 import { ConnectedUserEntity } from './model/connected.user.entity';
 import { JoinedRoomService } from './service/joined-room/joined-room.service';
 import { MessageService } from './service/message/message.service';
+import { UserRoomService } from './service/user-room/user-room.service';
 import { MessageEntity } from './model/message.entity';
 import { JoinedRoomEntity } from './model/joined-room.entity';
+import { UserRoomEntity } from './model/user-room.entity';
 
 @Module({
   imports: [AuthModule, UsersModule, TypeOrmModule.forFeature([
     RoomEntity,
     ConnectedUserEntity,
     MessageEntity,
-    JoinedRoomEntity
+    JoinedRoomEntity,
+    UserRoomEntity
     ]),
   ],
-  providers: [ChatGateway, RoomService, ConnectedUserService, JoinedRoomService, MessageService]
+  providers: [ChatGateway, RoomService, ConnectedUserService, JoinedRoomService, UserRoomService, MessageService]
 })
 export class ChatModule {}

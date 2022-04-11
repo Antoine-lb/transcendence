@@ -23,6 +23,8 @@ import { MessageService } from '../service/message/message.service';
 import { UserDto } from 'src/entities/users.dto';
 import { comparePassword } from 'src/utils/bcrypt';
 import { UserInterface } from 'src/entities/users.interface';
+import { UserRoomService } from '../service/user-room/user-room.service';
+import { UserRoomRole } from '../model/user-room.entity';
 
  @WebSocketGateway({
    cors: {
@@ -38,6 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
      private connectedUserService: ConnectedUserService,
      private joinedRoomService: JoinedRoomService,
      private messageService: MessageService,
+     private userRoomService: UserRoomService
     ) { }
 
    @WebSocketServer() server: Server;
@@ -51,127 +54,232 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
-
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user) {
         return this.disconnect(socket);
       }
       else {
-
         socket.data.user = user;
-        const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
-        
-        // Save connection to DB 
+        const myRooms = await this.userRoomService.getAllRoomsForUser(user)
+        // Save connection to database 
         await this.connectedUserService.create({ socketID: socket.id, user });
-
         // Only emit rooms to the specific connected client
-        return this.server.to(socket.id).emit('rooms', rooms)
+        // console.log(">>>>>> handleConnection");
+        this.server.to(socket.id).emit('rooms', myRooms)
+        this.server.to(socket.id).emit('getRoomsForUser', myRooms)
       }
     }
     catch {
       return this.disconnect(socket);
     }
   }
-   
-  @SubscribeMessage('createRoom')
-  async onCreateRoom(socket: Socket, room: RoomI) {
-    // TODO : Check validity of all users before create the room
-    const createRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
 
-    for (const user of createRoom.users) {
+  async emitRoomsForConnectedUsers(room: RoomI) {
+    // console.log(">>>>>> emitRoomsForConnectedUsers");
+    const users = await this.userRoomService.getUsersForRoom(room);
+    for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-      const rooms = await this.roomService.getRoomForUser(user.id, { page: 1, limit: 100 })
-
+      const rooms = await this.userRoomService.getAllRoomsForUser(user)
       for (const connection of connections) {
         await this.server.to(connection.socketID).emit('rooms', rooms)
+        await this.server.to(connection.socketID).emit('getRoomsForUser', rooms)
       }
     }
   }
 
-  @SubscribeMessage('getAdmins')
-  async onGetAdmins(socket: Socket, room: RoomI, admins: UserDto[]) {
-    admins = await this.roomService.getAdminsForRoom(room.id);
-    console.log(">>>>>> onGetAdmins admins : ", admins);
-    return await this.server.to(socket.id).emit('getAdmins', admins)
+  async emitRoomsForOneUser(socket: Socket, user: UserDto) {
+    // console.log(">>>>>> emitRoomsForOneUser");
+    const rooms = await this.userRoomService.getAllRoomsForUser(user);
+    await this.server.to(socket.id).emit('rooms', rooms);
+    await this.server.to(socket.id).emit('getRoomsForUser', rooms);
   }
 
-  @SubscribeMessage('getUsers')
-  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
-    
-    users = await this.roomService.getUsersForRoom(room.id);
-    return this.server.to(socket.id).emit('getUsers', users)
+  async emitRolesForConnectedUsers(room: RoomI) {
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
+    const users = await this.userRoomService.getUsersForRoom(room);
+    for (const user of users) {
+      const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+      for (const connection of connections) {
+        await this.server.to(connection.socketID).emit('getRoles', roles)
+      }
+    }
   }
 
-  @SubscribeMessage('blockUser')
-  async onBlockUser(socket: Socket, room: RoomI){}
-   
-   @SubscribeMessage('joinRoom')
-  // async onJoinRoom(socket: Socket, room: RoomI, password: string) {
+  async createUserRooms(room: RoomI, owner: UserDto, users: UserDto[]) {
+    for (const user of users) {
+      if (user.id == owner.id)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.OWNER });
+      else
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.LAMBDA });
+    }
+    var allUsers = await this.userService.findAll();
+    if (room.status == true)
+    {
+      for (var user of allUsers)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.AVAILABLE });
+    }
+    else
+    {
+      for (var user of allUsers)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.FORBIDDEN });
+    }
+  }
+
+  @SubscribeMessage('createRoom')
+  async onCreateRoom(socket: Socket, room: RoomI) {
+    // TODO : Check validity of all users before create the room
+    const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
+    await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
+    await this.emitRoomsForConnectedUsers(newRoom);
+  }
+
+  @SubscribeMessage('getRoomsForUser')
+  async onGetRoomsForUser(socket: Socket, user: UserDto) {
+    const rooms = await this.userRoomService.getAllRoomsForUser(user);
+    await this.server.to(socket.id).emit('getRoomsForUser', rooms);
+  }
+
+  @SubscribeMessage('quitRoom')
+  async onQuitRoom(socket: Socket, { room, user }) {
+    // TODO : Check validity of all users before create the room
+    await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
+    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+    await this.emitRoomsForConnectedUsers(room);
+  }
+
+  @SubscribeMessage('enterRoom')
+  async onEnterRoom(socket: Socket, { room, user }) {
+    // TODO : Check validity of all users before create the room
+    await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
+    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+    await this.emitRoomsForConnectedUsers(room);
+  }
+
+  @SubscribeMessage('joinRoom')
   async onJoinRoom(socket: Socket, { room, password }) {
-
-     if (room.protected == true) {
-      
+    if (room.protected == true) {
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
        }
-         
       const matched = comparePassword(password, room.password)
-      
        if (!matched) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
        }
-        
     }
     // Find previous Room Messages
     const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-    
      // check if already join (for if the client switch between)
     var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
-
     // Save Connection to Room in DB
     if (found.length == 0)
-      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room });
+      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
     await this.server.to(socket.id).emit('messages', messages);
+  }
+
+  @SubscribeMessage('selectRoom')
+  async onSelectRoom(socket: Socket, { room, password }) {
+    // console.log(">>>>>> onSelectRoom");
+    if (room.protected == true) {
+      console.log(">>>>>> room is protected");
+       if (!password) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+      const matched = comparePassword(password, room.password)
+       if (!matched) {
+         socket.emit('WrongPassword', new UnauthorizedException());
+         return;
+       }
+    }
+    // Find previous Room Messages
+    const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
+     // check if already join (for if the client switch between)
+    var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
+    // Save Connection to Room in DB
+    if (found.length == 0)
+      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
+    // Send Last Message to User
+    await this.server.to(socket.id).emit('updateSelected', room);
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
+    await this.server.to(socket.id).emit('getRoles', roles);
+    var users = await this.userRoomService.getUsersForRoom(room);
+    await this.server.to(socket.id).emit('getUsers', users)
+    return await this.server.to(socket.id).emit('getMessages', messages);
   }
    
   @SubscribeMessage('leaveRoom')
   async onLeaveRoom(socket: Socket, room: RoomI) {
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
+    await this.server.to(socket.id).emit('updateSelected', room);
   }
       
-  @SubscribeMessage('addAdmin')
-  async onAddAdmin(socket: Socket, { room, user, modifier }) {
+  //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
+
+  @SubscribeMessage('deletePassword')
+  async onDeletePassword(socket: Socket, { room, modifier }) {
+    await this.roomService.deletePassword(room, modifier);
+    await this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('deletingPasswordSuccess', room);
+  }
+
+  @SubscribeMessage('modifyPassword')
+  async onModifyPassword(socket: Socket, { room, modifier, password }) {
+    await this.roomService.modifyPassword(room, modifier, password);
+    await this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
+  }
+
+  @SubscribeMessage('addPassword')
+  async onAddPassword(socket: Socket, { room, modifier, password }) {
+    await this.roomService.addPassword(room, modifier, password);
+    await this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  @SubscribeMessage('getRoles')
+  async onGetRoles(socket: Socket, room: RoomI) {
+
+    var roles = await this.userRoomService.getAllRolesForRoom(room);
+    return await this.server.to(socket.id).emit('getRoles', roles);
+  }
+
+  @SubscribeMessage('getAllRolesForUser')
+  async onGetAllRolesForUser(socket: Socket, user: UserDto) {
+    var rooms = await this.userRoomService.getAllRolesForUser(user);
+    return await this.server.to(socket.id).emit('getAllRolesForUser', rooms);
+  }
+
+  @SubscribeMessage('getUsers')
+  async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
+    users = await this.userRoomService.getUsersForRoom(room);
+    return this.server.to(socket.id).emit('getUsers', users)
+  }
+
+  @SubscribeMessage('updateRole')
+  async onUpdateRole(socket: Socket, { room, user, modifier, newRole }) {
     try {
-      await this.roomService.addAdminsToRoom(room, [ user ], modifier);
-      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
-      for (const joinedUser of joinedUsers) {
-        await this.server.to(joinedUser.socketID).emit('getAdmins', room.admins);
-      }
+      await this.userRoomService.updateRole(room, user, modifier, newRole);
+      this.emitRolesForConnectedUsers(room);
     }
     catch {
       socket.emit('Error', new UnauthorizedException());
     }
   }
-      
-  // @SubscribeMessage('addAdmins') // not use for now
-  // async addAdminsToRoom(socket: Socket, room: RoomI, newAdmins: UserDto[]) {
-  //   // Add admins to the Rooms
-  //   try {
-  //     await this.roomService.addAdminsToRoom(room, newAdmins, socket.data.user);
-  //   }
-  //   catch {
-  //     socket.emit('Error', new UnauthorizedException());
-  //   }
-  // }
 
+  @SubscribeMessage('blockUser')
+  async onBlockUser(socket: Socket, room: RoomI){}
+
+  //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
+ 
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, message: MessageI) {
-
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
@@ -180,8 +288,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
   }
-     
-   
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   async handleDisconnect(socket: Socket) {
     // remove client to connected repository
     await this.connectedUserService.deleteBySocketID(socket.id);

@@ -1,16 +1,37 @@
-import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, NotFoundException, UnauthorizedException, ForbiddenException, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/users.entity'
 import { UserInterface } from '../entities/users.interface'
 import { UserDto } from '../entities/users.dto'
 import { join } from 'path';
+// import { UserRoomService } from 'src/chat/service/user-room/user-room.service';
+import { RoomService } from 'src/chat/service/room-service/room.service';
+import { UserRoomService } from 'src/chat/service/user-room/user-room.service';
+import { UserRoomRole } from 'src/chat/model/user-room.entity';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>){}
+    constructor(
+      // private readonly userRoomService: UserRoomService,
+      @Inject(forwardRef(() => RoomService))
+      private readonly roomService: RoomService,
+
+      @Inject(forwardRef(() => UserRoomService))
+      private readonly userRoomService: UserRoomService,
+
+      @InjectRepository(UserEntity) private usersRepository: Repository<UserEntity>
+    ){}
     
     // ############################################ create user ############################################ 
+
+    async addUserToPublicRooms(user: UserDto) {
+      // find all public rooms
+      var publicRooms = await this.roomService.findAllPublic();
+      // add user to userroom as LAMBDA
+      for (var room of publicRooms)
+        await this.userRoomService.create({ user: user, room: room, role: UserRoomRole.AVAILABLE });
+    }
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
@@ -29,7 +50,11 @@ export class UsersService {
             avatar: defaultfile
       })
       console.log('...saving new user : ' + new_user.username)
-      return await this.usersRepository.save(new_user);
+      var savedUser = await this.usersRepository.save(new_user);
+      // ajoute l'utilisateur aux public room existantes
+      await this.addUserToPublicRooms(user);
+      return savedUser;
+
     }
 
     // ############################################ find functions ############################################ 
