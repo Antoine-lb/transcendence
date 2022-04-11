@@ -51,7 +51,8 @@ export class GameService {
       intervalId: null,
       is_public: is_public,
       status: 0,
-
+      player1Id: 0,
+      player2Id: 0,
     };
     return state;
   }
@@ -183,7 +184,6 @@ export class GameService {
   }
 
   getUpdatedVelocity(keyreleased, keyCode, clientPaddle) {
-    // console.log("(getUpdatedVelocity) key pressed :", keyCode)
     if (keyreleased && (keyCode === 38 || keyCode === 40))
       clientPaddle.vel = 0;
     else {
@@ -198,7 +198,6 @@ export class GameService {
         }
       }
     }
-    console.log("clientPaddle.vel", clientPaddle.vel)
   }
 
   powerUpEffects(state, player) {
@@ -213,8 +212,6 @@ export class GameService {
       var maxPaddleH = 275;
       state.players[player].paddleH += (state.players[player].paddleH + 20 < maxPaddleH) ? 20 : 0;
     }
-    console.log("state.ball.dx ", state.ball.dx)
-    console.log("state.ball.dy ", state.ball.dy)
   }
   // reset state if PowerUp have been taken
   resetState(state) {
@@ -226,12 +223,11 @@ export class GameService {
       dx: state.ball.dx > 0 ? 5 : -5,
       dy: state.ball.dy > 0 ? 5 : -5,
     }
-    console.log("resetState", state.player)
   }
 
   makeid(length): string {
     var result = '';
-    var characters = '0123456789';
+    var characters = '123456789';
     var charactersLength = characters.length;
     for (var i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));

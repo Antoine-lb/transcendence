@@ -18,6 +18,8 @@ import { FRAME_RATE, maxPaddleY, grid, canvas, paddleHeight, } from 'src/utils/c
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
 import { StateI } from 'src/gamee/model/state.interface';
+import { UserEntity } from 'src/entities/users.entity';
+import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service'
 
 
 
@@ -26,26 +28,19 @@ import { StateI } from 'src/gamee/model/state.interface';
     origin: '*',
   },
 })
-export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(
     private authService: AuthService,
     private userService: UsersService,
     private GameService: GameService,
+    private MatchHistoryService: MatchHistoryService
   ) { }
 
 
 
   @WebSocketServer() server: Server;
-
-  intervalId: NodeJS.Timer;
-
   state: StateI[] = [];
-
-
-
-  async onModuleInit() {
-  }
 
   async handleConnection(socket: Socket, payload: string) {
     try {
@@ -72,9 +67,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   handleJoinGame(socket: Socket, roomName: string) {
 
     let roomSize = 0;
-    console.log('------------after Join------------------------')
 
-    console.log(this.state);
     const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
@@ -94,6 +87,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
 
     this.state[index].id = roomNameINT;
+    this.state[index].player2Id = socket.data.user.id;
+
     // set the creator to player 1
     socket.data.number = 2;
     // set the room game id to the current user socket
@@ -124,6 +119,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       newState.gameState = "play";
       newState.status = 1;
       newState.id = parseInt(roomName);
+      newState.player1Id = socket.data.user.id;
       // save the new game state
       this.state.push(newState);
       // set the creator to player 1
@@ -142,6 +138,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       socket.data.number = 2;
       // set the room game id to the current user socket
       socket.data.roomId = this.state[index].id;
+      this.state[index].player2Id = socket.data.user.id;
       // join the room socket
       socket.join(this.state[index].id.toString());
       // init the front for player 2
@@ -162,6 +159,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     let newState: StateI = this.GameService.initGame(false)
     newState.gameState = "play";
     newState.id = parseInt(roomName);
+    // save playerId to state
+    newState.player1Id = socket.data.user.id;
+
     // save the new game state
     this.state.push(newState);
     // set the creator to player 1
@@ -175,37 +175,35 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
 
-  // @SubscribeMessage('pause')
-  // async handlePause(socket: Socket) {
-  //   // let room = this.state[clientRooms[socket.id]];
-  //   let room = this.state;
-  //   if (!room)
-  //     return;
-  //   room.gameState = room.gameState === "paused" ? "play" : "paused";
+  @SubscribeMessage('pause')
+  async handlePause(socket: Socket) {
 
-  // 	if (room.gameState === "paused") {
-  // 		clearInterval(this.intervalId);
-  //     socket.broadcast.emit('notify', {
-  //       title: "Important message",
-  //       text: "Game Paused by your opponent",
-  //       duration : 6000
-  //     });
-  // 	}
-  // 	else {
-  // 		console.log("Pas paused")
-  //     this.startGameInterval(this.state.id);
-  // 	}
-  // }
+    let index: number = await this.GameService.getRoomById(this.state, socket.data.roomId);
+    if (!this.state[index]) {
+      return;
+    }
+    this.state[index].gameState = this.state[index].gameState === "paused" ? "play" : "paused";
+
+    if (this.state[index].gameState === "paused") {
+      clearInterval(this.state[index].intervalId);
+      socket.broadcast.emit('notify', {
+        title: "Important message",
+        text: "Game Paused by your opponent",
+        duration: 6000
+      });
+    }
+    else {
+      this.startGameInterval(this.state[index].id);
+    }
+  }
 
   @SubscribeMessage('disconnect')
   async handleDisconnection(socket: Socket) {
-    console.log("socket :", socket.id, " juts disconnected")
     if (socket.data.roomId && this.state[parseInt(socket.data.roomId)].intervalId)
       clearInterval(this.state[socket.data.roomId].intervalId);
     // socket.broadcast.emit('disconnection')
   }
 
-  //  (/)
   @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
@@ -223,10 +221,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     const vel = this.GameService.getUpdatedVelocity(false, keyCodeInt, this.state[index].players[socket.data.number - 1]);
   }
-  //  (/)
+
   @SubscribeMessage('keyup')
   async handleKeyup(socket: Socket, keyCode: string) {
-    console.log("key Up")
 
     let index: number = await this.GameService.getRoomById(this.state, socket.data.roomId);
     if (!this.state[index]) {
@@ -240,7 +237,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async handleDisconnect(socket: Socket) {
     console.log("socket handleDisconnect:", socket.id, " juts disconnected")
 
-    // remove client to connected repository
     socket.disconnect()
   }
 
@@ -255,46 +251,52 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   startGameInterval(roomId: number) {
 
-    this.state[roomId].intervalId = setInterval(() => {
+    let index: number = this.GameService.getRoomById(this.state, roomId);
 
-      let index: number = this.GameService.getRoomById(this.state, roomId);
+    this.state[index].intervalId = setInterval(() => {
 
       const winner = this.GameService.gameLoop(this.state[index]);
 
       if (!winner) {
-        this.emitGameState(this.state, roomId);
+        this.emitGameState(roomId);
       }
       else {
-        clearInterval(this.state[roomId].intervalId);
-        this.emitGameOver(this.state[index], winner);
+        clearInterval(this.state[index].intervalId);
+        this.emitGameOver(winner, roomId);
 
         // TODO : save the score
-        // this.state.splice(index, 1);
-
-        console.log('------------after SPLIRCE------------------------');
-        console.log(index);
-
-        console.log(this.state);
       }
     }, 1000 / FRAME_RATE);
   }
 
-  emitGameState(state: StateI[], roomId: number) {
+  emitGameState(roomId: number) {
 
     let index: number = this.GameService.getRoomById(this.state, roomId);
 
-    console.log('index', index);
-    console.log('roomId', roomId);
-    // console.log('state[index].id.toString()', state[index].id.toString())
     // Send this event to everyone in the room.
-    // this.server.to(state[index].id.toString())
-    this.server.to(roomId.toString())
-      .emit('gameState', JSON.stringify(state[index]));
+    this.server.to(this.state[index].id.toString())
+      .emit('gameState', JSON.stringify(this.state[index]));
   }
 
-  emitGameOver(state: StateI, winner) {
+  async emitGameOver(winner: number, roomId: number) {
 
-    this.server.to(state.id.toString())
+    let index: number = this.GameService.getRoomById(this.state, roomId);
+
+
+    this.server.to(this.state[index].id.toString())
       .emit('gameOver', JSON.stringify({ winner }));
+
+    const players: UserEntity[] = await this.userService.findManyIds([this.state[index].player1Id, this.state[index].player2Id]);
+    let loser: number = (winner == this.state[index].player1Id) ? this.state[index].player2Id : this.state[index].player1Id;
+    let score: number = this.state[index].score.p1 + this.state[index].score.p2;
+
+    // save the game score for Match History
+    this.MatchHistoryService.create({
+      players: players,
+      winnerId: winner,
+      loserId: loser,
+      score: score,
+    })
+    this.state.splice(index, 1);
   }
 }

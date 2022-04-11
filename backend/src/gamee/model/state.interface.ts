@@ -36,4 +36,6 @@ export interface StateI {
     intervalId: NodeJS.Timer;
     is_public: Boolean;
     status: number;
+    player1Id: number;
+    player2Id: number;
 }
