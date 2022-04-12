@@ -2,19 +2,17 @@
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
 
-
 export default {
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
     return { userStore };
   },
-  
-  components : {
-    TheWelcome
-  }
-};
 
+  components: {
+    TheWelcome,
+  },
+};
 </script>
 
 <template>
@@ -22,28 +20,27 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
-        <h1>Bienvenue {{ userStore.user.username }}</h1>
-        <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
+        <h1 class="name-title">
+          {{ userStore.user.username }}
+        </h1>
+
+        <div
+          v-bind:style="{
+            backgroundImage:
+              'url(' +
+              userStore.avatarUrl +
+              '), linear-gradient(to bottom right, #8141d4, #9268c9, #9a82ba)',
+          }"
+          class="profile-image"
+        />
+
         <!-- <p>isOnline: {{ userStore.user.avatar }}</p> -->
-        <!-- <p>isOnline: {{ userStore.user.isOnline }}</p> -->
-        <!-- <p>played: {{ userStore.user.played }}</p> -->
-        <!-- <input type="checkbox" id="switch" v-on:click="toggleTwoFA" />
-        <div style="display=flex">
-          Would you like to enable 2FA
-          <label for="switch">Toggle</label>
-        </div> -->
-        <!--         <div class="login-container">
-          <a class="intra-login" href="/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div> -->
+        <div class="stats">
+          <p>👾 Played - {{ userStore.user.played }}</p>
+          <p>🏆 Victory - {{ userStore.user.victory }}</p>
+          <p>💩 Defeats - {{ userStore.user.defeats }}</p>
+        </div>
+
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
@@ -71,13 +68,60 @@ export default {
             </div>
           </a>
         </div>
-
       </div>
     </div>
   </main>
 </template>
 
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Pacifico&display=swap");
+
+.stats {
+  background-color: rgba(120, 61, 204, 0.2);
+  backdrop-filter: blur(5px);
+  text-align: center;
+  font-size: 30px;
+  padding-top: 50px;
+  padding-bottom: 20px;
+  margin-top: -30px;
+  border-radius: 50px;
+  box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+    0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92);
+}
+
+.profile-image {
+  z-index: 30;
+  flex-shrink: 0;
+  margin: auto;
+  height: calc(150px + 6vw);
+  width: calc(150px + 6vw);
+  border: calc(8px + 0.2vw) solid transparent;
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  background-size: cover;
+  box-sizing: border-box;
+  box-shadow: 0 0 6px rgba(120, 61, 204, 0.92), 0 0 30px rgba(94, 14, 206, 0.34),
+    0 0 12px rgba(211, 193, 236, 0.52), 0 0 21px rgba(211, 193, 236, 0.92),
+    0 0 34px rgba(211, 193, 236, 0.78), 0 0 54px rgba(211, 193, 236, 0.92);
+  border-radius: 50% 10%;
+  /* background-image: url('https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=350&h=350&fit=crop&crop=faces'),
+              linear-gradient(to bottom right, #8141d4, #9268c9, #9a82ba); */
+}
+
+.name-title {
+  font-size: 80px;
+  text-transform: capitalize;
+  text-align: center;
+  color: #703ab8;
+  font-family: "Pacifico", cursive;
+  text-shadow: 0 0 6px rgba(120, 61, 204, 0.92),
+    0 0 30px rgba(94, 14, 206, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+}
+
 .login-container {
   padding-top: 50px;
   display: flex;
