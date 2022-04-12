@@ -29,9 +29,6 @@ export class GamePlayedEntity {
     winnerId: number;
 
     @Column()
-    loserId: number;
-
-    @Column()
     score: number;
 
     @CreateDateColumn()

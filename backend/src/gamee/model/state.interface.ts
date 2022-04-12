@@ -2,7 +2,6 @@ import { PlayerI } from "./player.interfae"
 
 export interface StateI {
 
-    id?: number;
     gameState: string;
     score: { p1: number, p2: number };
     ball: {
@@ -36,6 +35,4 @@ export interface StateI {
     intervalId: NodeJS.Timer;
     is_public: Boolean;
     status: number;
-    player1Id: number;
-    player2Id: number;
 }
