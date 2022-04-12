@@ -193,6 +193,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('disconnect')
   handleDisconnection(socket: Socket) {
+    console.log("socket handleDisconnect[ION]!!!:", socket.id, " juts disconnected")
     if (this.clientRooms[socket.id] && this.state[this.clientRooms[socket.id]].intervalId)
       clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
     // socket.broadcast.emit('disconnection')
@@ -234,7 +235,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // C'est celui qui marche
   handleDisconnect(socket: Socket) {
     console.log("socket handleDisconnect:", socket.id, " juts disconnected")
-
+    const room = [this.clientRooms[socket.id]];
+    this.server.sockets.in(room).emit('disconnection');
     socket.disconnect()
   }
 

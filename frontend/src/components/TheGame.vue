@@ -76,20 +76,16 @@ export default {
       // else the socket will automatically try to reconnect
       });
     },
-    joinQueue() {
-      console.log("Join Queue");
 
+    joinQueue() {
       this.socketSetter();
       this.socket.emit("joinQueue");
       this.init();
     },
 
     createNewGame() {
-      console.log("new game");
-
       this.socketSetter();
-      // console.log("this.socket", this.socket.emit("createGame"));
-      this.socket.emit("newGame"/* "createGame" */);
+      this.socket.emit("newGame");
       this.init();
     },
 
@@ -115,8 +111,6 @@ export default {
     },
 
     keydown(e) {
-      // console.log(e.key)
-      // console.log(e.keyCode)
       if (!this.socket.connected)
         return;
       this.socket.emit("keydown", e.keyCode);
@@ -195,8 +189,6 @@ export default {
     },
 
     sendMsg() {      
-      console.log('this.msg', this.msg);
-      
       this.socket.emit('msg', this.msg);
       this.msg = "";
     },
