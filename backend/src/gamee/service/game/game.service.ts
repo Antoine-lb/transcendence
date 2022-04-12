@@ -183,8 +183,6 @@ export class GameService {
   }
 
   getUpdatedVelocity(keyreleased: boolean, keyCode: number, clientPaddle: PlayerI, player) {
-    console.log('player', player);
-
     if (keyreleased && (keyCode === 38 || keyCode === 40))
       clientPaddle.vel = 0;
     else {

@@ -124,32 +124,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // set the creator to player 1
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
-
       // join the room socket
       socket.join(roomName);
       // init the front for player 2
       socket.emit('init', 2);
-      // start the game when both player are connected
-      // this.startGameInterval(roomName);
 
-      // ESSAI D'INSÉRER L'ANIMATION
       // Animation to warn players the game is starting
-
-      // socket.emit('startGameAnimation')
       this.server.to(roomName).emit('startGameAnimation')
       // start the game when both player are connected
       setTimeout(() => {
-        console.log('roomName', roomName);
+        // console.log('roomName', roomName);
         this.startGameInterval(roomName)
       }, 7000);
-      console.log('player 2');
     }
   }
 
   @SubscribeMessage('launchGame')
   launchGame(/* roomId: number */) {
     // console.log(`socket.data.user.id ${this.socket.data.user.id}`);
-    console.log(`socket.data.user.id`);
+    // console.log(`socket.data.user.id`);
 
     // let index: number = this.GameService.getRoomById(this.state, roomId);
     // this.startGameInterval(this.state[index].id);
@@ -230,6 +223,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
 
     this.GameService.getUpdatedVelocity(true, parseInt(keyCode), this.state[this.clientRooms[socket.id]].players[socket.data.number - 1], socket.data.number);
+  }
+
+  @SubscribeMessage('msg')
+  broadcastMsg(socket: Socket, msg: string) {
+    const room = [this.clientRooms[socket.id]];
+    this.server.sockets.in(room).emit('broadcastMsg', msg);
   }
 
   // C'est celui qui marche

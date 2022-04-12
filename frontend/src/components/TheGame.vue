@@ -11,6 +11,7 @@ export default {
       const initialScreen = ref(null)
       const gameCodeInput = ref(null)
       const gameScreen = ref(null)
+      const msgBox = ref(null)
       const canvas = ref(null)
       onMounted(() => {
         // the DOM element will be assigned to the ref after initial render
@@ -22,6 +23,7 @@ export default {
         initialScreen,
         gameCodeInput,
         gameScreen,
+        msgBox,
         canvas,
         userStore,
       }
@@ -37,6 +39,7 @@ export default {
       gameStatus : String("paused"),
       socket: ref(),
       ctx: null,
+      msg: String(''),
       gameActive : Boolean(false),
       // myRooms: null,
       // friendList: [],
@@ -62,6 +65,7 @@ export default {
       this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
       this.socket.on("paused", this.handlePause);
       this.socket.on("notify", this.handleNotification);
+      this.socket.on("broadcastMsg", this.receiveMsg);
       this.socket.on("disconnection", this.handleDisconnection);
       this.socket.on("startGameAnimation", this.startGameAnimation);
       this.socket.on("disconnect", (reason) => {
@@ -188,6 +192,18 @@ export default {
       this.ctx.strokeStyle = "rgb(0,0,0)";
       this.ctx.strokeText(String(this.score.p1), this.canvas.width / 2 - 40, 40);
       this.ctx.strokeText(String(this.score.p2), this.canvas.width / 2 + 25, 40);
+    },
+
+    sendMsg() {      
+      console.log('this.msg', this.msg);
+      
+      this.socket.emit('msg', this.msg);
+      this.msg = "";
+    },
+
+    receiveMsg(msg) { // Sig : "broadcastMsg"
+      this.msgBox.innerText += '\n' + msg;
+      this.msgBox.scrollTop = this.msgBox.scrollHeight;
     },
 
     handleInit(number) {
@@ -337,6 +353,29 @@ export default {
           claimVictory
           </button>
         </div>
+          <div class=chat>
+            <div 
+              ref="msgBox"
+              class="message-box">
+            </div>
+
+            <div>
+              <textarea
+                id="textarea"
+                v-model="msg"
+                placeholder="Enter message...">
+              </textarea>
+            </div>
+
+            <div>
+              <button type="submit"
+              ref="sendButton"
+
+              v-on:click="sendMsg">
+              Send
+              </button>
+            </div>
+          </div>
       </div>
 
     </div>
@@ -346,5 +385,30 @@ export default {
 <style scoped>
 #gameScreen {
   display: none;
+}
+
+.chat {
+  height: 40px;
+  color: blueviolet;
+  border: 1px;
+  border-radius: 25px;
+}
+
+textarea {
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  width: 100%;
+  padding: 10px;
+  margin: 10px;
+}
+.message-box {
+  overflow: scroll;
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  width: 100%;
+  height: 300%;
+  padding: 10px;
+  margin: 10px;
+
 }
 </style>
