@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import UserProfile from "@/components/UserProfile.vue";
 
 export default {
   setup() {
@@ -11,6 +12,7 @@ export default {
 
   components: {
     TheWelcome,
+    UserProfile,
   },
 };
 </script>
@@ -20,27 +22,14 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
-        <h1 class="name-title">
-          {{ userStore.user.username }}
-        </h1>
-
-        <div
-          v-bind:style="{
-            backgroundImage:
-              'url(' +
-              userStore.avatarUrl +
-              '), linear-gradient(to bottom right, #8141d4, #9268c9, #9a82ba)',
-          }"
-          class="profile-image"
+        <UserProfile
+          :username="userStore.user.username"
+          :avatarUrl="userStore.avatarUrl"
+          :played="userStore.user.played"
+          :victory="userStore.user.victory"
+          :defeats="userStore.user.defeats"
+          :id="userStore.user.id"
         />
-
-        <!-- <p>isOnline: {{ userStore.user.avatar }}</p> -->
-        <div class="stats">
-          <p>👾 Played - {{ userStore.user.played }}</p>
-          <p>🏆 Victory - {{ userStore.user.victory }}</p>
-          <p>💩 Defeats - {{ userStore.user.defeats }}</p>
-        </div>
-
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
