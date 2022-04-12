@@ -132,6 +132,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
     await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
     await this.emitRoomsForConnectedUsers(newRoom);
+    await this.emitRolesForConnectedUsers(newRoom);
   }
 
   @SubscribeMessage('getRoomsForUser')
@@ -146,6 +147,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
     await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
     await this.emitRoomsForConnectedUsers(room);
+    await this.emitRolesForConnectedUsers(room);
   }
 
   @SubscribeMessage('enterRoom')
@@ -154,6 +156,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
     await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
     await this.emitRoomsForConnectedUsers(room);
+    await this.emitRolesForConnectedUsers(room);
   }
 
   @SubscribeMessage('joinRoom')
@@ -204,11 +207,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
     // Send Last Message to User
     await this.server.to(socket.id).emit('updateSelected', room);
+
     var roles = await this.userRoomService.getAllRolesForRoom(room);
-    await this.server.to(socket.id).emit('getRoles', roles);
+    await this.server.to(socket.id).emit('getRoles', roles); // peut-etre redondant
     var users = await this.userRoomService.getUsersForRoom(room);
     await this.server.to(socket.id).emit('getUsers', users)
-    return await this.server.to(socket.id).emit('getMessages', messages);
+    await this.server.to(socket.id).emit('getMessages', messages);
+    await this.emitRolesForConnectedUsers(room);
+    return await this.emitRoomsForConnectedUsers(room);
   }
    
   @SubscribeMessage('leaveRoom')
@@ -216,6 +222,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // Remove connection for Joined Room
     await this.joinedRoomService.deleteBySocketID(socket.id);
     await this.server.to(socket.id).emit('updateSelected', room);
+    await this.emitRolesForConnectedUsers(room);
+    return await this.emitRoomsForConnectedUsers(room);
   }
       
   //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
@@ -266,7 +274,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onUpdateRole(socket: Socket, { room, user, modifier, newRole }) {
     try {
       await this.userRoomService.updateRole(room, user, modifier, newRole);
-      this.emitRolesForConnectedUsers(room);
+      await this.emitRolesForConnectedUsers(room);
+      await this.emitRoomsForConnectedUsers(room); // JUST ADDED
     }
     catch {
       socket.emit('Error', new UnauthorizedException());

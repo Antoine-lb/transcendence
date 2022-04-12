@@ -33,20 +33,59 @@ export class UserRoomService {
         return await this.userRoomRepository.delete({ room: room, user: user });
     }
 
+    checkAuthorisationForMyself(currentRole: UserRoomRole, newRole: UserRoomRole)
+    {
+        if (
+            // ne peut pas changer son role en owner OU s'il est owner (on rentre dans une autre fonction avant)
+            currentRole == UserRoomRole.OWNER || 
+            newRole == UserRoomRole.OWNER || 
+            currentRole == UserRoomRole.FORBIDDEN || 
+            currentRole == UserRoomRole.BANNED ||
+            (currentRole == UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE) ||
+            (currentRole == UserRoomRole.AVAILABLE && newRole != UserRoomRole.LAMBDA) ||
+            (currentRole == UserRoomRole.ADMIN && newRole != UserRoomRole.LAMBDA)
+        )
+            return false;
+        return true;
+    }
+
+    checkAuthorisationForOthers(modifierRole: UserRoomRole, currentRole: UserRoomRole, newRole: UserRoomRole)
+    {
+        if (modifierRole == UserRoomRole.ADMIN)
+        {
+            if (
+                (currentRole == UserRoomRole.LAMBDA && newRole == UserRoomRole.BANNED) ||
+                (currentRole == UserRoomRole.BANNED && newRole == UserRoomRole.LAMBDA)
+            )
+                return true;
+        }
+        else if (modifierRole == UserRoomRole.OWNER)
+        {
+            if (
+                currentRole != UserRoomRole.AVAILABLE && 
+                newRole != UserRoomRole.AVAILABLE && 
+                currentRole != UserRoomRole.FORBIDDEN &&
+                newRole != UserRoomRole.FORBIDDEN
+            )
+                return true;
+        }
+        return false;
+    }
+
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         var roles = await this.getAllRolesForRoom(room);
-        // si j'entre dans une room available ou quitte une room
-        if (user.id == modifier.id && (roles[user.id] == UserRoomRole.AVAILABLE || newRole == UserRoomRole.AVAILABLE))
-            return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
-        // check that modifier is an admin
-        if (roles[modifier.id] != UserRoomRole.OWNER && roles[modifier.id] != UserRoomRole.ADMIN)
-            throw new UnauthorizedException();
-        // check that user != modifier
+        // authorisations pour changer mon propre role
         if (user.id == modifier.id)
-            throw new UnauthorizedException();
-        // si on modifie l'owner, le modifier devient owner
-        if (roles[user.id] == UserRoomRole.OWNER)
-            await this.userRoomRepository.update({ user: modifier, room: room }, { role: UserRoomRole.OWNER } );
+        {
+            if (this.checkAuthorisationForMyself(roles[user.id], newRole) == false)
+                throw new UnauthorizedException("Can't change you own role from " + roles[user.id] + " to " + newRole);
+        }
+        // authorisations pour changer le role d'un autre
+        else
+        {
+            if (this.checkAuthorisationForOthers(roles[modifier.id], roles[user.id], newRole) == false)
+                throw new UnauthorizedException("Can't change other role from " + roles[user.id] + " to " + newRole + " when you are " + roles[modifier.id]);
+        }
         return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
     }
 

@@ -121,7 +121,7 @@ export default {
                 <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
                 <span v-if="user.id != this.user.id">
                   <span v-if="role != 'owner' && role != 'banned'">
-                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
+                    <button v-if="isOwner(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
                   </span>
                   <span v-if="role != 'owner'">
                     <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
