@@ -9,6 +9,7 @@ export enum UserRoomRole {
     LAMBDA = "lambda",
     AVAILABLE = "available",
     FORBIDDEN = "forbidden",
+    MUTED = "muted",
   }  
 
 @Entity()
@@ -29,7 +30,7 @@ export class UserRoomEntity {
     @Column({
       type: "enum",
       enum: UserRoomRole,
-      default: UserRoomRole.LAMBDA,
+      default: UserRoomRole.AVAILABLE,
     })
     role: UserRoomRole;
 }
