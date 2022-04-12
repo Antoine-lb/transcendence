@@ -144,8 +144,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // console.log(`socket.data.user.id ${this.socket.data.user.id}`);
     // console.log(`socket.data.user.id`);
 
-    // let index: number = this.GameService.getRoomById(this.state, roomId);
-    // this.startGameInterval(this.state[index].id);
+    // let roomName: number = this.GameService.getRoomById(this.state, roomId);
+    // this.startGameInterval(this.state[roomName].id);
   }
 
   @SubscribeMessage('newGame')
@@ -271,23 +271,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit('gameState', JSON.stringify(this.state[roomName]));
   }
 
-  emitGameOver(roomName: String, winner: number) {
+  async emitGameOver(roomName: string, winner: number) {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
     this.server.sockets.in(room).emit('gameOver', JSON.stringify({ winner }));
 
-    /*     const players: UserEntity[] = await this.userService.findManyIds([this.state[index].player1Id, this.state[index].player2Id]);
-        let loser: number = (winner == this.state[index].player1Id) ? this.state[index].player2Id : this.state[index].player1Id;
-        let score: number = this.state[index].score.p1 + this.state[index].score.p2;
+    const players: UserEntity[] = await this.userService.findManyIds([this.state[roomName].player1Id, this.state[roomName].player2Id]);
+    let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
     
         // save the game score for Match History
-        this.MatchHistoryService.create({
-          players: players,
-          winnerId: winner,
-          loserId: loser,
-          score: score,
-        })
-        this.state.splice(index, 1); */
+    this.MatchHistoryService.create({
+        players: players,
+        winnerId: winner,
+        score: score,
+    })
   }
+
+
+
 }

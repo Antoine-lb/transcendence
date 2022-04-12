@@ -52,8 +52,6 @@ export class GameService {
       intervalId: null,
       is_public: is_public,
       status: 0,
-      player1Id: 0,
-      player2Id: 0,
     };
     return state;
   }
