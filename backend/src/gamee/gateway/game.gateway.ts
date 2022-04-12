@@ -277,9 +277,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
     this.server.sockets.in(room).emit('gameOver', JSON.stringify({ winner }));
 
-    
-    
-
     let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
     let winnerId, loserId;
 
@@ -306,8 +303,5 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       winnerId: winnerId,
       score: score,
     })
-}
-
-
-
+  }
 }

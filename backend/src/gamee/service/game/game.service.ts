@@ -18,7 +18,6 @@ export class GameService {
 
   initGame(is_public: Boolean) {
     let state: StateI = {
-      id: 0,
       gameState: "pending",
       score: { p1: 0, p2: 0 },
       ball: {
@@ -230,27 +229,5 @@ export class GameService {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
-  }
-
-  getRoomById(rooms: StateI[], id: number): number {
-
-    let index: number = 0;
-    for (const room of rooms) {
-      if (room.id == id)
-        return index;
-      index++;
-    }
-    return -1;
-  }
-
-  getRoomForQueue(rooms: StateI[]): number {
-
-    let index: number = 0;
-    for (const room of rooms) {
-      if (room.status == 1 && room.is_public == true)
-        return index;
-      index++;
-    }
-    return -1;
   }
 }

@@ -2,7 +2,6 @@ import { PlayerI } from "./player.interfae"
 
 export interface StateI {
 
-    id?: number;
     gameState: string;
     score: { p1: number, p2: number };
     ball: {
