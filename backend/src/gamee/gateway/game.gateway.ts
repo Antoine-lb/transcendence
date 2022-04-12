@@ -134,12 +134,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.clientRooms[socket.id] = roomName;
       // join the room socket
       socket.join(roomName);
-
-      console.log(this.server.sockets.adapter.rooms.get(roomName));
-
       // init the front for player 2
       socket.emit('init', 2);
-
       // Animation to warn players the game is starting
       this.server.to(roomName).emit('startGameAnimation')
       // start the game when both player are connected
