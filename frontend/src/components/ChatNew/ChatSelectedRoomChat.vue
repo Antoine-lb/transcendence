@@ -29,6 +29,7 @@ export enum UserRoomRole {
   LAMBDA = "lambda",
   AVAILABLE = "available",
   FORBIDDEN = "forbidden",
+  MUTED = "muted",
 }
 
 export default {
@@ -51,16 +52,19 @@ export default {
   components: {
   },
   methods: {
+    getRole()
+    {
+      return this.userRoomsRoles[this.selectedRoom.id];
+    },
     sendMessage() {
-      console.log(">>>> sendMessage room", this.selectedRoom);
       if (this.validateInput()) {
         const message = {
           user: this.user,
           text: this.text,
           room: this.selectedRoom,
         };
-        console.log("sendMessage : ", message);
-        this.socket.emit("addMessage", message);
+        console.log(">>>>>> emit addMessage : ", message, this.getRole());
+        this.socket.emit("addMessage", { message: message, role: this.getRole()});
         this.text = "";
         console.log("after sendMessage emit");
       }
@@ -111,9 +115,14 @@ export default {
           </div>
         </div>
         <br />
-        <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
-        <br />
-        <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
+        <div v-if="getRole() != 'muted'">
+          <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
+          <br />
+          <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
+        </div>
+        <div v-else>
+          You have been muted in this room.
+        </div>
       </div>
     </div>
 </template>
