@@ -117,16 +117,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // [JOIN] the game if somebody is already in queue
     else {
 
-    //   console.log(this.server.sockets.adapter.rooms.get(roomName));
-      
-    //   for (const playerId of this.server.sockets.adapter.rooms.get(roomName) ) {
-  
-    //     //this is the socket of each client in the room.
-    //     const clientSocket = this.server.sockets.sockets.get(playerId);
+      //   console.log(this.server.sockets.adapter.rooms.get(roomName));
 
-    //     if (clientSocket == socket)
-    //       return;
-    // }
+      //   for (const playerId of this.server.sockets.adapter.rooms.get(roomName) ) {
+
+      //     //this is the socket of each client in the room.
+      //     const clientSocket = this.server.sockets.sockets.get(playerId);
+
+      //     if (clientSocket == socket)
+      //       return;
+      // }
       this.stackIndex++;
       this.state[roomName].status = 2;
       // set the creator to player 1
@@ -182,7 +182,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (room.gameState === "paused") {
       clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
-      socket.broadcast.emit('notify', {
+      this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
         text: "Game Paused by your opponent",
         duration: 6000
@@ -190,7 +190,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     else {
       this.startGameInterval(this.clientRooms[socket.id]);
-      socket.broadcast.emit('notify', {
+      this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
         text: "Game Resumed by your opponent",
         duration: 6000
@@ -289,22 +289,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let winnerId, loserId;
 
     // Disconnect both players to the room 
-    for (const playerId of playersSockets ) {
-  
-        //this is the socket of each client in the room.
-        const clientSocket = this.server.sockets.sockets.get(playerId);
+    for (const playerId of playersSockets) {
 
-        if (winner == clientSocket.data.number)
-          winnerId = clientSocket.data.user.id;
-        else
-          loserId = clientSocket.data.user.id; 
-        //both player leave the room
-        clientSocket.leave(roomName)
+      //this is the socket of each client in the room.
+      const clientSocket = this.server.sockets.sockets.get(playerId);
+
+      if (winner == clientSocket.data.number)
+        winnerId = clientSocket.data.user.id;
+      else
+        loserId = clientSocket.data.user.id;
+      //both player leave the room
+      clientSocket.leave(roomName)
     }
-    
+
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
     let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
-    
+
     // save the game score for Match History
     this.MatchHistoryService.create({
       players: players,
