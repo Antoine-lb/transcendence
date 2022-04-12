@@ -72,10 +72,40 @@ export class UserRoomService {
         return false;
     }
 
+    async findNewOwner(room: RoomI, currentOwner: UserDto)
+    {
+       var users = await this.getUsersForRoom(room);
+       var roles = await this.getAllRolesForRoom(room);
+       console.log("users : ", users);
+       console.log("roles : ", roles);
+       for (var user of users)
+       {
+           // give priority to other admins
+            if (currentOwner.id != user.id && (roles[user.id] == UserRoomRole.ADMIN))
+                return user;
+       }
+       for (var user of users)
+       {
+           // give priority to other admins
+            if (currentOwner.id != user.id && (roles[user.id] == UserRoomRole.LAMBDA))
+                return user;
+       }
+       return null;
+    }
+
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         var roles = await this.getAllRolesForRoom(room);
+        // si un owner quitte la room
+        if (user.id == modifier.id && roles[user.id] == UserRoomRole.OWNER && newRole == UserRoomRole.AVAILABLE)
+        {
+            var newOwner: UserDto = await this.findNewOwner(room, modifier);
+            if (newOwner === null)
+                throw new UnauthorizedException("Can't leave room if you are owner and the last person in it");
+            await this.userRoomRepository.update({ user: newOwner, room: room }, { role: UserRoomRole.OWNER } );
+            return await this.userRoomRepository.update({ user: modifier, room: room }, { role: newRole } );
+        }
         // authorisations pour changer mon propre role
-        if (user.id == modifier.id)
+        else if (user.id == modifier.id)
         {
             if (this.checkAuthorisationForMyself(roles[user.id], newRole) == false)
                 throw new UnauthorizedException("Can't change you own role from " + roles[user.id] + " to " + newRole);

@@ -141,7 +141,7 @@ export default {
             <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
               💬 {{ room.name }}
             </div>
-            <button v-if="!isOwner(room)" class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
+            <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
           </div>
         </div>
       </div>
