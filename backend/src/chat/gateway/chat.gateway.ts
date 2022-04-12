@@ -288,7 +288,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  
   @SubscribeMessage('addMessage')
-  async onAddMessage(socket: Socket, message: MessageI) {
+  async onAddMessage(socket: Socket, { message, role }) {
+    if (role == UserRoomRole.MUTED)
+      return;
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
