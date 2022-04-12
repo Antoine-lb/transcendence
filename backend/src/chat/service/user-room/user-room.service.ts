@@ -41,7 +41,7 @@ export class UserRoomService {
             newRole == UserRoomRole.OWNER || 
             currentRole == UserRoomRole.FORBIDDEN || 
             currentRole == UserRoomRole.BANNED ||
-            (currentRole == UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE) ||
+            ((currentRole == UserRoomRole.LAMBDA || currentRole == UserRoomRole.MUTED) && newRole != UserRoomRole.AVAILABLE) ||
             (currentRole == UserRoomRole.AVAILABLE && newRole != UserRoomRole.LAMBDA) ||
             (currentRole == UserRoomRole.ADMIN && newRole != UserRoomRole.LAMBDA)
         )
@@ -55,7 +55,9 @@ export class UserRoomService {
         {
             if (
                 (currentRole == UserRoomRole.LAMBDA && newRole == UserRoomRole.BANNED) ||
-                (currentRole == UserRoomRole.BANNED && newRole == UserRoomRole.LAMBDA)
+                (currentRole == UserRoomRole.BANNED && newRole == UserRoomRole.LAMBDA) ||
+                (currentRole == UserRoomRole.LAMBDA && newRole == UserRoomRole.MUTED) ||
+                (currentRole == UserRoomRole.MUTED && newRole == UserRoomRole.LAMBDA)
             )
                 return true;
         }
@@ -76,8 +78,6 @@ export class UserRoomService {
     {
        var users = await this.getUsersForRoom(room);
        var roles = await this.getAllRolesForRoom(room);
-       console.log("users : ", users);
-       console.log("roles : ", roles);
        for (var user of users)
        {
            // give priority to other admins
@@ -86,7 +86,6 @@ export class UserRoomService {
        }
        for (var user of users)
        {
-           // give priority to other admins
             if (currentOwner.id != user.id && (roles[user.id] == UserRoomRole.LAMBDA))
                 return user;
        }

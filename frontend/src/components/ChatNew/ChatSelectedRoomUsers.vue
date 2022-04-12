@@ -29,6 +29,7 @@ export enum UserRoomRole {
   LAMBDA = "lambda",
   AVAILABLE = "available",
   FORBIDDEN = "forbidden",
+  MUTED = "muted",
 }
 
 export default {
@@ -39,6 +40,7 @@ export default {
         OWNER: "owner",
         ADMIN: "admin",
         LAMBDA: "lambda",
+        MUTED: "muted",
         BANNED: "banned",
         // AVAILABLE: "available",
         // FORBIDDEN: "forbidden",
@@ -76,8 +78,17 @@ export default {
       return false;
     },   
     isBanned(user: UserInterface) {
-      var role = this.getRole(user)
-      if (role == UserRoomRole.BANNED)
+      if (this.getRole(user) == UserRoomRole.BANNED)
+        return true;
+      return false;
+    },   
+    isMuted(user: UserInterface) {
+      if (this.getRole(user) == UserRoomRole.MUTED)
+        return true;
+      return false;
+    },   
+    isLambda(user: UserInterface) {
+      if (this.getRole(user) == UserRoomRole.LAMBDA)
         return true;
       return false;
     },   
@@ -94,6 +105,12 @@ export default {
     banUser(room: RoomI, user: UserInterface) {
       if (!this.isBanned(user))
         this.updateRole(room, user, UserRoomRole.BANNED)
+      else
+        this.updateRole(room, user, UserRoomRole.LAMBDA)
+    },
+    muteUser(room: RoomI, user: UserInterface) {
+      if (!this.isMuted(user))
+        this.updateRole(room, user, UserRoomRole.MUTED)
       else
         this.updateRole(room, user, UserRoomRole.LAMBDA)
     },
@@ -125,6 +142,9 @@ export default {
                   </span>
                   <span v-if="role != 'owner'">
                     <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
+                  </span>
+                  <span v-if="isAdmin(this.user) && (isLambda(user) || isMuted(user))">
+                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="muteUser(this.selectedRoom, user)">{{ isMuted(user) ? 'Unmute' : 'Mute'}} user</button>
                   </span>
                 </span>
             </p>

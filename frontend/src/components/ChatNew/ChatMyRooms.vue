@@ -30,6 +30,7 @@ export enum UserRoomRole {
   LAMBDA = "lambda",
   AVAILABLE = "available",
   FORBIDDEN = "forbidden",
+  MUTED = "muted",
 }
 
 export default {
@@ -42,6 +43,7 @@ export default {
         OWNER: "owner",
         ADMIN: "admin",
         LAMBDA: "lambda",
+        MUTED: "muted",
         // BANNED: "banned",
         // AVAILABLE: "available",
         // FORBIDDEN: "forbidden",
