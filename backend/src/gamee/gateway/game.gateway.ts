@@ -277,16 +277,36 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
     this.server.sockets.in(room).emit('gameOver', JSON.stringify({ winner }));
 
-    const players: UserEntity[] = await this.userService.findManyIds([this.state[roomName].player1Id, this.state[roomName].player2Id]);
+    
+    
+
+    let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
+    let winnerId, loserId;
+
+    // Disconnect both players to the room 
+    for (const playerId of playersSockets ) {
+  
+        //this is the socket of each client in the room.
+        const clientSocket = this.server.sockets.sockets.get(playerId);
+
+        if (winner == clientSocket.data.number)
+          winnerId = clientSocket.data.user.id; 
+        else
+          loserId = clientSocket.data.user.id; 
+        //both player leave the room
+        clientSocket.leave(roomName)
+    }
+    
+    const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
     let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
     
-        // save the game score for Match History
+    // save the game score for Match History
     this.MatchHistoryService.create({
-        players: players,
-        winnerId: winner,
-        score: score,
+      players: players,
+      winnerId: winnerId,
+      score: score,
     })
-  }
+}
 
 
 
