@@ -44,6 +44,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   state: StateI[] = [];
   clientRooms = {};
   stackIndex = 2;
+  clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
     try {
@@ -55,6 +56,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return this.disconnect(socket);
       else {
         socket.data.user = user;
+
+
+        // il me faut le socket des que l on clique sur "jeux"
+
+        // connect directly the client to the room if he was in game
+        if (this.clientDisconnected[user.id]) {
+          socket.data.status = "play"
+          // join the room socket
+          socket.join(this.clientDisconnected[user.id].roomName);
+          // init the front for player 2
+          socket.emit('init', 2);
+        }
+          
         return;
       }
     }
@@ -63,8 +77,40 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+
+  @SubscribeMessage('spec')
+  handleSpecGame(socket: Socket, roomName: string) {
+
+    let roomSize = 0;
+
+    const room = this.server.sockets.adapter.rooms.get(roomName)
+
+    if (room)
+      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
+
+    if (roomSize === 0) {
+      socket.emit('unknownCode');
+      return;
+    } else if (roomSize != 2) {
+      socket.emit('tooManyPlayers');
+      return;
+    }
+
+    this.clientRooms[socket.id] = roomName;
+
+    // set the creator to spectator mode
+    socket.data.status = "spec"
+    // join the room socket
+    socket.join(roomName);
+    // init the front for player 2
+    socket.emit('init', 3);
+
+    // start the game when both player are connected
+  }
+
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
+
 
     let roomSize = 0;
 
@@ -89,6 +135,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(roomName);
     // init the front for player 2
     socket.emit('init', 2);
+    socket.data.status = "play"
 
     // start the game when both player are connected
     this.startGameInterval(roomName);
@@ -181,14 +228,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(roomName);
     socket.emit('init', 1);
     this.state[this.clientRooms[socket.id]].gameState = "play"
+    socket.data.status = "play"
   }
 
   @SubscribeMessage('pause')
   handlePause(socket: Socket) {
     let room = this.state[this.clientRooms[socket.id]];
-    if (!room) {
+    if (!room || socket.data.status != "play")
       return;
-    }
     room.gameState = room.gameState === "paused" ? "play" : "paused";
 
     if (room.gameState === "paused") {
@@ -209,22 +256,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('disconnect')
-  handleDisconnection(socket: Socket) {
-    console.log("socket handleDisconnect[ION]!!!:", socket.id, " juts disconnected")
-    if (this.clientRooms[socket.id] && this.state[this.clientRooms[socket.id]].intervalId)
-      clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
-    // socket.broadcast.emit('disconnection')
-  }
+  // @SubscribeMessage('disconnect')
+  // handleDisconnection(socket: Socket) {
+  //   console.log("socket handleDisconnect[ION]!!!:", socket.id, " juts disconnected")
+  //   if (this.clientRooms[socket.id] && this.state[this.clientRooms[socket.id]].intervalId)
+  //     clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
+  //   // socket.broadcast.emit('disconnection')
+  // }
 
   @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
     let keyCodeInt: number;
     const roomName: string = this.clientRooms[socket.id];
-    if (!roomName) {
+
+    if (!roomName || socket.data.status != "play")
       return;
-    }
     try {
       keyCodeInt = parseInt(keyCode);
     } catch (e) {
@@ -238,7 +285,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('keyup')
   async handleKeyup(socket: Socket, keyCode: string) {
     const roomName: String = this.clientRooms[socket.id];
-    if (!roomName)
+    if (!roomName || socket.data.status != "play")
       return;
 
     this.GameService.getUpdatedVelocity(true, parseInt(keyCode), this.state[this.clientRooms[socket.id]].players[socket.data.number - 1], socket.data.number);
@@ -252,14 +299,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // C'est celui qui marche
   handleDisconnect(socket: Socket) {
-    console.log("socket handleDisconnect:", socket.id, " juts disconnected")
     const room = [this.clientRooms[socket.id]];
+
+    const winner = this.GameService.gameLoop(this.state[this.clientRooms[socket.id]]);
+
+    if (!winner) {
+      this.clientDisconnected[socket.data.user.id] = { player: socket.data.number, roomName: this.clientRooms[socket.id] };
+      console.log(JSON.stringify(this.clientDisconnected[socket.data.user.id]));
+    }
     this.server.sockets.in(room).emit('disconnection');
     socket.disconnect()
   }
 
   private disconnect(socket: Socket) {
     socket.emit('Error', new UnauthorizedException());
+
+
     socket.disconnect();
   }
 
@@ -284,6 +339,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   emitGameState(roomName: string, state: StateI) {
+
     // Send this event to everyone in the room.
     this.server.to(roomName)
       .emit('gameState', JSON.stringify(this.state[roomName]));
@@ -300,10 +356,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let winnerId, loserId;
 
     // Disconnect both players to the room 
+    if (!playersSockets)
+      return;
     for (const playerId of playersSockets) {
 
       //this is the socket of each client in the room.
       const clientSocket = this.server.sockets.sockets.get(playerId);
+
+      clientSocket.data.status = "connected";
 
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;
