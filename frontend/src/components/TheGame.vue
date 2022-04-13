@@ -52,6 +52,10 @@ export default {
       // room: {},
     };
   },
+  created () {
+    this.socketSetter();
+  },
+
   methods: {
     socketSetter() {
       this.socket = io("http://127.0.0.1:3000", {
@@ -89,24 +93,20 @@ export default {
     },
 
     joinQueue() {
-      this.socketSetter();
       this.socket.emit("joinQueue");
     },
 
     createNewGame() {
-      this.socketSetter();
       this.socket.emit("newGame");
     },
 
     handleJoinGame() {
       const code = this.gameCodeInput.value;
-      this.socketSetter();
       this.socket.emit('joinGame', code);
     },
 
     handleSpecGame() {
       const code = this.gameCodeSpec.value;
-      this.socketSetter();
       this.socket.emit('spec', code);
       this.init();
     },

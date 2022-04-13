@@ -61,13 +61,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // il me faut le socket des que l on clique sur "jeux"
 
         // connect directly the client to the room if he was in game
-        /*         if (this.clientDisconnected[user.id]) {
-                  socket.data.status = "play"
-                  // join the room socket
-                  socket.join(this.clientDisconnected[user.id].roomName);
-                  // init the front for player 2
-                  socket.emit('init', 2);
-                } */
+        if (this.clientDisconnected[user.id]) {
+          socket.data.status = "play"
+          // join the room socket
+          socket.join(this.clientDisconnected[user.id].roomName);
+          // init the front for player 2
+          socket.emit('init', this.clientDisconnected[user.id].player);
+        }
 
         return;
       }
@@ -299,13 +299,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // C'est celui qui marche
   handleDisconnect(socket: Socket) {
+    console.log(`socket ${socket.id}`);
+
     const room = [this.clientRooms[socket.id]];
 
     const winner = this.GameService.gameLoop(this.state[this.clientRooms[socket.id]]);
 
     if (!winner) {
       this.clientDisconnected[socket.data.user.id] = { player: socket.data.number, roomName: this.clientRooms[socket.id] };
-      console.log(JSON.stringify(this.clientDisconnected[socket.data.user.id]));
+      // console.log(JSON.stringify(this.clientDisconnected[socket.data.user.id]));
     }
     this.server.sockets.in(room).emit('disconnection');
     socket.disconnect()
