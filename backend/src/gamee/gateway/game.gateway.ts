@@ -63,8 +63,40 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+
+  @SubscribeMessage('spec')
+  handleSpecGame(socket: Socket, roomName: string) {
+
+    let roomSize = 0;
+
+    const room = this.server.sockets.adapter.rooms.get(roomName)
+
+    if (room)
+      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
+
+    if (roomSize === 0) {
+      socket.emit('unknownCode');
+      return;
+    } else if (roomSize != 2) {
+      socket.emit('tooManyPlayers');
+      return;
+    }
+
+    this.clientRooms[socket.id] = roomName;
+
+    // set the creator to spectator mode
+    socket.data.status = "spec"
+    // join the room socket
+    socket.join(roomName);
+    // init the front for player 2
+    socket.emit('init', 3);
+
+    // start the game when both player are connected
+  }
+
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
+
 
     let roomSize = 0;
 
@@ -89,6 +121,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(roomName);
     // init the front for player 2
     socket.emit('init', 2);
+    socket.data.status = "play"
 
     // start the game when both player are connected
     this.startGameInterval(roomName);
@@ -170,14 +203,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(roomName);
     socket.emit('init', 1);
     this.state[this.clientRooms[socket.id]].gameState = "play"
+    socket.data.status = "play"
   }
 
   @SubscribeMessage('pause')
   handlePause(socket: Socket) {
     let room = this.state[this.clientRooms[socket.id]];
-    if (!room) {
+    if (!room || socket.data.status != "play")
       return;
-    }
     room.gameState = room.gameState === "paused" ? "play" : "paused";
 
     if (room.gameState === "paused") {
@@ -211,9 +244,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     let keyCodeInt: number;
     const roomName: string = this.clientRooms[socket.id];
-    if (!roomName) {
+
+    if (!roomName || socket.data.status != "play")
       return;
-    }
     try {
       keyCodeInt = parseInt(keyCode);
     } catch (e) {
@@ -227,7 +260,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('keyup')
   async handleKeyup(socket: Socket, keyCode: string) {
     const roomName: String = this.clientRooms[socket.id];
-    if (!roomName)
+    if (!roomName || socket.data.status != "play")
       return;
 
     this.GameService.getUpdatedVelocity(true, parseInt(keyCode), this.state[this.clientRooms[socket.id]].players[socket.data.number - 1], socket.data.number);
@@ -273,6 +306,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   emitGameState(roomName: string, state: StateI) {
+
     // Send this event to everyone in the room.
     this.server.to(roomName)
       .emit('gameState', JSON.stringify(this.state[roomName]));
@@ -293,6 +327,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       //this is the socket of each client in the room.
       const clientSocket = this.server.sockets.sockets.get(playerId);
+
+      clientSocket.data.status = "connected";
 
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;

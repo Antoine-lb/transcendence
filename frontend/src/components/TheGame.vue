@@ -10,6 +10,8 @@ export default {
       const gameCodeDisplay = ref(null)
       const initialScreen = ref(null)
       const gameCodeInput = ref(null)
+      const gameCodeSpec = ref(null)
+
       const gameScreen = ref(null)
       const msgBox = ref(null)
       const canvas = ref(null)
@@ -22,6 +24,7 @@ export default {
         gameCodeDisplay,
         initialScreen,
         gameCodeInput,
+        gameCodeSpec,
         gameScreen,
         msgBox,
         canvas,
@@ -93,6 +96,13 @@ export default {
       const code = this.gameCodeInput.value;
       this.socketSetter();
       this.socket.emit('joinGame', code);
+      this.init();
+    },
+
+    handleSpecGame() {
+      const code = this.gameCodeSpec.value;
+      this.socketSetter();
+      this.socket.emit('spec', code);
       this.init();
     },
 
@@ -275,6 +285,7 @@ export default {
     reset() {
       this.playerNumber = null;
       this.gameCodeInput.value = "";
+      this.gameCodeSpec.value = "";
       this.initialScreen.style.display = "block";
       this.gameScreen.style.display = "none";
     },
@@ -319,6 +330,18 @@ export default {
               v-on:click="handleJoinGame"
             >
               Join Game
+            </button>
+
+
+            <div class="form-groupp">
+              <input type="text" placeholder="Enter Game Codee" ref="gameCodeSpec"/>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              v-on:click="handleSpecGame"
+            >
+              Spec Game
             </button>
         </div>
       </div>
