@@ -17,7 +17,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
         <RouterLink to="/chat">Chat</RouterLink>
         <RouterLink to="/friends">Amis</RouterLink>
         <RouterLink to="/game">Jeux</RouterLink>
-        <RouterLink to="/account">Compte</RouterLink>
+        <RouterLink to="/settings">Réglages</RouterLink>
       </nav>
     </div>
   </header>
@@ -65,6 +65,7 @@ a,
 }
 
 nav {
+  background-color: white;
   font-size: 12px;
   text-align: center;
   margin-top: 2rem;
