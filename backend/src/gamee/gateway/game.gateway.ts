@@ -96,15 +96,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinQueue')
   handleJoinQueue(socket: Socket) {
+    console.log(`user.id : ${socket.data.user.id}, stackIndex ${this.stackIndex}, socket ${socket.id}`);
 
     let roomName = Math.floor(this.stackIndex / 2).toString();
     this.clientRooms[socket.id] = roomName;
+
     // [CREATE] game state and wait other player if(nobody is in queue)
     if (!(this.stackIndex % 2)) {
+      console.log('ici');
+
       this.stackIndex++;
       // init the game state 
       this.state[roomName] = this.GameService.initGame(true)
-      this.state[roomName].status = 1;
+      this.state[roomName].userID = socket.data.user.id;
+      console.log(`this.state[roomName].userID : ${this.state[roomName].userID}  socket.data.user.id : ${socket.data.user.id} `);
 
       // set the creator to player 1
       socket.data.number = 1;
@@ -116,7 +121,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     // [JOIN] the game if somebody is already in queue
     else {
+      console.log('la');
 
+      if (this.state[roomName].userID == socket.data.user.id) {
+        // socket.disconnect(); // Faut pas disconnecte car semble être le mm 
+        return;
+      }
       //   console.log(this.server.sockets.adapter.rooms.get(roomName));
 
       //   for (const playerId of this.server.sockets.adapter.rooms.get(roomName) ) {
@@ -128,7 +138,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       //       return;
       // }
       this.stackIndex++;
-      this.state[roomName].status = 2;
+      this.state[roomName].userID = socket.data.user.id;
+      console.log(`this.state[roomName].userID : ${this.state[roomName].userID}  socket.data.user.id : ${socket.data.user.id} `);
       // set the creator to player 1
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
@@ -184,7 +195,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
       this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
-        text: "Game Paused by your opponent",
+        text: "Game Paused by player",
         duration: 6000
       });
     }
@@ -192,7 +203,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.startGameInterval(this.clientRooms[socket.id]);
       this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
-        text: "Game Resumed by your opponent",
+        text: "Game Resumed by player",
         duration: 6000
       });
     }

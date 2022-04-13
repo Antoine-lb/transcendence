@@ -70,30 +70,35 @@ export default {
       this.socket.on("startGameAnimation", this.startGameAnimation);
       this.socket.on("disconnect", (reason) => {
         if (reason === "io server disconnect") {
-          // the disconnection was initiated by the server, you need to reconnect manually
-          this.socket.connect();
+          // console.log("the disconnection was initiated by the server, you need to reconnect manually")
+          // this.socket.connect();
         }
       // else the socket will automatically try to reconnect
       });
+
+      this.socket.on("samePlayer", (arg1, callback) => {
+        console.log(arg1);
+        callback({
+          status: alert("test"),
+          // status1: "ok"
+        });
+  });
     },
 
     joinQueue() {
       this.socketSetter();
       this.socket.emit("joinQueue");
-      this.init();
     },
 
     createNewGame() {
       this.socketSetter();
       this.socket.emit("newGame");
-      this.init();
     },
 
     handleJoinGame() {
       const code = this.gameCodeInput.value;
       this.socketSetter();
       this.socket.emit('joinGame', code);
-      this.init();
     },
 
     init() {
@@ -200,6 +205,7 @@ export default {
 
     handleInit(number) {
       this.playerNumber = number;
+      this.init();
     },
 
     handleGameState(gameState) {
