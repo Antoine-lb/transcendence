@@ -11,7 +11,7 @@ import { UserDto } from 'src/entities/users.dto';
 export class FriendsService {
     constructor(@InjectRepository(FriendRequestEntity) private readonly friendRepository: Repository<FriendRequestEntity>, private readonly usersService: UsersService) {}
 
-    async checkFriendId(currentUser: UserEntity, friend_id: number): Promise<UserEntity>{
+    async checkFriendId(currentUser: UserDto, friend_id: number): Promise<UserEntity>{
         if (currentUser.id == friend_id)
             throw new NotAcceptableException('This is yourself !')
         const receiver: UserEntity = await this.usersService.findById(friend_id)
@@ -20,7 +20,7 @@ export class FriendsService {
         return receiver;
     }
 
-    async getFriends(currentUser: UserEntity): Promise<UserEntity[]> {
+    async getFriends(currentUser: UserDto): Promise<UserDto[]> {
         const query = await this.friendRepository.createQueryBuilder('f')
         .where('(f.creator = :uid OR f.receiver = :uid)', { uid: currentUser.id })
         .andWhere('f.status = :status', { status: FriendStatus.STATUS_ACCEPTED })
@@ -36,7 +36,7 @@ export class FriendsService {
         return await this.usersService.findManyIds(ids)
     }
 
-    async getBlockedFriends(currentUser: UserEntity): Promise<UserEntity[]> {
+    async getBlockedFriends(currentUser: UserDto): Promise<UserDto[]> {
         const query = await this.friendRepository.createQueryBuilder('f')
         .where('(f.creator = :uid OR f.receiver = :uid)', { uid: currentUser.id })
         .andWhere('f.status = :status', { status: FriendStatus.STATUS_BLOCKED })
@@ -57,8 +57,8 @@ export class FriendsService {
     }
 
 
-    async getFriendsRequests(currentUser: UserEntity): Promise<UserEntity[]> {
-        const list: UserEntity[] = []
+    async getFriendsRequests(currentUser: UserDto): Promise<UserDto[]> {
+        const list: UserDto[] = []
 
         var query = await this.friendRepository.createQueryBuilder('f')
         .leftJoinAndSelect('f.creator', 'users')
@@ -100,11 +100,11 @@ export class FriendsService {
         return 'add new friend ' + receiver_id +  ' to user ' + currentUser.username
     }
 
-    async respondToRequest(currentUser: UserEntity, friend_id: number, status: FriendStatus) {
+    async respondToRequest(currentUser: UserDto, friend_id: number, status: FriendStatus) {
         if (currentUser.id == friend_id)
             throw new NotAcceptableException('This is yourself !')
 
-        const receiver: UserEntity = await this.usersService.findById(friend_id)
+        const receiver: UserDto = await this.usersService.findById(friend_id)
         if (!receiver)
             throw new NotFoundException('User Not Found')
         
@@ -124,8 +124,8 @@ export class FriendsService {
         return true
     }
 
-    async removeFriend(currentUser: UserEntity, friend_id: number): Promise<any> {
-        const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
+    async removeFriend(currentUser: UserDto, friend_id: number): Promise<any> {
+        const receiver: UserDto = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
         if (!friendship)
             throw new NotAcceptableException('No relation with this user')
@@ -134,8 +134,8 @@ export class FriendsService {
         return false
     }
 
-    async blockUser(currentUser: UserEntity, friend_id: number){
-        const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
+    async blockUser(currentUser: UserDto, friend_id: number){
+        const receiver: UserDto = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
         if (currentUser.id == friendship.creator.id) {
             friendship.blockedByCreator = true
@@ -150,8 +150,8 @@ export class FriendsService {
         return currentUser.id + ' blocked ' + friend_id
     }
 
-    async unblockUser(currentUser: UserEntity, friend_id: number){
-        const receiver: UserEntity = await this.checkFriendId(currentUser, friend_id)
+    async unblockUser(currentUser: UserDto, friend_id: number){
+        const receiver: UserDto = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
         if (friendship) {
             if (currentUser.id == friendship.creator.id) {
@@ -165,7 +165,7 @@ export class FriendsService {
         }
     }
 
-    async findRelationBetween(creator: UserEntity, receiver: UserEntity): Promise<FriendRequestEntity> {
+    async findRelationBetween(creator: UserDto, receiver: UserDto): Promise<FriendRequestEntity> {
         return this.friendRepository.findOne({
             where: [
               { creator, receiver },

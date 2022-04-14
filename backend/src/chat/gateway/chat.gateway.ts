@@ -25,6 +25,7 @@ import { comparePassword } from 'src/utils/bcrypt';
 import { UserInterface } from 'src/entities/users.interface';
 import { UserRoomService } from '../service/user-room/user-room.service';
 import { UserRoomRole } from '../model/user-room.entity';
+import { FriendsService } from 'src/friends/friends.service';
 
  @WebSocketGateway({
    cors: {
@@ -36,6 +37,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    constructor(
      private authService: AuthService,
      private userService: UsersService,
+     private friendsService: FriendsService,
      private roomService: RoomService,
      private connectedUserService: ConnectedUserService,
      private joinedRoomService: JoinedRoomService,
@@ -159,29 +161,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.emitRolesForConnectedUsers(room);
   }
 
-  @SubscribeMessage('joinRoom')
-  async onJoinRoom(socket: Socket, { room, password }) {
-    if (room.protected == true) {
-       if (!password) {
-         socket.emit('WrongPassword', new UnauthorizedException());
-         return;
-       }
-      const matched = comparePassword(password, room.password)
-       if (!matched) {
-         socket.emit('WrongPassword', new UnauthorizedException());
-         return;
-       }
-    }
-    // Find previous Room Messages
-    const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-     // check if already join (for if the client switch between)
-    var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
-    // Save Connection to Room in DB
-    if (found.length == 0)
-      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
-    // Send Last Message to User
-    await this.server.to(socket.id).emit('messages', messages);
-  }
+  // @SubscribeMessage('joinRoom')
+  // async onJoinRoom(socket: Socket, { room, password }) {
+  //   if (room.protected == true) {
+  //      if (!password) {
+  //        socket.emit('WrongPassword', new UnauthorizedException());
+  //        return;
+  //      }
+  //     const matched = comparePassword(password, room.password)
+  //      if (!matched) {
+  //        socket.emit('WrongPassword', new UnauthorizedException());
+  //        return;
+  //      }
+  //   }
+  //   // Find previous Room Messages
+  //   const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
+  //    // check if already join (for if the client switch between)
+  //   var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
+  //   // Save Connection to Room in DB
+  //   if (found.length == 0)
+  //     await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
+  //   // Send Last Message to User
+  //   await this.server.to(socket.id).emit('messages', messages);
+  // }
 
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
@@ -260,6 +262,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('getAllRolesForUser')
   async onGetAllRolesForUser(socket: Socket, user: UserDto) {
+
+    // emit all blocked friends
+    var blocked = await this.friendsService.getBlockedFriends(user);
+    await this.server.to(socket.id).emit('getBlockedFriends', blocked);
+    console.log("blocked : ", blocked);
+
+    // emit all roles for user
     var rooms = await this.userRoomService.getAllRolesForUser(user);
     return await this.server.to(socket.id).emit('getAllRolesForUser', rooms);
   }

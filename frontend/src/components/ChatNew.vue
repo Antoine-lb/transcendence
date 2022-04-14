@@ -52,6 +52,7 @@ export default {
       selectedRoom: null,
       userRolesInRoom: [], // all roles in current room
       usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
+      blockedFriends: []
     };
   },
   setup() {
@@ -96,6 +97,7 @@ export default {
       this.userRooms = rooms;
       // console.log("ChatNew ------------ getRoomsForUser : ", rooms);
       this.socket.emit("getAllRolesForUser", this.user);
+      console.log(">>>>>> getAllRolesForUser");
     });
     this.socket.on("getAllRolesForUser", (roles) => {
       this.userRoomsRoles = roles;
@@ -107,6 +109,11 @@ export default {
     this.socket.on("getUsers", (users) => {
       this.usersForRoom = users;
     });
+    this.socket.on("getBlockedFriends", (users) => {
+      this.blockedFriends = users;
+      console.log(">>>>>> getBlockedFriends");
+
+    });
   },
 };
 </script>
@@ -115,7 +122,7 @@ export default {
     <ChatCreateRoom @onSubmit="createRoom" />
     <ChatSelectedRoomParams @refreshSelected="refreshSelected" :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatSelectedRoomUsers :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :blockedFriends="this.blockedFriends"  :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>
