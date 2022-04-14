@@ -15,12 +15,14 @@ import { userInfo } from 'os';
 import { ConnectedUserEntity } from 'src/chat/model/connected.user.entity';
 import { JoinedRoomEntity } from 'src/chat/model/joined-room.entity';
 import { MessageEntity } from 'src/chat/model/message.entity';
+import { UserRoomEntity } from 'src/chat/model/user-room.entity';
 
 export enum userStatus {
   online,
   offline,
   playing,
 }
+
 @Entity('users')
 export class UserEntity {
   @PrimaryColumn()
@@ -81,4 +83,8 @@ export class UserEntity {
 
   @ManyToMany(() => GamePlayedEntity, GamePlayedEntity => GamePlayedEntity.players)
   gamePlayed: GamePlayedEntity[];
+  
+  @OneToMany(() => UserRoomEntity, userRoom => userRoom.user)
+  roleRooms: UserRoomEntity[];
+
 }

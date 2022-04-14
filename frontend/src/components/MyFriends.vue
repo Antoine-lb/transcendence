@@ -13,7 +13,13 @@ function fetchWithHeaders(url) {
   });
 }
 export default {
-  data() {
+  data(): {
+    loading: boolean;
+    friendList: [];
+    pendingFriendList: [];
+    blockedFriendList: [];
+    addFriendUsername: string;
+  } {
     return {
       loading: false,
       friendList: [],
@@ -239,37 +245,6 @@ export default {
         <input class="button" type="submit" value="Ajouter" />
       </form>
     </div>
-
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <h1>Server response (dev only)</h1>
-    <pre>
-<code>
-<h3>/api/friends</h3>
-{{ friendList }}
-</code>
-<hr/>
-<code>
-<h3>/api/friends/requests</h3>
-{{ pendingFriendList }}
-</code>
-<hr/>
-
-<code>
-<h3>/api/friends/blocked</h3>
-{{ blockedFriendList }}
-</code>
-<hr/>
-
-<code>
-<h3>/api/user/me</h3>
-{{ userStore }}
-</code>
-    </pre>
   </main>
 </template>
 

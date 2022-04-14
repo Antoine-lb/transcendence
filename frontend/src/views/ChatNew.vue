@@ -1,7 +1,6 @@
 
 <script lang="ts">
-import PublicAccount from "@/components/PublicAccount.vue";
-import PrivateAccount from "@/components/PrivateAccount.vue";
+import ChatNew from "@/components/ChatNew.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -12,8 +11,7 @@ export default {
     return { userStore };
   },
   components: {
-    PublicAccount,
-    PrivateAccount,
+    ChatNew,
   },
 };
 </script>
@@ -24,11 +22,10 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
-        <PublicAccount :user="userStore.user" :avatar="userStore.avatarUrl" />
-        <PrivateAccount />
+        <ChatNew :user="userStore.user" />
       </div>
       <div v-if="!userStore.isLogged" class="form-group">
-        <p>Vous devez être connecté pour voir votre profil</p>
+        <p>Vous devez être connecté pour voir le chat</p>
       </div>
     </div>
   </main>

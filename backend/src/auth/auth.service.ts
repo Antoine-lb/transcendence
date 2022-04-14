@@ -13,6 +13,7 @@ export class AuthService {
 
   async checkUser(user: UserDto): Promise<UserEntity> {
     const is_user = await this.usersService.findById(user.id)
+    // this.usersService.addUserToPublicRooms(user); // TMP TEMPORAIRE FOR TESTS
     if (!is_user)
       return await this.usersService.addUser(user)
     return is_user;

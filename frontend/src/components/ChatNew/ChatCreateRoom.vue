@@ -1,5 +1,5 @@
 <script lang="ts">
-import { useUserStore } from "../stores/userStore";
+import { useUserStore } from "../../stores/userStore";
 
 export interface newRoomInterface {
   name: string;
@@ -22,7 +22,7 @@ function fetchWithHeaders(url) {
 }
 
 export default {
-  name: "ChatNewRoom",
+  name: "ChatCreateRoom",
   data() {
     return {
       userStore: useUserStore(),
@@ -105,8 +105,8 @@ export default {
 </script>
 
 <template>
-  <div class="container">
-    <h1>Créer un salon</h1>
+  <div class="box">
+    <h1>Room creation</h1>
     <div>
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
       <div v-if="!isPublic">
@@ -135,7 +135,7 @@ export default {
         This room will be private (only you and added users can see it).
       </div>
       <button class="submit-new-room new-room-button" @click="createRooms">
-        Créer {{ newRoomName }}
+        Create {{ newRoomName }}
       </button>
     </div>
   </div>
@@ -153,6 +153,19 @@ input {
   border-radius: 13px;
   font-weight: bold;
   font-size: 16px;
+}
+
+.box {
+  background-color: white;
+  border: none;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 15px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 .new-room-button {

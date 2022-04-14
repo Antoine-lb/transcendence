@@ -1,11 +1,12 @@
 import { Interface } from "readline";
 import { UserDto } from "src/entities/users.dto";
 import { RoomI } from "src/chat/model/room.interface";
+import { UserRoomRole } from "./user-room.entity";
 
-export interface JoinedRoomI {
+export interface UserRoomI {
  
     id?: number;
-    socketID: string;
     user: UserDto;
     room: RoomI;
+    role: UserRoomRole;
 }

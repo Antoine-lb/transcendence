@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
@@ -7,97 +7,132 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { UserDto } from 'src/entities/users.dto';
 import { UsersService } from 'src/users/users.service';
 import { encodePassword } from 'src/utils/bcrypt';
+import { UserRoomService } from '../user-room/user-room.service';
+import { UserRoomRole, UserRoomEntity } from 'src/chat/model/user-room.entity';
 
 
 @Injectable()
 export class RoomService {
-
     constructor(
+        @Inject(forwardRef(() => UsersService))
         private readonly usersService: UsersService,
+        
+        @Inject(forwardRef(() => UserRoomService))
+        private readonly userRoomService: UserRoomService,
 
         @InjectRepository(RoomEntity)
         private readonly roomRepository: Repository<RoomEntity>
     ){}
-    
+
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-
-        const newRoom = await this.addCreatorToRoom(room, creator);
-
+        // add creator to users
+        room.users.push(creator);
         // if (Public room)
-        if (newRoom.status == true) {
-
+        if (room.status == true) {
             // hash and store the password
-            if (newRoom.protected == true && room.password)
-                newRoom.password = encodePassword(room.password);
-            else
-            // TODO : return error
-            
+            if (room.protected == true && room.password)
+                room.password = encodePassword(room.password);
             // add all users to the Room
-            newRoom.users = await this.usersService.findAll();
+            // room.users = await this.usersService.findAll();
         }
-        return await this.roomRepository.save(newRoom);
+        return await this.roomRepository.save(room);
     }
 
+    //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
+        
+    async isOwner(user: UserDto, room: RoomI) : Promise<boolean> {
+        var role = await this.userRoomService.getRole(room, user);
+        if (role == UserRoomRole.OWNER)
+            return true;
+        return false;
+    }
+
+    async deletePassword(room: RoomI, modifier: UserDto): Promise<RoomI> {
+        if (await this.isOwner(modifier, room) == false)
+            throw new UnauthorizedException();
+        if (room.status == false || room.protected == false || room.password == null)
+            throw new UnauthorizedException();
+        room.password = null;
+        room.protected = false;
+        return await this.roomRepository.save(room);
+    }
+ 
+    async modifyPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+        if (await this.isOwner(modifier, room) == false)
+            throw new UnauthorizedException();
+        if (room.status == false || room.protected == false || room.password == null)
+            throw new UnauthorizedException();
+        room.password = encodePassword(password);
+        return await this.roomRepository.save(room);
+    }
+
+    async addPassword(room: RoomI, modifier: UserDto, password: string): Promise<RoomI> {
+        if (await this.isOwner(modifier, room) == false)
+            throw new UnauthorizedException();
+        if (room.status == false)
+            throw new UnauthorizedException();
+        room.password = encodePassword(password);
+        room.protected = true;
+        return await this.roomRepository.save(room);
+    }
+
+    ////////////////////////////////////////// GETTER FUNCTIONS //////////////////////////////////////////////////////////////
+
     async getRoom(roomID: number): Promise<RoomI> {
-        return this.roomRepository.findOne(roomID, {
-            relations: ['users']
+        return await this.roomRepository.findOne(roomID, {
+            relations: ['users', 'admins']
         })
     }
 
-    async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
-
-        const query = this.roomRepository
-        .createQueryBuilder('room')
-        .leftJoin('room.users', 'users')
-        .where('users.id = :userID', { userID })
-        
-        return paginate(query, options);
-    }
-
-    async addCreatorToRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
-        
-        // initialize empty array for the admins
-        const admins: UserDto[] = [];
-
-
-        // Save creator as Creator
-        room.users.push(creator);
-
-        // Save creator as Admin
-        admins.push(creator);
-        room.admins = admins;
-
-        return await room;
-    }
-
-    async addAdminsToRoom(room: RoomI, admins: UserDto[], modifier: UserDto): Promise<RoomI> {
-
-        // Check if the modifier User is an Admin
-        const user = await this.findAdminForRoom(room, modifier.id);
-        if (!user) throw new UnauthorizedException();
-        
-        for (const admin of admins) {
-
-            // Save User's'  as  Admin's' if (not already admin to the room)
-            const tmp = await this.findAdminForRoom(room, admin.id);
-            if (!tmp)
-                room.admins.push(admin);
+    async findAllPublic(): Promise<RoomI[]> {
+        var allRooms = await this.roomRepository.createQueryBuilder().getMany();
+        var publicRooms = [];
+        for (var room of allRooms)
+        {
+            if (room.status == true)
+                publicRooms.push(room);
         }
-        return await room;
+        return publicRooms;
     }
 
-    async banUsers(room: RoomI, UsersToBan: UserDto[]) {}
+    // async getUsersForRoom(roomId: number) {
+    //     var ret = await this.roomRepository.findOne(roomId, {
+    //         relations: ['users', 'admins']
+    //     });
+    //     return ret.users;
+    // }
+
+    // async getUsersIdsForRoom(roomId: number) {
+    //     var ret = await this.roomRepository.findOne(roomId, {
+    //         relations: ['users', 'admins']
+    //     });
+    //     var usersIds = [];
+    //     for (const user of ret.users) {
+    //         usersIds.push(user.id);
+    //     }
+    //     return usersIds;
+    // }
+
+    // async updateUsers(roomId: number, newUsers: UserDto[])
+    // {
+    //     return await this.roomRepository.update({ id: roomId }, { users: newUsers } );        
+    // }
+
+    // async findAll(): Promise<RoomI[]> {
+    //     return await this.roomRepository.createQueryBuilder().getMany();
+    // }
+
+    // async getRoomForUser(userID: number, options: IPaginationOptions): Promise<Pagination<RoomI>> {
+
+    //     const query = this.roomRepository
+    //     .createQueryBuilder('room')
+    //     .leftJoin('room.users', 'users')
+    //     .where('users.id = :userID', { userID })
+        
+    //     return paginate(query, options);
+    // }
 
     async muteUsers(room: RoomI, UsersToMute: UserDto[]) {
-    }
 
-    async findAdminForRoom(room: RoomI, id: number): Promise<UserDto | undefined> {
-
-        
-        for (const admin of room.admins) {
-            if (admin.id == id) 
-                return await admin;
-        }
-        return;
     }
 }
