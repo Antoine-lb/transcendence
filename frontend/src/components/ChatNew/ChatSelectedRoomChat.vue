@@ -48,6 +48,7 @@ export default {
       type: Object as () => RoomI,
     },
     socket: Object,
+    blockedFriends: Object,
   },
   components: {
   },
@@ -72,6 +73,14 @@ export default {
     validateInput() {
       return this.text.length > 0;
     },
+    isBlocked(user: UserInterface) {
+      for (var blocked of this.blockedFriends)
+      {
+        if (user.id == blocked.id)
+          return true;
+      }
+      return false;
+    }
   },
   async created() {
     this.socket.on("updateSelected", (room) => {
@@ -88,6 +97,7 @@ export default {
 </script>
 <template>
   <div>
+    {{ this.blockedFriends }}
       <div v-if="this.selectedRoom?.id" id="chat" class="box">
         <h1>Chat in {{ this.selectedRoom.name }} </h1>
         <div class="message-box">
@@ -96,10 +106,13 @@ export default {
             <div v-for="message of messages.items" :key="message.id">
               <div class="message-box">
                 <div v-if="this.user.id !== message?.user.id" class="message" >
-                  <div class="message-user">
-                    {{ message?.user.username }}
+                  <div v-if="isBlocked(message?.user)">
+                    <div class="message-content"> « This message is hidden because you blocked the sender. » </div>
                   </div>
-                  <div class="message-content">{{ message?.text }}</div>
+                  <div v-else>
+                    <div class="message-user"> {{ message?.user.username }} </div>
+                    <div class="message-content"> {{ message?.text }} </div>
+                  </div>
                 </div>
               </div>
             <!-- Sent messages -->
@@ -284,6 +297,7 @@ input[type="submit"]:hover {
 .message-content {
   overflow-wrap: break-word;
 }
+
 .my-message {
   color: #713ab8;
   align-self: end;

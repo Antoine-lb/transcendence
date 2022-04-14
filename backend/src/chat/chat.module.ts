@@ -13,6 +13,8 @@ import { UserRoomService } from './service/user-room/user-room.service';
 import { MessageEntity } from './model/message.entity';
 import { JoinedRoomEntity } from './model/joined-room.entity';
 import { UserRoomEntity } from './model/user-room.entity';
+import { FriendsService } from 'src/friends/friends.service';
+import { FriendRequestEntity } from 'src/entities/friends.entity';
 
 @Module({
   imports: [AuthModule, UsersModule, TypeOrmModule.forFeature([
@@ -20,9 +22,10 @@ import { UserRoomEntity } from './model/user-room.entity';
     ConnectedUserEntity,
     MessageEntity,
     JoinedRoomEntity,
-    UserRoomEntity
+    UserRoomEntity,
+    FriendRequestEntity
     ]),
   ],
-  providers: [ChatGateway, RoomService, ConnectedUserService, JoinedRoomService, UserRoomService, MessageService]
+  providers: [ChatGateway, RoomService, ConnectedUserService, JoinedRoomService, UserRoomService, MessageService, FriendsService]
 })
 export class ChatModule {}
