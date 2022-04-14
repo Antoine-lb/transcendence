@@ -57,7 +57,7 @@ export class GameService {
 
   gameLoop(state: StateI, powerUPenable: Boolean = true): number {
     if (!state) {
-      return;
+      return -1;
     }
     const ball = state.ball;
     const p1 = state.players[0];

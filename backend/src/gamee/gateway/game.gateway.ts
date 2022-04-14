@@ -61,10 +61,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // il me faut le socket des que l on clique sur "jeux"
 
         // connect directly the client to the room if he was in game
+
         if (this.clientDisconnected[user.id]) {
           socket.data.status = "play"
           // join the room socket
           socket.join(this.clientDisconnected[user.id].roomName);
+          socket.data.number = this.clientDisconnected[user.id].player;
           // init the front for player 2
           socket.emit('init', this.clientDisconnected[user.id].player);
         }
@@ -73,6 +75,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
     catch {
+
       return this.disconnect(socket);
     }
   }
@@ -143,20 +146,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinQueue')
   handleJoinQueue(socket: Socket) {
-    console.log(`user.id : ${socket.data.user.id}, stackIndex ${this.stackIndex}, socket ${socket.id}`);
 
     let roomName = Math.floor(this.stackIndex / 2).toString();
     this.clientRooms[socket.id] = roomName;
 
     // [CREATE] game state and wait other player if(nobody is in queue)
     if (!(this.stackIndex % 2)) {
-      console.log('ici');
-
       this.stackIndex++;
       // init the game state 
       this.state[roomName] = this.GameService.initGame(true)
       this.state[roomName].userID = socket.data.user.id;
-      console.log(`this.state[roomName].userID : ${this.state[roomName].userID}  socket.data.user.id : ${socket.data.user.id} `);
 
       // set the creator to player 1
       socket.data.number = 1;
@@ -168,7 +167,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     // [JOIN] the game if somebody is already in queue
     else {
-      console.log('la');
 
       if (this.state[roomName].userID == socket.data.user.id) {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
@@ -186,7 +184,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // }
       this.stackIndex++;
       this.state[roomName].userID = socket.data.user.id;
-      console.log(`this.state[roomName].userID : ${this.state[roomName].userID}  socket.data.user.id : ${socket.data.user.id} `);
       // set the creator to player 1
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
@@ -198,7 +195,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(roomName).emit('startGameAnimation')
       // start the game when both player are connected
       setTimeout(() => {
-        // console.log('roomName', roomName);
         this.startGameInterval(roomName)
       }, 7000);
     }
@@ -256,14 +252,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  // @SubscribeMessage('disconnect')
-  // handleDisconnection(socket: Socket) {
-  //   console.log("socket handleDisconnect[ION]!!!:", socket.id, " juts disconnected")
-  //   if (this.clientRooms[socket.id] && this.state[this.clientRooms[socket.id]].intervalId)
-  //     clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
-  //   // socket.broadcast.emit('disconnection')
-  // }
-
   @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
@@ -299,18 +287,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // C'est celui qui marche
   handleDisconnect(socket: Socket) {
-    console.log(`socket ${socket.id}`);
-
     const room = [this.clientRooms[socket.id]];
 
     const winner = this.GameService.gameLoop(this.state[this.clientRooms[socket.id]]);
 
-    if (!winner) {
+    if (winner != -1) {
       this.clientDisconnected[socket.data.user.id] = { player: socket.data.number, roomName: this.clientRooms[socket.id] };
-      // console.log(JSON.stringify(this.clientDisconnected[socket.data.user.id]));
+      socket.leave(this.clientRooms[socket.id]);
+
     }
-    this.server.sockets.in(room).emit('disconnection');
-    socket.disconnect()
+    else {
+      this.server.sockets.in(room).emit('disconnection');
+      socket.disconnect();
+    }
   }
 
   private disconnect(socket: Socket) {
@@ -367,6 +356,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       clientSocket.data.status = "connected";
 
+
+      // delete the client of disconnect.Array
+      if (this.clientDisconnected[clientSocket.data.user.id])
+        if (this.clientDisconnected[clientSocket.data.user.id].roomName == roomName)
+          delete this.clientDisconnected[clientSocket.data.user.id];
+
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;
       else
@@ -384,5 +379,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       winnerId: winnerId,
       score: score,
     })
+
+    this.state.splice(parseInt(roomName), 1);
+
   }
 }
