@@ -1,7 +1,7 @@
 
 <script lang="ts">
-import PublicAccount from "@/components/PublicAccount.vue";
-import PrivateAccount from "@/components/PrivateAccount.vue";
+import PrivateProfile from "@/components/PrivateProfile.vue";
+import PublicProfile from "@/components/PublicProfile.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -12,8 +12,8 @@ export default {
     return { userStore };
   },
   components: {
-    PublicAccount,
-    PrivateAccount,
+    PrivateProfile,
+    PublicProfile,
   },
 };
 </script>
@@ -24,8 +24,15 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
-        <PublicAccount :user="userStore.user" :avatar="userStore.avatarUrl" />
-        <PrivateAccount />
+        <PublicProfile
+          :username="userStore.user.username"
+          :avatarUrl="userStore.avatarUrl"
+          :played="userStore.user.played"
+          :victory="userStore.user.victory"
+          :defeats="userStore.user.defeats"
+          :id="userStore.user.id"
+        />
+        <PrivateProfile />
       </div>
       <div v-if="!userStore.isLogged" class="form-group">
         <p>Vous devez être connecté pour voir votre profil</p>

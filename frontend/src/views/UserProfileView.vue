@@ -1,6 +1,6 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
-import UserProfile from "@/components/UserProfile.vue";
+import PublicProfile from "@/components/PublicProfile.vue";
 
 function fetchWithHeaders(url) {
   return fetch(url, {
@@ -31,7 +31,7 @@ export default {
     this.fetchAllData();
   },
   components: {
-    UserProfile,
+    PublicProfile,
   },
   methods: {
     fetchAllData: function () {
@@ -68,7 +68,7 @@ export default {
     <div v-if="!loading">
       <div v-if="userNotFound">L'utilisateur est introuvable</div>
       <div v-if="!userNotFound">
-        <UserProfile
+        <PublicProfile
           :username="user.username"
           :avatarUrl="this.userAvatar"
           :played="user.played"
