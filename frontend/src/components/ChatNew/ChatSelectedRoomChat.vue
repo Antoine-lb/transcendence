@@ -97,7 +97,6 @@ export default {
 </script>
 <template>
   <div>
-    {{ this.blockedFriends }}
       <div v-if="this.selectedRoom?.id" id="chat" class="box">
         <h1>Chat in {{ this.selectedRoom.name }} </h1>
         <div class="message-box">

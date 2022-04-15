@@ -49,7 +49,6 @@ export class UsersService {
             username: user.username,
             avatar: defaultfile
       })
-      console.log('...saving new user : ' + new_user.username)
       var savedUser = await this.usersRepository.save(new_user);
       // ajoute l'utilisateur aux public room existantes
       await this.addUserToPublicRooms(user);

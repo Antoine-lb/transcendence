@@ -1,225 +1,435 @@
-<template>
-  <div class="canvas-container">
-    <!-- <canvas width="750" height="585" id="game" ></canvas> Toggle with : "const canvas = <HTMLCanvasElement>document.getElementById("game"); l.19" -->
-    <canvas ref="game" width="750" height="585"></canvas>
-  </div>
-</template>
-
 <script lang="ts">
-import WelcomeItem from "./WelcomeItem.vue";
+import { ref, onMounted } from 'vue'
+import { io } from "socket.io-client";
+import { useUserStore } from "../stores/userStore";
 
 export default {
   name: "TheGame",
+   setup() {
+      const userStore = useUserStore();
+      const gameCodeDisplay = ref(null)
+      const initialScreen = ref(null)
+      const gameCodeInput = ref(null)
+      const gameCodeSpec = ref(null)
+
+      const gameScreen = ref(null)
+      const msgBox = ref(null)
+      const canvas = ref(null)
+      onMounted(() => {
+        // the DOM element will be assigned to the ref after initial render
+        console.log(gameCodeDisplay.value) // <div>This is a gameCodeDisplay element</div>
+      })
+
+      return {
+        gameCodeDisplay,
+        initialScreen,
+        gameCodeInput,
+        gameCodeSpec,
+        gameScreen,
+        msgBox,
+        canvas,
+        userStore,
+      }
+    },
+  props: {
+    user: Object,
+  },
   data() {
     return {
-      // canvas: document.getElementById('game')
+      title: "Game Room",
+      
+      score : {},
+      gameStatus : String("paused"),
+      socket: ref(),
+      ctx: null,
+      msg: String(''),
+      gameActive : Boolean(false),
+      // myRooms: null,
+      // friendList: [],
+      // newRoomName: null,
+      // newRoomUsers: null,
+      // selectedRoom: {},
+      // room: {},
     };
   },
-  mounted() {
-    // const canvas = <HTMLCanvasElement>document.getElementById("game");
-    const canvas = this.$refs.game;
+  created () {
+    this.socketSetter();
+  },
 
-    const context = canvas.getContext("2d");
-    // taile de la grille qui entoure le jeu (et des lignes qui le composent)
-    const grid = 15;
-    const paddleHeight = grid * 5; // 80
-    const maxPaddleY = canvas.height - grid - paddleHeight;
+  methods: {
+    socketSetter() {
+      this.socket = io("http://127.0.0.1:3000", {
+      extraHeaders: {
+        Authorization: this.user.access_token,
+      },
+      });
+      this.socket.on("connect", () => {this.gameStatus = "idle"})
+      this.socket.on("init", this.handleInit);
+      this.socket.on("gameState", this.handleGameState);
+      this.socket.on("gameOver", this.handleGameOver);
+      this.socket.on("gameCode", this.handleGameCode);
+      this.socket.on("unknownCode", this.handleUnknownCode);
+      this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
+      this.socket.on("paused", this.handlePause);
+      this.socket.on("notify", this.handleNotification);
+      this.socket.on("broadcastMsg", this.receiveMsg);
+      this.socket.on("disconnection", this.handleDisconnection);
+      this.socket.on("startGameAnimation", this.startGameAnimation);
+      this.socket.on("disconnect", (reason) => {
+        if (reason === "io server disconnect") {
+          // console.log("the disconnection was initiated by the server, you need to reconnect manually")
+          // this.socket.connect();
+        }
+      // else the socket will automatically try to reconnect
+      });
 
-    var paddleSpeed = 6;
-    var ballSpeed = 5;
+      this.socket.on("samePlayer", (arg1, callback) => {
+        console.log(arg1);
+        callback({
+          status: alert("test"),
+          // status1: "ok"
+        });
+  });
+    },
 
-    const leftPaddle = {
-      // start in the middle of the game on the left side
-      x: grid * 2,
-      y: canvas.height / 2 - paddleHeight / 2,
-      width: grid,
-      height: paddleHeight,
+    joinQueue() {
+      this.socket.emit("joinQueue");
+    },
 
-      // paddle velocity
-      dy: 0,
-    };
-    const rightPaddle = {
-      // start in the middle of the game on the right side
-      x: canvas.width - grid * 3,
-      y: canvas.height / 2 - paddleHeight / 2,
-      width: grid,
-      height: paddleHeight,
+    createNewGame() {
+      this.socket.emit("newGame");
+    },
 
-      // paddle velocity
-      dy: 0,
-    };
-    const ball = {
-      // start in the middle of the game
-      x: canvas.width / 2,
-      y: canvas.height / 2,
-      width: grid,
-      height: grid,
+    handleJoinGame() {
+      const code = this.gameCodeInput.value;
+      this.socket.emit('joinGame', code);
+    },
 
-      // keep track of when need to reset the ball position
-      resetting: false,
+    handleSpecGame() {
+      const code = this.gameCodeSpec.value;
+      this.socket.emit('spec', code);
+      this.init();
+    },
 
-      // ball velocity (start going to the top-right corner)
-      dx: ballSpeed,
-      dy: -ballSpeed,
-    };
+    init() {
+      this.initialScreen.style.display = "none";
+      this.gameScreen.style.display = "block";
+      this.ctx = this.canvas.getContext("2d");
+      this.canvas.width = 750;
+      this.canvas.height = 590;
+      this.ctx.fillStyle = "#231f20";
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // check for collision between two objects using axis-aligned bounding box (AABB)
-    // @see https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
-    function collides(obj1, obj2) {
-      return (
-        obj1.x < obj2.x + obj2.width &&
-        obj1.x + obj1.width > obj2.x &&
-        obj1.y < obj2.y + obj2.height &&
-        obj1.y + obj1.height > obj2.y
-      );
-    }
+      document.addEventListener("keydown", this.keydown);
+      document.addEventListener("keyup", this.keyup);
+      this.gameActive = true;
+    },
 
-    // game loop
-    function loop() {
-      requestAnimationFrame(loop);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+    keydown(e) {
+      if (!this.socket.connected)
+        return;
+      this.socket.emit("keydown", e.keyCode);
+      if (e.key == 'd')
+        this.socket.disconnect();
+      if (e.key == 'f')
+        this.socket.connect();
+    },
 
-      // move paddles by their velocity
-      leftPaddle.y += leftPaddle.dy;
-      rightPaddle.y += rightPaddle.dy;
+    keyup(e) {
+      if (!this.socket.connected)
+        return;
+      this.socket.emit("keyup", e.keyCode);
+    },
 
-      // prevent paddles from going through walls
-      if (leftPaddle.y < grid) {
-        leftPaddle.y = grid;
-      } else if (leftPaddle.y > maxPaddleY) {
-        leftPaddle.y = maxPaddleY;
-      }
+    async startGameAnimation()
+    {
+      for (let cntDown = 5; cntDown > 0; --cntDown)
+        for (let index = 0; index < 100; ++index) {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          this.ctx.font = (index).toString() + "px Calibri,Geneva,Arial";
+          this.ctx.strokeStyle = "rgb(0,0,0)";
+          this.ctx.strokeText(String(cntDown), this.canvas.width / 3 - index / 3, this.canvas.height / 3 + index / 3);
+          await this.sleep(10);
+        }
+      this.socket.emit('launchGame');
+    },
 
-      if (rightPaddle.y < grid) {
-        rightPaddle.y = grid;
-      } else if (rightPaddle.y > maxPaddleY) {
-        rightPaddle.y = maxPaddleY;
-      }
+    sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+    },
 
+    paintGame(state) {
+      const grid = 15;
+      // clear canvas
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // draw paddles
-      context.fillStyle = "white";
-      context.fillRect(
-        leftPaddle.x,
-        leftPaddle.y,
-        leftPaddle.width,
-        leftPaddle.height
-      );
-      context.fillRect(
-        rightPaddle.x,
-        rightPaddle.y,
-        rightPaddle.width,
-        rightPaddle.height
-      );
-
-      // move ball by its velocity
-      ball.x += ball.dx;
-      ball.y += ball.dy;
-
-      // prevent ball from going through walls by changing its velocity
-      if (ball.y < grid) {
-        ball.y = grid;
-        ball.dy *= -1;
-      } else if (ball.y + grid > canvas.height - grid) {
-        ball.y = canvas.height - grid * 2;
-        ball.dy *= -1;
-      }
-
-      // reset ball if it goes past paddle (but only if we haven't already done so)
-      if ((ball.x < 0 || ball.x > canvas.width) && !ball.resetting) {
-        ball.resetting = true;
-
-        // give some time for the player to recover before launching the ball again
-        setTimeout(() => {
-          ball.resetting = false;
-          ball.x = canvas.width / 2;
-          ball.y = canvas.height / 2;
-        }, 400);
-      }
-
-      // check to see if ball collides with paddle. if they do change x velocity
-      if (collides(ball, leftPaddle)) {
-        ball.dx *= -1;
-
-        // move ball next to the paddle otherwise the collision will happen again
-        // in the next frame
-        ball.x = leftPaddle.x + leftPaddle.width;
-      } else if (collides(ball, rightPaddle)) {
-        ball.dx *= -1;
-
-        // move ball next to the paddle otherwise the collision will happen again
-        // in the next frame
-        ball.x = rightPaddle.x - ball.width;
-      }
-
-      // draw ball
-      context.fillRect(ball.x, ball.y, ball.width, ball.height);
+      this.ctx.fillStyle = "black";
+      this.ctx.fillRect(grid, state.players[0].y, 15, state.players[0].paddleH);
+      this.ctx.fillRect(this.canvas.width - 2 * grid,state.players[1].y, 15, state.players[1].paddleH);
 
       // draw walls
-      context.fillStyle = "lightgrey";
-      context.fillRect(0, 0, canvas.width, grid);
-      context.fillRect(0, canvas.height - grid, canvas.width, canvas.height);
+      this.ctx.fillStyle = "lightgrey";
+      this.ctx.fillRect(0, 0, this.canvas.width, grid);
+      this.ctx.fillRect( 0, this.canvas.height - grid, this.canvas.width, this.canvas.height);
 
       // draw dotted line down the middle
-      for (let i = grid; i < canvas.height - grid; i += grid * 2) {
-        context.fillRect(canvas.width / 2 - grid / 2, i, grid, grid);
+      for (
+        let i = grid;
+        i < this.canvas.height - grid;
+        i += grid * 2
+      ) {
+        this.ctx.fillRect(
+          this.canvas.width / 2 - grid / 2,
+          i,
+          grid,
+          grid
+        );
       }
-    }
+      // draw ball
+      this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
 
-    // listen to keyboard events to move the paddles
-    document.addEventListener("keydown", function (e) {
-      // up arrow key
-      if (e.which === 38) {
-        rightPaddle.dy = -paddleSpeed;
-      }
-      // down arrow key
-      else if (e.which === 40) {
-        rightPaddle.dy = paddleSpeed;
-      }
-
-      // z key
-      if (e.which === 90) {
-        leftPaddle.dy = -paddleSpeed;
-      }
-      // s key
-      else if (e.which === 83) {
-        leftPaddle.dy = paddleSpeed;
-      }
-    });
-
-    // listen to keyboard events to stop the paddle if key is released
-    document.addEventListener("keyup", function (e) {
-      if (e.which === 38 || e.which === 40) {
-        rightPaddle.dy = 0;
+      // draw PowerUps (if any)
+      if (state.powerUp[0].x > 0) {
+        // console.log("state.powerUp_t", state.powerUp_t)
+        this.ctx.fillStyle = state.powerUp_t;
+        this.ctx.fillRect(state.powerUp[0].x, state.powerUp[0].y, 15, 15);
+        this.ctx.fillRect(state.powerUp[1].x, state.powerUp[1].y, 15, 15);
       }
 
-      if (e.which === 83 || e.which === 90) {
-        leftPaddle.dy = 0;
-      }
-    });
+      // draw scrore
+      this.ctx.font = "20pt Calibri,Geneva,Arial";
+      this.ctx.strokeStyle = "rgb(0,0,0)";
+      this.ctx.strokeText(String(this.score.p1), this.canvas.width / 2 - 40, 40);
+      this.ctx.strokeText(String(this.score.p2), this.canvas.width / 2 + 25, 40);
+    },
 
-    // start the game
-    requestAnimationFrame(loop);
+    sendMsg() {      
+      this.socket.emit('msg', this.msg);
+      this.msg = "";
+    },
+
+    receiveMsg(msg) { // Sig : "broadcastMsg"
+      this.msgBox.innerText += '\n' + msg;
+      this.msgBox.scrollTop = this.msgBox.scrollHeight;
+    },
+
+    handleInit(number) {
+      this.playerNumber = number;
+      this.init();
+    },
+
+    handleGameState(gameState) {
+      if (!this.gameActive) {
+        return;
+      }
+      gameState = JSON.parse(gameState);
+      this.score = gameState.score;
+      // console.log("this.gameStatus : ", this.gameStatus);
+      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
+        requestAnimationFrame(() => this.paintGame(gameState));
+    },
+
+    handleGameOver(data) {
+      if (!this.gameActive) {
+        return;
+      }
+      document.removeEventListener("keydown", this.keydown);
+      document.removeEventListener("keyup", this.keydown);
+
+      data = JSON.parse(data);
+      this.gameActive = false;
+      if (data.winner === this.playerNumber) {
+        this.$notify({
+          position : "center",
+          title: "Congratulations !!",
+          text: "You Won :)",
+          duration : 6000
+      });
+      } else {
+        this.$notify({
+          position : "center",
+          title: "Try Again !!",
+          text: "You Loose :(",
+          duration : 6000
+      });
+      }
+    },
+
+    handleGameCode(gameCode) {
+      this.gameCodeDisplay.innerText = gameCode;
+    },
+
+    handleUnknownCode() {
+      this.reset();
+      alert("Unknown Game Code");
+    },
+
+    handleTooManyPlayers() {
+      this.reset();
+      alert("This game is already in progress");
+    },
+
+    handleDisconnection() {
+      this.gameStatus = "opponentLeft"
+      this.$notify({
+        title: "Important message",
+        text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
+        duration : 6000
+      });
+      // alert("Your Opponent disconnected, you can wait till he come back or claim victory");
+    },
+
+    handlePause(msg) {
+      console.log(`%c your opponent paused ${msg}`, 'background: #222; color: #bada55')
+      this.socket.emit('pause');
+    },
+
+    handleNotification(msg) {
+      this.$notify(msg);
+    },
+
+    reset() {
+      this.playerNumber = null;
+      this.gameCodeInput.value = "";
+      this.gameCodeSpec.value = "";
+      this.initialScreen.style.display = "block";
+      this.gameScreen.style.display = "none";
+    },
   },
 };
 </script>
 
+<template>
+  <section class="vh-100">
+    <div class="container h-100">
+
+      <div ref="initialScreen" class="h-100">
+        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+            <h1>Multiplayer Pong Game</h1>
+            <h1>myRoom is : {{this.socket != null ? this.socket.id : "Undefined yet"}}</h1>
+          <div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              @click="joinQueue"
+            >
+              Play 
+            </button>
+          </div>
+            <div>OR</div>
+          <div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              @click="createNewGame"
+            >
+              Create Game code 
+            </button>
+          </div>
+
+            <div class="form-group">
+              <input type="text" placeholder="Enter Game Code" ref="gameCodeInput"/>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              v-on:click="handleJoinGame"
+            >
+              Join Game
+            </button>
+
+
+            <div class="form-groupp">
+              <input type="text" placeholder="Enter Game Codee" ref="gameCodeSpec"/>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              v-on:click="handleSpecGame"
+            >
+              Spec Game
+            </button>
+        </div>
+      </div>
+
+      <div ref="gameScreen" id="gameScreen" class="h-100">
+        <div class="d-flex flex-column align-items-center justify-content-center h-100">
+          <h1>myRoom is : {{this.socket != null ? this.socket.id : "Undefined yet"}}</h1>
+          <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
+          <canvas ref="canvas"></canvas>
+          <button
+            type="submit"
+            class="btn btn-success"
+            ref="pauseButton"
+            v-on:click="handlePause()"
+          >
+          pause
+          </button>
+          <button type="submit"
+            class="btn btn-success"
+            ref="notifyButton"
+            v-if="this.gameStatus === 'opponentLeft'"
+            v-on:click="claimVictory"
+          >
+          claimVictory
+          </button>
+        </div>
+          <div class=chat>
+            <div 
+              ref="msgBox"
+              class="message-box">
+            </div>
+
+            <div>
+              <textarea
+                id="textarea"
+                v-model="msg"
+                placeholder="Enter message...">
+              </textarea>
+            </div>
+
+            <div>
+              <button type="submit"
+              ref="sendButton"
+
+              v-on:click="sendMsg">
+              Send
+              </button>
+            </div>
+          </div>
+      </div>
+
+    </div>
+  </section>
+</template>
+
 <style scoped>
-main {
-  max-width: 500px;
-  padding-top: 100px;
-  margin: auto;
+#gameScreen {
+  display: none;
 }
 
-canvas {
-  background: black;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.chat {
+  height: 40px;
+  color: blueviolet;
+  border: 1px;
+  border-radius: 25px;
 }
 
-.canvas-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+textarea {
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  width: 100%;
+  padding: 10px;
+  margin: 10px;
+}
+.message-box {
+  overflow: scroll;
+  border: 3px solid #703ab8;
+  border-radius: 13px;
+  width: 100%;
+  height: 300%;
+  padding: 10px;
+  margin: 10px;
+
 }
 </style>

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@kyvg/vue3-notification": "^2.3.4"
+  }
+}

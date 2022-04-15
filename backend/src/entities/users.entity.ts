@@ -1,7 +1,16 @@
-import { Entity, Column, PrimaryColumn, ManyToMany, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  ManyToMany,
+  OneToMany,
+  ManyToOne,
+  JoinTable
+} from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { FriendRequestEntity } from './friends.entity';
 import { RoomEntity } from 'src/chat/model/room.entity';
+import { GamePlayedEntity } from 'src/gamee/model/gamePlayed.entity';
 import { userInfo } from 'os';
 import { ConnectedUserEntity } from 'src/chat/model/connected.user.entity';
 import { JoinedRoomEntity } from 'src/chat/model/joined-room.entity';
@@ -72,6 +81,9 @@ export class UserEntity {
   @ManyToMany(() => RoomEntity, room => room.admins)
   adminOF: RoomEntity[];
 
+  @ManyToMany(() => GamePlayedEntity, GamePlayedEntity => GamePlayedEntity.players)
+  gamePlayed: GamePlayedEntity[];
+  
   @OneToMany(() => UserRoomEntity, userRoom => userRoom.user)
   roleRooms: UserRoomEntity[];
 

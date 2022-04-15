@@ -23,7 +23,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   }
 
   async validate(payload: TokenPayload): Promise<UserEntity> {
-		console.log('___ 2FA validate()')
+		// console.log('___ 2FA validate()')
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
     {
@@ -31,7 +31,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       throw new UnauthorizedException('Jwt 2fa Strategy')
     }
     if (!user.isTwoFA) {
-      console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
+      // console.log("2FA NOT ACTIVATED - OK NO NEED TO CHECK")
       return user;
     }
     if (payload.isTwoFAAuthenticated) {

@@ -17,6 +17,11 @@ import { testMiddleware } from './middleware/test-middleware';
 import { ConnectedUserEntity } from './chat/model/connected.user.entity';
 import { MessageEntity } from './chat/model/message.entity';
 import { JoinedRoomEntity } from './chat/model/joined-room.entity';
+import { GameGateway } from './gamee/gateway/game.gateway';
+import { GameService } from './gamee/service/game/game.service';
+import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
+import { GameModule } from './gamee/game.module';
+import { StateEntity } from './gamee/model/state.entity';
 import { UserRoomEntity } from './chat/model/user-room.entity';
 
 @Module({
@@ -36,6 +41,7 @@ import { UserRoomEntity } from './chat/model/user-room.entity';
 				ConnectedUserEntity,
 				MessageEntity,
 				JoinedRoomEntity,
+				GamePlayedEntity,
 				UserRoomEntity
 			],
 			synchronize: true,
@@ -46,8 +52,8 @@ import { UserRoomEntity } from './chat/model/user-room.entity';
 		UsersModule,
 		FriendsModule,
 		ChatModule,
-		MulterModule
-	],
+		MulterModule,
+		GameModule,	],
 	controllers: [UserController, TwoFAController, FriendsController],
 	providers: [TwoFAService]
 })

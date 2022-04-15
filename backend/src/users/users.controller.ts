@@ -99,7 +99,7 @@ export class UserController {
       const user= this.userService.findById(req.user.id);
       if (!user)
         throw new NotFoundException('User not found')
-      console.log('(/me/avatar) filepath : ', req.user.avatar)
+      // console.log('(/me/avatar) filepath : ', req.user.avatar)
       if (await this.userService.fileExists(req.user.avatar) == false)
         throw new NotFoundException('Cannot display avatar - File does not exists')
       return res.sendFile(req.user.avatar);
@@ -109,7 +109,7 @@ export class UserController {
     @Post('/me/update-username')
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
-      console.log('/me/update-username')
+      // console.log('/me/update-username')
       if (!username)
         throw new NotFoundException('Username not received')
       const userEnt: UserEntity = req.user;

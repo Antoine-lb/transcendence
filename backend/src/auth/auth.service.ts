@@ -27,7 +27,6 @@ export class AuthService {
   // } NON USED
 
   async verifyToken(token: string) {
-		console.log('___ verifyToken()')
 		return this.jwtService.verify(token, { ignoreExpiration: false });
 	}
 
