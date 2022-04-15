@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import PublicProfile from "@/components/PublicProfile.vue";
+import FriendshipManagement from "@/components/FriendshipManagement.vue";
 
 function fetchWithHeaders(url) {
   return fetch(url, {
@@ -32,6 +33,7 @@ export default {
   },
   components: {
     PublicProfile,
+    FriendshipManagement,
   },
   methods: {
     fetchAllData: function () {
@@ -76,6 +78,7 @@ export default {
           :defeats="user.defeats"
           :id="user.id"
         />
+        <FriendshipManagement :user="user"/>
       </div>
     </div>
   </main>
