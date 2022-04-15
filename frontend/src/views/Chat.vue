@@ -1,17 +1,17 @@
 
 <script lang="ts">
-import TheChat from "@/components/Chat.vue";
+import Chat from "@/components/Chat.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
-  name: "Chat",
+  name: "Chat New",
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
     return { userStore };
   },
   components: {
-    TheChat,
+    Chat,
   },
 };
 </script>
@@ -22,7 +22,7 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
-        <TheChat :user="userStore.user" />
+        <Chat :user="userStore.user" />
       </div>
       <div v-if="!userStore.isLogged" class="form-group">
         <p>Vous devez être connecté pour voir le chat</p>

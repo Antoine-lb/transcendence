@@ -1,28 +1,58 @@
 <script lang="ts">
 import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
-import ChatNewRoom from "./ChatNewRoom.vue";
+import ChatCreateRoom from "./chat/ChatCreateRoom.vue";
+import ChatMyRooms from "./chat/ChatMyRooms.vue";
+import ChatAvailableRooms from "./chat/ChatAvailableRooms.vue";
+import ChatSelectedRoomChat from "./chat/ChatSelectedRoomChat.vue";
+import ChatSelectedRoomParams from "./chat/ChatSelectedRoomParams.vue";
+import ChatSelectedRoomUsers from "./chat/ChatSelectedRoomUsers.vue";
 
-interface roomInterface {
+export interface newRoomInterface {
   name: string;
+  users: [{ id: number }];
+}
+
+export interface RoomI {
+  created_date: string;
+  id: number;
+  name: string;
+  password: string;
+  protected: boolean;
+  status: boolean;
+  updated_date: string;
+  admins: [];
+  bans: [];
+}
+
+export interface UserInterface {
+    id: number;
+    username: string;
+    avatar: string;
+    isTwoFA: boolean;
+    secret?: string;
+    isOnline: boolean;
+}
+
+export enum UserRoomRole {
+  OWNER = "owner",
+  ADMIN = "admin",
+  BANNED = "banned",
+  LAMBDA = "lambda",
+  AVAILABLE = "available",
+  FORBIDDEN = "forbidden",
 }
 
 export default {
   name: "Chat",
   data() {
     return {
-      title: "Chat Room",
-      name: "",
-      text: "",
-      messages: [],
-      socket: null,
-      userStore: useUserStore(),
-      myRooms: null,
-      newRoomName: null,
-      newRoomUsers: null,
-      friendList: [],
-      selectedRoom: {},
-      room: {},
+      userRooms: null,
+      userRoomsRoles: [], // roles in all rooms for current user
+      selectedRoom: null,
+      userRolesInRoom: [], // all roles in current room
+      usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
+      blockedFriends: []
     };
   },
   setup() {
@@ -33,50 +63,29 @@ export default {
     user: Object,
   },
   components: {
-    ChatNewRoom,
+    ChatCreateRoom,
+    ChatMyRooms,
+    ChatAvailableRooms,
+    ChatSelectedRoomChat,
+    ChatSelectedRoomParams,
+    ChatSelectedRoomUsers,
   },
   methods: {
-    sendMessage() {
-      console.log(this.room);
-      if (this.validateInput()) {
-        const message = {
-          user: this.userStore.user,
-          text: this.text,
-          room: this.room,
-        };
-        this.socket.emit("addMessage", message);
-        this.text = "";
-      }
-    },
-    validateInput() {
-      return this.text.length > 0;
-    },
-    joinedRoom(room) {
-      this.room = room;
-
-      console.log(this.room);
-      this.socket.emit("joinRoom", room);
-    },
-    leaveRoom(room) {
-      this.socket.emit("leaveRoom", room);
-      this.selectedRoom = {};
-    },
-    createRoom(room: roomInterface) {
+    createRoom(room: newRoomInterface) {
       console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
-    updateSelected(selectedItem) {
-      console.log("selectedItem", selectedItem);
-
-      if (selectedItem.id === this.selectedRoom.id) {
-        console.log("leave current room");
-        this.socket.emit("leaveRoom", this.selectedRoom);
+    updateSelected(room: RoomI) {
+      if (this.selectedRoom && (room.id == this.selectedRoom.id))
         this.selectedRoom = {};
-      } else {
-        this.selectedRoom = selectedItem;
-        this.joinedRoom(selectedItem);
-      }
+      else
+        this.selectedRoom = room;     
     },
+    refreshSelected(room: RoomI) {
+      console.log(">>>>>> refreshSelected in PARENT");
+      this.socket.emit("getRoles", room);
+      this.selectedRoom = room;     
+    }
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -84,106 +93,38 @@ export default {
         Authorization: this.user.access_token,
       },
     });
-    console.log("socket Game :", this.socket.connected);
-
-    this.socket.on("rooms", (rooms) => {
-      this.myRooms = rooms.items;
-      console.log("this.myRooms", this.myRooms);
+    this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
+      this.userRooms = rooms;
+      // console.log("chat ------------ getRoomsForUser : ", rooms);
+      this.socket.emit("getAllRolesForUser", this.user);
+      console.log(">>>>>> getAllRolesForUser");
     });
-
-    this.socket.on("messageAdded", (message) => {
-      console.log("messageAdded", message);
-      // this.receivedMessage(message);
-      this.messages.items.push(message);
+    this.socket.on("getAllRolesForUser", (roles) => {
+      this.userRoomsRoles = roles;
     });
-    this.socket.on("messages", (messages) => {
-      console.log("messages", messages);
-      this.messages = messages;
+    this.socket.on("getRoles", (roles) => {
+      this.userRolesInRoom = roles;
+      this.socket.emit("getAllRolesForUser", this.user);
+    });
+    this.socket.on("getUsers", (users) => {
+      this.usersForRoom = users;
+    });
+    this.socket.on("getBlockedFriends", (users) => {
+      this.blockedFriends = users;
+      console.log(">>>>>> getBlockedFriends");
+
     });
   },
 };
 </script>
 <template>
   <div class="container">
-    <ChatNewRoom @onSubmit="createRoom" />
-
-    <h1 style="margin-top: 30px">Salons Disponibles</h1>
-    <div class="list-group">
-      <ul>
-        <div
-          @click="updateSelected(room)"
-          v-for="(room, index) in this.myRooms"
-          :key="index"
-        >
-          <div
-            v-if="room.id !== this.selectedRoom.id"
-            class="list-group-item list-group-item-action"
-          >
-            💬 {{ room.name }}
-          </div>
-          <div
-            v-if="room.id === this.selectedRoom.id"
-            class="list-group-item list-group-item-action selected"
-          >
-            💬 {{ room.name }}
-          </div>
-        </div>
-      </ul>
-    </div>
-
-    <!-- CHAT ROOM -->
-    <div style="margin-top: 30px" class="" v-if="this.selectedRoom.id">
-      <h1 class="text-center">
-        {{ title }}
-        <span> : {{ this.selectedRoom.name }} </span>
-      </h1>
-      <br />
-
-      <div id="status"></div>
-      <div id="chat">
-        <br />
-        <div class="message-box">
-          <div id="messages-box" class="card-block">
-            <div v-for="message of messages.items" :key="message.id">
-              <div class="message-box">
-                <div
-                  v-if="userStore.user.id !== message?.user.id"
-                  class="message"
-                >
-                  <div class="message-user">
-                    {{ message?.user.username }}
-                  </div>
-                  <div class="message-content">{{ message?.text }}</div>
-                </div>
-              </div>
-
-              <div class="message-box" style="flex-direction: row-reverse">
-                <div
-                  v-if="userStore.user.id === message?.user.id"
-                  class="my-message"
-                >
-                  <div class="my-message-user">
-                    {{ message?.user.username }}
-                  </div>
-                  <div class="my-message-content">{{ message?.text }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <br />
-        <textarea
-          id="textarea"
-          class="form-control"
-          v-model="text"
-          placeholder="Enter message..."
-        ></textarea>
-        <br />
-        <button id="send" class="btn" @click.prevent="sendMessage(room)">
-          Send
-        </button>
-      </div>
-    </div>
+    <ChatCreateRoom @onSubmit="createRoom" />
+    <ChatSelectedRoomParams @refreshSelected="refreshSelected" :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoomUsers :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :blockedFriends="this.blockedFriends"  :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
   </div>
 </template>
 
@@ -197,6 +138,71 @@ main {
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
+}
+
+.error-paragraf {
+  color: red;
+}
+
+.validation-paragraf {
+  color: green;
+  font-weight: bold;
+}
+
+.empty {
+  background-color: white;
+  display: inline-block;
+}
+
+.bold-colored {
+  color: #703ab8;
+  font-weight: bold;
+}
+
+.bold-red {
+  color: darkred;
+  font-weight: bold;
+}
+
+.small-text {
+  background-color: white;
+  font-size: 15px;
+  display: inline-block;
+}
+
+.new-room-button {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  /* display: block; */
+  margin: 10px;
+  border: 2px solid #703ab8;
+  display: inline-block;
+  max-width: 300px;
+  max-height: 50px;
+}
+
+.add-user {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  /* display: block; */
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 
 /* POUR LES SALONS */
@@ -240,6 +246,11 @@ input[type="submit"]:hover {
   width: 500px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
   border-radius: 20px;
+}
+
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
 .message {
