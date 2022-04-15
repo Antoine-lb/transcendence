@@ -208,9 +208,9 @@ export default {
       if (this.isFriend())
         return ("You and " + this.user.username + " are friends.");
       if (this.isPendingSent())
-        return ("You have requested friendship with " + this.user.username + ".");
+        return ("You have sent a friend request to " + this.user.username + ".");
       if (this.isPendingReceived())
-        return (this.user.username + " have requested friendship with you.");
+        return (this.user.username + " sent you a friend request.");
       if (this.isBlocked())
         return ("You have blocked " + this.user.username + ".");
       else
@@ -227,6 +227,7 @@ export default {
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
+      <p class="txt" v-if="isFriend()">{{ user.username }} is {{ user.isOnline ? "online" : "offline" }}</p>
       <p class="txt">{{ getFriendshipStatus() }}</p>
       <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
       <button v-if="isFriend()" class="pwd-btn on-colors" @click="removeFriend(this.user.id)"> REMOVE {{ this.user.username }} FROM FRIENDS</button> 
