@@ -45,6 +45,7 @@ export default {
         // AVAILABLE: "available",
         // FORBIDDEN: "forbidden",
       },
+      gameRoomName: null,
     };
   },
   props: {
@@ -116,10 +117,19 @@ export default {
     },
     seeProfile(user: UserInterface) {
       this.$router.push('/user/' + user.id);
+    },
+    inviteGame(user: UserInterface)
+    {
+      console.log(">>>>>> inviteGame front");
+      this.socket.emit("newGame", user);
     }
   },
   async created() {
-
+    this.socket.on("invitedForGame", (gameRoomName) => {
+      console.log(">>>>>> return on invitedForGame : ", gameRoomName);
+      this.gameRoomName = gameRoomName;
+    });
+    this.socket.emit("joinGame", this.gameRoomName);
   },
 };
 
@@ -137,6 +147,7 @@ export default {
             <p v-if="getRole(user) == role" class="">
                 <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
                 <span v-if="user.id != this.user.id">
+                  <button class="on-colors new-room-button" @click="inviteGame(user)"> INVITE FOR A GAME </button>
                   <span v-if="role != 'owner' && role != 'banned'">
                     <button v-if="isOwner(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
                   </span>
@@ -178,6 +189,11 @@ input[type="submit"]:hover {
   margin-top: 10px;
   margin: 10px;
   border: 2px solid #703ab8;
+}
+
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
 .error-paragraf {

@@ -14,15 +14,20 @@ export class ConnectedUserService {
     ) { }
     
     async create(connectedUser: ConnectedUserI): Promise<ConnectedUserI> {
-        return this.connectedUserRepository.save(connectedUser);
+        return await this.connectedUserRepository.save(connectedUser);
     }
 
     async findByUser(user: UserDto): Promise<ConnectedUserI[]> {
-        return this.connectedUserRepository.find({user});
+        var ret = await this.connectedUserRepository.find({
+            where: {
+                user: user,
+            },
+        });
+        return ret;
     }
 
     async deleteBySocketID(socketID: string) {
-        return this.connectedUserRepository.delete({socketID})
+        return await this.connectedUserRepository.delete({socketID})
     }
 
     async deleteAll() {

@@ -21,8 +21,8 @@ import { StateI } from 'src/gamee/model/state.interface';
 import { UserEntity } from 'src/entities/users.entity';
 import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service'
 import { RouterModule } from '@nestjs/core';
-
-
+import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
+import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
 
 @WebSocketGateway({
   cors: {
@@ -35,7 +35,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private authService: AuthService,
     private userService: UsersService,
     private GameService: GameService,
-    private MatchHistoryService: MatchHistoryService
+    private MatchHistoryService: MatchHistoryService,
+    private ConnectedUserService: ConnectedUserService,
+
   ) { }
 
 
@@ -113,7 +115,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
-
+    console.log(">>>>>> joinGame");
 
     let roomSize = 0;
 
@@ -141,6 +143,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.data.status = "play"
 
     // start the game when both player are connected
+    console.log(">>>>>> about to start game in joinGame");
     this.startGameInterval(roomName);
   }
 
@@ -209,15 +212,31 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // this.startGameInterval(this.state[roomName].id);
   }
 
-  @SubscribeMessage('newGame')
-  handleNewGame(socket: Socket) {
 
+  async findChatSocket(user: UserDto)
+  {
+    var connectedUserRooms: ConnectedUserI[] = await this.ConnectedUserService.findByUser(user);
+    var sockets = [];
+    for (var connectedUser of connectedUserRooms)
+        sockets.push(connectedUser.socketID);
+    return sockets;
+  }
+
+  @SubscribeMessage('newGame')
+  async handleNewGame(socket: Socket, user: UserDto) {
+    console.log(">>>>>> newGame");
     // create random ID for the new room
     let roomName = this.GameService.makeid(5);
 
+    var opponentSocket = await this.findChatSocket(user);
+    console.log("opponentSocket : ", opponentSocket);
+
     // emit the new game ID to other player;
     this.clientRooms[socket.id] = roomName;
-    socket.emit('gameCode', roomName);
+
+    await this.server.to(opponentSocket).emit('invitedForGame', roomName);
+
+    // socket.emit('gameCode', roomName);
 
     this.state[roomName] = this.GameService.initGame(false);
     socket.data.number = 1;

@@ -7,6 +7,8 @@ import { GameService } from './service/game/game.service';
 import { GamePlayedEntity } from './model/gamePlayed.entity';
 import { StateEntity } from './model/state.entity';
 import { MatchHistoryService } from './service/matchHistory/matchHistory.service';
+import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
+import { ConnectedUserEntity } from 'src/chat/model/connected.user.entity';
 
 const FRAME_RATE = 50;
 const GRID_SIZE = 20;
@@ -22,9 +24,9 @@ const canvas = { width : 750, height : 585};
 
 @Module({
   imports: [AuthModule, UsersModule, TypeOrmModule.forFeature([
-      GamePlayedEntity,
+      GamePlayedEntity, ConnectedUserEntity
     ]),
   ],
-  providers: [GameGateway, GameService, MatchHistoryService]
+  providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService ]
 })
 export class GameModule {}

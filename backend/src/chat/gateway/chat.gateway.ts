@@ -266,7 +266,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     // emit all blocked friends
     var blocked = await this.friendsService.getBlockedFriends(user);
     await this.server.to(socket.id).emit('getBlockedFriends', blocked);
-    console.log("blocked : ", blocked);
 
     // emit all roles for user
     var rooms = await this.userRoomService.getAllRolesForUser(user);
