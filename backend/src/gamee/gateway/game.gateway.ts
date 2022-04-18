@@ -115,7 +115,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
-    console.log(">>>>>> joinGame");
+    console.log(">>>>>> joinGame in ", roomName);
 
     let roomSize = 0;
 
@@ -125,9 +125,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
 
     if (roomSize === 0) {
+      console.log(">>>>>> unknownCode");
       socket.emit('unknownCode');
       return;
     } else if (roomSize > 1) {
+      console.log(">>>>>> tooManyPlayers");
       socket.emit('tooManyPlayers');
       return;
     }

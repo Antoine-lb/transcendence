@@ -128,8 +128,16 @@ export default {
     this.socket.on("invitedForGame", (gameRoomName) => {
       console.log(">>>>>> return on invitedForGame : ", gameRoomName);
       this.gameRoomName = gameRoomName;
+      console.log(">>>>>> emit joinGame");
+      this.socket.emit("joinGame", this.gameRoomName);
     });
-    this.socket.emit("joinGame", this.gameRoomName);
+    this.socket.on("unknownCode", () => {
+      console.log(">>>>>> unknownCode");
+    });
+    this.socket.on("tooManyPlayers", () => {
+      console.log(">>>>>> tooManyPlayers");
+    });
+
   },
 };
 
