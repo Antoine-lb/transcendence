@@ -130,6 +130,7 @@ export default {
       this.gameRoomName = gameRoomName;
       console.log(">>>>>> emit joinGame");
       this.socket.emit("joinGame", this.gameRoomName);
+      this.$emit("onGameStart", gameRoomName);
     });
     this.socket.on("unknownCode", () => {
       console.log(">>>>>> unknownCode");

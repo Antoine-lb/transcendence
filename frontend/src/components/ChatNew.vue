@@ -7,6 +7,7 @@ import ChatAvailableRooms from "./ChatNew/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./ChatNew/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./ChatNew/ChatSelectedRoomParams.vue";
 import ChatSelectedRoomUsers from "./ChatNew/ChatSelectedRoomUsers.vue";
+import ChatGame from "./ChatNew/ChatGame.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -52,7 +53,8 @@ export default {
       selectedRoom: null,
       userRolesInRoom: [], // all roles in current room
       usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
-      blockedFriends: []
+      blockedFriends: [],
+      gameRoomName: 0,
     };
   },
   setup() {
@@ -69,6 +71,7 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
+    ChatGame,
   },
   methods: {
     createRoom(room: newRoomInterface) {
@@ -112,7 +115,10 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
       console.log(">>>>>> getBlockedFriends");
-
+    });
+    this.socket.on("onGameStart", (gameRoomName) => {
+      console.log(">>>>>> onGameStart in parent");
+      this.gameRoomName = gameRoomName;
     });
   },
 };
@@ -121,6 +127,7 @@ export default {
   <div class="container">
     <ChatCreateRoom @onSubmit="createRoom" />
     <ChatSelectedRoomParams @refreshSelected="refreshSelected" :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <ChatGame :user="this.user" :gameRoomName="this.gameRoomName" />
     <ChatSelectedRoomUsers :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :blockedFriends="this.blockedFriends"  :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
     <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>

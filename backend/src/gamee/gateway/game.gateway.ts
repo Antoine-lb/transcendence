@@ -238,7 +238,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     await this.server.to(opponentSocket).emit('invitedForGame', roomName);
 
-    // socket.emit('gameCode', roomName);
+    socket.emit('gameCode', roomName);
 
     this.state[roomName] = this.GameService.initGame(false);
     socket.data.number = 1;
@@ -333,11 +333,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async afterInit() { }
 
   startGameInterval(roomName: string) {
-
+    console.log(">>>>>> startGameInterval : ", roomName);
     this.state[roomName].intervalId = setInterval(() => {
 
       const winner = this.GameService.gameLoop(this.state[roomName]);
-
       if (!winner) {
         this.emitGameState(roomName, this.state[roomName]);
       }
