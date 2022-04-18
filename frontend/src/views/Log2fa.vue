@@ -77,7 +77,7 @@ export default {
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
+              <p>Se déconnecter</p>
               <img
                 alt="Invader Logo"
                 class="logo-42"
