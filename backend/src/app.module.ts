@@ -21,6 +21,7 @@ import { GameModule } from './gamee/game.module';
 import { UserRoomEntity } from './chat/model/user-room.entity';
 import { MatchHistoryModule } from './gamee/service/matchHistory/matchHistory.module';
 import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
+import { MatchHistoryController } from './gamee/service/matchHistory/matchHistory.controller';
 
 @Module({
   imports: [
@@ -54,7 +55,7 @@ import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
 		GameModule,
 		MatchHistoryModule
 	],
-	controllers: [UserController, TwoFAController, FriendsController],
+	controllers: [UserController, TwoFAController, FriendsController, MatchHistoryController],
 	providers: [TwoFAService]
 })
 	export class AppModule implements NestModule {

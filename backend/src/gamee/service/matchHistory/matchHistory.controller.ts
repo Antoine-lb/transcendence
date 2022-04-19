@@ -1,23 +1,24 @@
 import { ApiTags } from '@nestjs/swagger';
-import { Controller, Get, UseGuards, Res, Request } from '@nestjs/common';
+import { Controller, Get, UseGuards, Res, Request, Param } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
 import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service';
+import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
+
 
 
 @ApiTags('history')
-@Controller('hisotry')
-@UseGuards(JwtAuthGuard)
-export class UserController {
+@Controller('history')
+// @UseGuards(JwtAuthGuard)
+export class MatchHistoryController {
     constructor(
         private readonly MatchHistoryService: MatchHistoryService
     ) { }
     
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     @Get(':id')
-    async findPHistory(@Res() res, @Request() req): Promise<any> {
-        const games = this.MatchHistoryService.findGamesForUser(req.user.id, { page: 1, limit: 100 });
-        return res.sendFile(games);
+    async findHistory(@Param('id', new ParseIntPipe()) id: number): Promise<any> {
+        return await this.MatchHistoryService.findGamesForUser(id, { page: 1, limit: 100 });
     }
 }
  
