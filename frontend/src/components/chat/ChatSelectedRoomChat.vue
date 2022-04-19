@@ -14,12 +14,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -50,11 +50,9 @@ export default {
     socket: Object,
     blockedFriends: Object,
   },
-  components: {
-  },
+  components: {},
   methods: {
-    getRole()
-    {
+    getRole() {
       return this.userRoomsRoles[this.selectedRoom.id];
     },
     sendMessage() {
@@ -65,7 +63,10 @@ export default {
           room: this.selectedRoom,
         };
         console.log(">>>>>> emit addMessage : ", message, this.getRole());
-        this.socket.emit("addMessage", { message: message, role: this.getRole()});
+        this.socket.emit("addMessage", {
+          message: message,
+          role: this.getRole(),
+        });
         this.text = "";
         console.log("after sendMessage emit");
       }
@@ -74,17 +75,15 @@ export default {
       return this.text.length > 0;
     },
     isBlocked(user: UserInterface) {
-      for (var blocked of this.blockedFriends)
-      {
-        if (user.id == blocked.id)
-          return true;
+      for (var blocked of this.blockedFriends) {
+        if (user.id == blocked.id) return true;
       }
       return false;
-    }
+    },
   },
   async created() {
     this.socket.on("updateSelected", (room) => {
-      this.$emit('updateSelected', room);
+      this.$emit("updateSelected", room);
     });
     this.socket.on("messageAdded", (message) => {
       this.messages.items.push(message);
@@ -97,46 +96,57 @@ export default {
 </script>
 <template>
   <div>
-      <div v-if="this.selectedRoom?.id" id="chat" class="box">
-        <h1>Chat in {{ this.selectedRoom.name }} </h1>
-        <div class="message-box">
-          <div id="messages-box" class="card-block">
-            <!-- Received messages -->
-            <div v-for="message of messages.items" :key="message.id">
-              <div class="message-box">
-                <div v-if="this.user.id !== message?.user.id" class="message" >
-                  <div v-if="isBlocked(message?.user)">
-                    <div class="message-content"> « This message is hidden because you blocked the sender. » </div>
-                  </div>
-                  <div v-else>
-                    <div class="message-user"> {{ message?.user.username }} </div>
-                    <div class="message-content"> {{ message?.text }} </div>
+    <div v-if="this.selectedRoom?.id" id="chat" class="box">
+      <h1 class="name-title">{{ this.selectedRoom.name }}</h1>
+      <div class="message-box">
+        <div id="messages-box" class="card-block">
+          <!-- Received messages -->
+          <div v-for="message of messages.items" :key="message.id">
+            <div class="message-box">
+              <div v-if="this.user.id !== message?.user.id" class="message">
+                <div v-if="isBlocked(message?.user)">
+                  <div class="message-content">
+                    « This message is hidden because you blocked the sender. »
                   </div>
                 </div>
+                <div v-else>
+                  <div class="message-user">{{ message?.user.username }}</div>
+                  <div class="message-content">{{ message?.text }}</div>
+                </div>
               </div>
+            </div>
             <!-- Sent messages -->
             <div class="message-box" style="flex-direction: row-reverse">
-              <div v-if="this.user.id === message?.user.id" class="my-message" >
+              <div v-if="this.user.id === message?.user.id" class="my-message">
                 <div class="my-message-user">
                   {{ message?.user.username }}
                 </div>
                 <div class="my-message-content">{{ message?.text }}</div>
               </div>
             </div>
-            </div>
           </div>
         </div>
-        <br />
-        <div v-if="getRole() != 'muted'">
-          <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
-          <br />
-          <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
-        </div>
-        <div v-else>
-          You have been muted in this room.
-        </div>
       </div>
+      <br />
+      <div v-if="getRole() != 'muted'" style="display: flex">
+        <textarea
+          id="textarea"
+          class="form-control"
+          v-model="text"
+          placeholder="Enter message..."
+        ></textarea>
+        <br />
+        <button
+          id="send"
+          class="btn"
+          @click.prevent="sendMessage(this.selectedRoom)"
+        >
+          Send
+        </button>
+      </div>
+      <div v-else>You have been muted in this room.</div>
     </div>
+  </div>
 </template>
 
 <style scoped>
@@ -152,16 +162,16 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
+  /* background-color: white; */
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
+  /* border: 2px solid #703ab8; */
 }
 
 .error-paragraf {
@@ -267,9 +277,28 @@ input[type="submit"]:hover {
 #messages-box {
   height: 450px;
   overflow-y: scroll;
-  width: 500px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+  width: 100%;
+  box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+    0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92);
   border-radius: 20px;
+  background-color: rgba(120, 61, 204, 0.2);
+  backdrop-filter: blur(5px);
+}
+
+.name-title {
+  font-size: 80px;
+  text-transform: capitalize;
+  text-align: center;
+  color: #703ab8;
+  font-family: "Pacifico", cursive;
+  margin-bottom: -50px;
+  z-index: 30;
+  text-shadow: 0 0 6px rgba(120, 61, 204, 0.92),
+    0 0 30px rgba(94, 14, 206, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
 }
 
 .on-colors {
@@ -334,6 +363,7 @@ textarea {
   font-size: 30px;
   padding: 10px;
   border-radius: 13px;
+  margin-left: 5px;
   /* margin-bottom: 100px; */
 }
 </style>
