@@ -75,7 +75,55 @@ export class UsersService {
       return await this.usersRepository.createQueryBuilder().getMany();
     }
 
-    // ############################################ update functions ############################################ 
+    // ############################################ update functions ############################################
+  
+    getValueXP(lvl: number): number {
+      if (lvl < 2)
+        return 30;
+      if (lvl < 4)
+        return 20;
+      if (lvl < 6)
+        return 15;
+      if (lvl < 8)
+        return 10;
+      else
+        return 5;
+    }
+  
+  async updateXP(players: UserEntity[], winnerId: number) {
+      
+      for (const player of players) {
+        
+        const valueXP = this.getValueXP(player.lvl);
+        if (player.id == winnerId) {
+
+          if ((player.xp + valueXP) > 100 && player.lvl != 10) {
+            
+            console.log('player XP->' + player.xp, 'valuexP->' + valueXP);
+            await this.usersRepository.update(player.id, {
+              lvl: player.lvl + 1,
+              xp: 0
+            });
+          }
+          else if (player.lvl != 10)
+            await this.usersRepository.update(player.id, {
+              xp: player.xp + valueXP
+            });
+
+        }
+        else {
+          if ((player.xp + valueXP / 2) > 100 && player.lvl != 10) 
+          await this.usersRepository.update(player.id, {
+            lvl: player.lvl + 1,
+            xp: 0
+          });
+        else if (player.lvl != 10)
+          await this.usersRepository.update(player.id, {
+            xp: player.xp + valueXP / 2
+          });
+        }
+      }
+    }
   
     async updateParams(id: number, user: UserInterface): Promise<any> {
       // delete user.username;

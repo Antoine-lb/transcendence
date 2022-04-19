@@ -9,6 +9,7 @@ import {
   powerUp_color,
   scoreLimit
 } from 'src/utils/constants';
+import { UserEntity } from 'src/entities/users.entity';
 
 
 @Injectable()
@@ -230,4 +231,6 @@ export class GameService {
     }
     return result;
   }
+
+
 }
