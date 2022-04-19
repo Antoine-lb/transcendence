@@ -380,6 +380,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       score: score,
     })
 
+    // Modif xp for the players
+
+    this.userService.updateXP(players, winnerId);
+
     this.state.splice(parseInt(roomName), 1);
 
   }
