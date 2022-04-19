@@ -119,7 +119,6 @@ export default {
   <div class="container">
     <div class="chat-container">
       <div class="chat-side">
-        <ChatCreateRoom @onSubmit="createRoom" />
         <ChatMyRooms
           @updateSelected="updateSelected"
           :socket="this.socket"
@@ -128,6 +127,7 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
+        <ChatCreateRoom @onSubmit="createRoom" />
         <ChatAvailableRooms
           :user="user"
           :socket="this.socket"
@@ -136,11 +136,9 @@ export default {
         />
       </div>
       <div class="main-chat">
-        <ChatSelectedRoomParams
-          @refreshSelected="refreshSelected"
+        <ChatSelectedRoomChat
           :selectedRoom="this.selectedRoom"
-          :usersForRoom="this.usersForRoom"
-          :userRolesInRoom="this.userRolesInRoom"
+          :blockedFriends="this.blockedFriends"
           :socket="this.socket"
           :user="user"
           :userRooms="this.userRooms"
@@ -155,9 +153,11 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
-        <ChatSelectedRoomChat
+        <ChatSelectedRoomParams
+          @refreshSelected="refreshSelected"
           :selectedRoom="this.selectedRoom"
-          :blockedFriends="this.blockedFriends"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
           :socket="this.socket"
           :user="user"
           :userRooms="this.userRooms"
@@ -170,18 +170,25 @@ export default {
 
 <style scoped>
 .chat-container {
-  background-color: azure;
   display: flex;
+  margin-top: 20px;
+  margin-bottom: 150px;
 }
 
 .chat-side {
-  width: 40%;
-  background-color: bisque;
+  width: 30%;
+  background-color: rgba(120, 61, 204, 0.2);
+  backdrop-filter: blur(5px);
+  border-radius: 50px;
+  box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+    0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92);
 }
 
 .main-chat {
-  background-color: aquamarine;
-  width: 60%;
+  width: 70%;
+  margin-left: 10px;
 }
 
 @media screen and (max-width: 840px) {
