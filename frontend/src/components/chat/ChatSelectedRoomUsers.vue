@@ -14,12 +14,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -58,71 +58,61 @@ export default {
     userRolesInRoom: Object,
     usersForRoom: Object,
   },
-  components: {
-  },
+  components: {},
   methods: {
     // roles check
-    getRole(user: UserInterface)
-    {
+    getRole(user: UserInterface) {
       return this.userRolesInRoom[user?.id];
     },
     isOwner(user: UserInterface) {
-      if (this.getRole(user) == UserRoomRole.OWNER)
-        return true;
+      if (this.getRole(user) == UserRoomRole.OWNER) return true;
       return false;
-    },        
+    },
     isAdmin(user: UserInterface) {
-      var role = this.getRole(user)
-      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN)
-        return true;
+      var role = this.getRole(user);
+      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN) return true;
       return false;
-    },   
+    },
     isBanned(user: UserInterface) {
-      if (this.getRole(user) == UserRoomRole.BANNED)
-        return true;
+      if (this.getRole(user) == UserRoomRole.BANNED) return true;
       return false;
-    },   
+    },
     isMuted(user: UserInterface) {
-      if (this.getRole(user) == UserRoomRole.MUTED)
-        return true;
+      if (this.getRole(user) == UserRoomRole.MUTED) return true;
       return false;
-    },   
+    },
     isLambda(user: UserInterface) {
-      if (this.getRole(user) == UserRoomRole.LAMBDA)
-        return true;
+      if (this.getRole(user) == UserRoomRole.LAMBDA) return true;
       return false;
-    },   
+    },
     // roles update
     updateRole(room: RoomI, user: UserInterface, newRole: UserRoomRole) {
-      this.socket.emit("updateRole",{ room: room, user: user, modifier: this.user, newRole: newRole });
+      this.socket.emit("updateRole", {
+        room: room,
+        user: user,
+        modifier: this.user,
+        newRole: newRole,
+      });
     },
     addAdmin(room: RoomI, user: UserInterface) {
-      if (!this.isAdmin(user))
-        this.updateRole(room, user, UserRoomRole.ADMIN)
-      else
-        this.updateRole(room, user, UserRoomRole.LAMBDA)
+      if (!this.isAdmin(user)) this.updateRole(room, user, UserRoomRole.ADMIN);
+      else this.updateRole(room, user, UserRoomRole.LAMBDA);
     },
     banUser(room: RoomI, user: UserInterface) {
       if (!this.isBanned(user))
-        this.updateRole(room, user, UserRoomRole.BANNED)
-      else
-        this.updateRole(room, user, UserRoomRole.LAMBDA)
+        this.updateRole(room, user, UserRoomRole.BANNED);
+      else this.updateRole(room, user, UserRoomRole.LAMBDA);
     },
     muteUser(room: RoomI, user: UserInterface) {
-      if (!this.isMuted(user))
-        this.updateRole(room, user, UserRoomRole.MUTED)
-      else
-        this.updateRole(room, user, UserRoomRole.LAMBDA)
+      if (!this.isMuted(user)) this.updateRole(room, user, UserRoomRole.MUTED);
+      else this.updateRole(room, user, UserRoomRole.LAMBDA);
     },
     seeProfile(user: UserInterface) {
-      this.$router.push('/user/' + user.id);
-    }
+      this.$router.push("/user/" + user.id);
+    },
   },
-  async created() {
-
-  },
+  async created() {},
 };
-
 </script>
 <template>
   <div>
@@ -131,7 +121,7 @@ export default {
       <div v-for="role in roles" class="users-list" :key="role">
         <p v-if="role != 'banned' || isAdmin(this.user)">
           <p class="table-title">
-            {{ role }}
+            • {{ role }}
           </p>
           <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
             <p v-if="getRole(user) == role" class="">
@@ -168,16 +158,13 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
 }
 
 .error-paragraf {
@@ -204,21 +191,20 @@ input[type="submit"]:hover {
 }
 
 .table-title {
-  color: #703ab8;
+  /* color: #703ab8; */
   font-weight: bold;
   font-size: 18px;
-  text-transform: uppercase;
-  margin-bottom: 5px;
+  text-transform: capitalize;
+  /* margin-bottom: 5px; */
 }
 
 .table-body {
-  background-color: white;
   font-size: 15px;
   color: black;
 }
 
 .users-list {
-  margin: 30px;
+  /* margin: 10px; */
 }
 
 .bold-red {
@@ -256,7 +242,7 @@ input[type="submit"]:hover {
   background-color: white;
   border: none;
   color: rgba(0, 0, 0, 0.7);
-  font-weight: bold;
+  /* font-weight: bold; */
   font-size: 20px;
   box-shadow: none;
   border-radius: 3px;
@@ -269,6 +255,8 @@ input[type="submit"]:hover {
   display: inline-block;
   max-width: 300px;
   max-height: 50px;
+  text-transform: capitalize;
+  text-decoration: underline;
 }
 
 .add-user {

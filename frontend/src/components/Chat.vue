@@ -26,12 +26,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -52,7 +52,7 @@ export default {
       selectedRoom: null,
       userRolesInRoom: [], // all roles in current room
       usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
-      blockedFriends: []
+      blockedFriends: [],
     };
   },
   setup() {
@@ -76,16 +76,15 @@ export default {
       this.socket.emit("createRoom", room);
     },
     updateSelected(room: RoomI) {
-      if (this.selectedRoom && (room.id == this.selectedRoom.id))
+      if (this.selectedRoom && room.id == this.selectedRoom.id)
         this.selectedRoom = {};
-      else
-        this.selectedRoom = room;     
+      else this.selectedRoom = room;
     },
     refreshSelected(room: RoomI) {
       console.log(">>>>>> refreshSelected in PARENT");
       this.socket.emit("getRoles", room);
-      this.selectedRoom = room;     
-    }
+      this.selectedRoom = room;
+    },
   },
   async created() {
     this.socket = io("http://127.0.0.1:3000", {
@@ -112,25 +111,103 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
       console.log(">>>>>> getBlockedFriends");
-
     });
   },
 };
 </script>
 <template>
   <div class="container">
-    <ChatCreateRoom @onSubmit="createRoom" />
-    <ChatSelectedRoomParams @refreshSelected="refreshSelected" :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoomUsers :selectedRoom="this.selectedRoom" :usersForRoom="this.usersForRoom" :userRolesInRoom="this.userRolesInRoom" :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatSelectedRoomChat :selectedRoom="this.selectedRoom" :blockedFriends="this.blockedFriends"  :socket="this.socket" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatMyRooms @updateSelected="updateSelected" :socket="this.socket" :selectedRoom="this.selectedRoom" :user="user" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
-    <ChatAvailableRooms :user="user" :socket="this.socket" :userRooms="this.userRooms" :userRoomsRoles="this.userRoomsRoles"/>
+    <div class="chat-container">
+      <div class="chat-side">
+        <ChatMyRooms
+          @updateSelected="updateSelected"
+          :socket="this.socket"
+          :selectedRoom="this.selectedRoom"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
+        <ChatCreateRoom @onSubmit="createRoom" />
+        <ChatAvailableRooms
+          :user="user"
+          :socket="this.socket"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
+      </div>
+      <div class="main-chat">
+        <ChatSelectedRoomChat
+          :selectedRoom="this.selectedRoom"
+          :blockedFriends="this.blockedFriends"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
+        <ChatSelectedRoomUsers
+          :selectedRoom="this.selectedRoom"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
+        <ChatSelectedRoomParams
+          @refreshSelected="refreshSelected"
+          :selectedRoom="this.selectedRoom"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.chat-container {
+  display: flex;
+  margin-top: 30px;
+  margin-bottom: 150px;
+}
+
+.chat-side {
+  width: 40%;
+  /* background-color: rgba(120, 61, 204, 0.2); */
+  /* backdrop-filter: blur(5px); */
+  /* border-radius: 50px; */
+  border-right: 2px solid #713ab8a8;
+  padding: 10px;
+  /* box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+    0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92); */
+}
+
+.main-chat {
+  width: 60%;
+  margin-left: 10px;
+}
+
+@media screen and (max-width: 840px) {
+  .chat-container {
+    flex-direction: column;
+  }
+
+  .chat-side {
+    width: 100%;
+  }
+
+  .main-chat {
+    width: 100%;
+  }
+}
 main {
-  max-width: 500px;
+  /* max-width: 500px; */
   padding-top: 50px; /* Original 100px */
   margin: auto;
 }

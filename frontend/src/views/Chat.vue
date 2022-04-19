@@ -17,7 +17,7 @@ export default {
 </script>
 
 <template>
-  <main>
+  <div>
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
@@ -28,6 +28,6 @@ export default {
         <p>Vous devez être connecté pour voir le chat</p>
       </div>
     </div>
-  </main>
+  </div>
 </template>
 
