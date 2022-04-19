@@ -6,9 +6,9 @@ import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory
 
 
 @ApiTags('history')
-@Controller('hisotry')
+@Controller('history')
 @UseGuards(JwtAuthGuard)
-export class UserController {
+export class MatchHistoryController {
     constructor(
         private readonly MatchHistoryService: MatchHistoryService
     ) { }

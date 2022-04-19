@@ -55,6 +55,16 @@ export default {
           this.userNotFound = true;
           console.log("user not found");
         }
+
+        const responseHistory = await fetchWithHeaders(
+          `http://127.0.0.1:3000/history/${this.$route.params.id}`
+        );
+        if (responseHistory.status == 200) {
+          this.history = await responseHistory.json();
+          console.log("history", this.history);
+        } else {
+          console.log("history not found");
+        }
       } catch (error) {
         console.error(error);
       }
@@ -78,7 +88,7 @@ export default {
           :defeats="user.defeats"
           :id="user.id"
         />
-        <FriendshipManagement :user="user"/>
+        <FriendshipManagement :user="user" />
       </div>
     </div>
   </main>
