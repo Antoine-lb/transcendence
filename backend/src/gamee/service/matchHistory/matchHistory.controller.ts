@@ -9,13 +9,13 @@ import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, Payload
 
 @ApiTags('history')
 @Controller('history')
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class MatchHistoryController {
     constructor(
         private readonly MatchHistoryService: MatchHistoryService
     ) { }
     
-    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     @Get(':id')
     async findHistory(@Param('id', new ParseIntPipe()) id: number): Promise<any> {
         return await this.MatchHistoryService.findGamesForUser(id, { page: 1, limit: 100 });
