@@ -56,15 +56,15 @@ export default {
           console.log("user not found");
         }
 
-        const responseHistory = await fetchWithHeaders(
-          `http://127.0.0.1:3000/history/${this.$route.params.id}`
-        );
-        if (responseHistory.status == 200) {
-          this.history = await responseHistory.json();
-          console.log("history", this.history);
-        } else {
-          console.log("history not found");
-        }
+        // const responseHistory = await fetchWithHeaders(
+        //   `http://127.0.0.1:3000/api/history/${this.$route.params.id}`
+        // );
+        // if (responseHistory.status == 200) {
+        //   this.history = await responseHistory.json();
+        //   console.log("history", this.history);
+        // } else {
+        //   console.log("history not found");
+        // }
       } catch (error) {
         console.error(error);
       }
@@ -86,6 +86,8 @@ export default {
           :played="user.played"
           :victory="user.victory"
           :defeats="user.defeats"
+          :xp="user.xp"
+          :lvl="user.lvl"
           :id="user.id"
         />
         <FriendshipManagement :user="user" />

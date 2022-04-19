@@ -28,6 +28,8 @@ export default {
           :played="userStore.user.played"
           :victory="userStore.user.victory"
           :defeats="userStore.user.defeats"
+          :xp="userStore.user.xp"
+          :lvl="userStore.user.lvl"
           :id="userStore.user.id"
         />
         <div class="login-container">

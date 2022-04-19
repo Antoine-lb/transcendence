@@ -6,6 +6,8 @@ export default {
     played: Number,
     victory: Number,
     defeats: Number,
+    xp: Number,
+    lvl: Number,
     id: Number,
   },
 };
@@ -26,6 +28,7 @@ export default {
       class="profile-image"
     />
     <div class="stats">
+      <p>🎮 Level {{ lvl }} ({{ xp }} XP)</p>
       <p>👾 Played - {{ played }}</p>
       <p>🏆 Victory - {{ victory }}</p>
       <p>💩 Defeats - {{ defeats }}</p>
