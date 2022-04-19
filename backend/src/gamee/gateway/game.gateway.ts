@@ -377,6 +377,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.MatchHistoryService.create({
       players: players,
       winnerId: winnerId,
+      loserId: loserId,
       score: score,
     })
 
