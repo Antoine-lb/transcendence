@@ -59,7 +59,11 @@ export default {
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log("add user { id: element.id }", { id: element.id }, element.username);
+          console.log(
+            "add user { id: element.id }",
+            { id: element.id },
+            element.username
+          );
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;
@@ -72,7 +76,11 @@ export default {
     removeUser(user) {
       this.allUsers.map((element) => {
         if (element.username === user.username) {
-          console.log("remove user { id: element.id }", { id: element.id }, element.username);
+          console.log(
+            "remove user { id: element.id }",
+            { id: element.id },
+            element.username
+          );
           this.newRoomUsers.splice(this.newRoomUsers.indexOf(user), 1);
         }
       });
@@ -83,32 +91,48 @@ export default {
         users: this.newRoomUsers,
         status: this.isPublic ? true : false,
         protected: this.newRoomPassword ? true : false,
-        password: !this.isPublic ? false : (this.newRoomPassword ? this.newRoomPassword : null),
+        password: !this.isPublic
+          ? false
+          : this.newRoomPassword
+          ? this.newRoomPassword
+          : null,
       };
       this.$emit("onSubmit", room);
     },
     toggleStatus() {
       this.isPublic = !this.isPublic;
-      if (!this.isPublic)
-        this.newRoomPassword = null;
-      else
-        this.newRoomUsers = [];
+      if (!this.isPublic) this.newRoomPassword = null;
+      else this.newRoomUsers = [];
     },
     switchVisibility() {
-      if (this.passwordFieldType == 'password')
-        this.passwordFieldType = 'text'
-      else
-        this.passwordFieldType = 'password'
-    }
+      if (this.passwordFieldType == "password") this.passwordFieldType = "text";
+      else this.passwordFieldType = "password";
+    },
   },
 };
 </script>
 
 <template>
   <div class="box">
-    <h1>Room creation</h1>
+    <h1>Create new Room</h1>
     <div>
       <input type="text" v-model="newRoomName" placeholder="Room Name" />
+      <button
+        @click="toggleStatus"
+        :class="[
+          isPublic ? 'room-settings on-colors' : 'room-settings off-colors',
+        ]"
+      >
+        Public
+      </button>
+      <button
+        @click="toggleStatus"
+        :class="[
+          !isPublic ? 'room-settings on-colors' : 'room-settings off-colors',
+        ]"
+      >
+        Private
+      </button>
       <div v-if="!isPublic">
         <div>
           <input type="text" v-model="newRoomUser" placeholder="Room Users" />
@@ -116,22 +140,31 @@ export default {
         </div>
         <li v-for="user in newRoomUsers" :key="user.username">
           {{ user.username }}
-          <button class="add-user" @click="removeUser(user)">Remove user</button>
+          <button class="add-user" @click="removeUser(user)">
+            Remove user
+          </button>
         </li>
         <p v-if="newRoomUserShowError" class="error-paragraf">
           Username not found
         </p>
       </div>
-      <div>
-        <button @click="toggleStatus" :class="[isPublic ? 'new-room-button on-colors' : 'new-room-button off-colors']">Public</button>
-        <button @click="toggleStatus" :class="[!isPublic ?'new-room-button on-colors' : 'new-room-button off-colors']">Private</button>
-      </div>
+
       <div v-if="isPublic">
-        You may add a password to protect this public room :
-          <input :type="passwordFieldType" v-model="newRoomPassword" placeholder="Password" />
-          <button class="add-user" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
+        <br />
+        You may add a password to protect this public room (leave empty for no
+        password) :
+        <br />
+        <input
+          :type="passwordFieldType"
+          v-model="newRoomPassword"
+          placeholder="Password"
+        />
+        <button class="add-user" @click="switchVisibility">
+          {{ passwordFieldType == "password" ? "SHOW" : "HIDE" }}
+        </button>
       </div>
       <div v-else>
+        <br />
         This room will be private (only you and added users can see it).
       </div>
       <button class="submit-new-room new-room-button" @click="createRooms">
@@ -156,16 +189,16 @@ input {
 }
 
 .box {
-  background-color: white;
+  /* background-color: white; */
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
+  /* border: 2px solid #703ab8; */
 }
 
 .new-room-button {
@@ -192,8 +225,19 @@ input {
   color: #703ab8;
 }
 
+.room-settings {
+  border: 2px solid #703ab8;
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin: 10px;
+  margin-right: 0;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
 .off-colors {
-  background-color: lightgray;
+  background-color: white;
   color: black;
 }
 .on-colors {
@@ -242,5 +286,4 @@ input {
   background-color: #703ab8;
   color: white;
 }
-
 </style>

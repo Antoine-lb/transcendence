@@ -14,12 +14,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -35,8 +35,7 @@ export enum UserRoomRole {
 export default {
   name: "ChatAvailableRooms",
   data() {
-    return {
-    };
+    return {};
   },
   props: {
     socket: Object,
@@ -44,22 +43,24 @@ export default {
     userRooms: Object,
     userRoomsRoles: Object,
   },
-  components: {
-  },
+  components: {},
   methods: {
     enterRoom(room: RoomI, user: UserInterface) {
       this.socket.emit("enterRoom", { room: room, user: user });
     },
     isRoomInMyRooms(room: RoomI) {
       var role = this.userRoomsRoles[room.id];
-      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA)
+      if (
+        role == UserRoomRole.OWNER ||
+        role == UserRoomRole.ADMIN ||
+        role == UserRoomRole.LAMBDA
+      )
         return true;
       return false;
     },
     isRoomAvailable(room: RoomI) {
       var role = this.userRoomsRoles[room.id];
-      if (role == UserRoomRole.AVAILABLE)
-        return true;
+      if (role == UserRoomRole.AVAILABLE) return true;
       return false;
     },
     isRoomForbidden(room: RoomI) {
@@ -69,8 +70,7 @@ export default {
       return false;
     },
   },
-  async created() {
-  },
+  async created() {},
 };
 </script>
 <template>
@@ -79,9 +79,14 @@ export default {
     <div class="list-group">
       <ul>
         <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="isRoomAvailable(room)" :class="'list-group-item list-group-item-action '">
+          <div
+            v-if="isRoomAvailable(room)"
+            :class="'list-group-item list-group-item-action '"
+          >
             💬 {{ room.name }}
-            <button class="new-room-button" @click="enterRoom(room, this.user)">Join room</button>
+            <button class="new-room-button" @click="enterRoom(room, this.user)">
+              Join room
+            </button>
           </div>
         </div>
       </ul>
@@ -102,16 +107,13 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
 }
 
 .error-paragraf {
