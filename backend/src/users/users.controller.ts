@@ -11,6 +11,7 @@ import { diskStorage } from 'multer';
 import path = require('path');
 import { Response } from 'express';
 import { join } from 'path';
+import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service';
 
 type validMimeType = 'image/png' | 'image/jpg' | 'image/jpeg';
 export const validMimeTypes: validMimeType[] = [
@@ -49,7 +50,9 @@ export const uploadOptions = {
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-  constructor( private readonly userService: UsersService
+  constructor(
+    private readonly userService: UsersService,
+    private readonly matchHistoryService: MatchHistoryService
     ) {}
     
     @Get('/me')
@@ -91,6 +94,13 @@ export class UserController {
       var filepath = await join('/public/uploads/' + file.filename)
       console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
+    }
+  
+    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @Get('/history/:id')
+    async findPHistory(@Res() res, @Request() req): Promise<any> {
+      const games = this.matchHistoryService.findGamesForUser(req.user.id, { page: 1, limit: 100 } );
+      return res.sendFile(games);
     }
  
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)

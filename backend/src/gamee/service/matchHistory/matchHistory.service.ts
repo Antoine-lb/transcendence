@@ -18,7 +18,7 @@ export class MatchHistoryService {
         return this.GamePlayedRepository.save(this.GamePlayedRepository.create(gameStatus));
     }
 
-    async findGamesForUser(userID: UserDto, options: IPaginationOptions): Promise<Pagination<GamePlayedI>> {
+    async findGamesForUser(userID: number, options: IPaginationOptions): Promise<Pagination<GamePlayedI>> {
         const query = this.GamePlayedRepository
             .createQueryBuilder('gamePlayed')
             .leftJoin('gamePlayed.players', 'players')
