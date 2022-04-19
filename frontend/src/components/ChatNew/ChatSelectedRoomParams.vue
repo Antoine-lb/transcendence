@@ -15,12 +15,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -63,23 +63,29 @@ export default {
   },
   methods: {
     // roles check
-    getRole(user: UserInterface)
-    {
+    getRole(user: UserInterface) {
       return this.userRolesInRoom[user?.id];
     },
     isOwner(user: UserInterface) {
-      if (this.getRole(user) == UserRoomRole.OWNER)
-        return true;
+      if (this.getRole(user) == UserRoomRole.OWNER) return true;
       return false;
     },
     // room status check
     isProtected() {
-      if (this.selectedRoom.status == true && this.selectedRoom.protected == true && this.selectedRoom.password != null)
+      if (
+        this.selectedRoom.status == true &&
+        this.selectedRoom.protected == true &&
+        this.selectedRoom.password != null
+      )
         return true;
       return false;
     },
     isPublic() {
-      if (this.selectedRoom.status == true && this.selectedRoom.protected == false && this.selectedRoom.password == null)
+      if (
+        this.selectedRoom.status == true &&
+        this.selectedRoom.protected == false &&
+        this.selectedRoom.password == null
+      )
         return true;
       return false;
     },
@@ -87,10 +93,18 @@ export default {
       this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
     modifyingPasswordSubmit(room: RoomI, inputPassword: string) {
-      this.socket.emit("modifyPassword", { room: room, modifier: this.user, password: inputPassword });
+      this.socket.emit("modifyPassword", {
+        room: room,
+        modifier: this.user,
+        password: inputPassword,
+      });
     },
     addingPasswordSubmit(room: RoomI, inputPassword: string) {
-      this.socket.emit("addPassword", { room: room, modifier: this.user, password: inputPassword });
+      this.socket.emit("addPassword", {
+        room: room,
+        modifier: this.user,
+        password: inputPassword,
+      });
     },
   },
   async created() {
@@ -98,27 +112,26 @@ export default {
       console.log(">>>>>> return on modifyingPasswordSuccess in COMPONENT");
       this.modifyingPasswordSuccess = true;
       this.showModifyPassword = false;
-      this.$emit('refreshSelected', room);
+      this.$emit("refreshSelected", room);
     });
     this.socket.on("addingPasswordSuccess", (room: RoomI) => {
       console.log(">>>>>> return on addingPasswordSuccess in COMPONENT");
       this.addingPasswordSuccess = true;
       this.showAddPassword = false;
-      this.$emit('refreshSelected', room);
+      this.$emit("refreshSelected", room);
     });
     this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
       console.log(">>>>>> return on deletingPasswordSuccess in COMPONENT");
       this.deletingPasswordSuccess = true;
-      this.$emit('refreshSelected', room);
+      this.$emit("refreshSelected", room);
     });
   },
 };
-
 </script>
 <template>
   <div style="margin: 20px">
     <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())" class="box">
-      <h1 >{{ this.selectedRoom?.name }} settings </h1>
+      <h1 >Settings for {{ this.selectedRoom?.name }} </h1>
       <div v-if="isPublic()">
         <p>You are the owner of this public room.
           <p>
@@ -157,7 +170,7 @@ export default {
 main {
   max-width: 500px;
   padding-top: 50px; /* Original 100px */
-  margin: auto;
+  /* margin: auto; */
 }
 
 input[type="submit"]:hover {
@@ -166,16 +179,16 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
+  /* background-color: white; */
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
   border-radius: 3px;
-  padding: 15px;
+  /* padding: 15px; */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
+  /* border: 2px solid #703ab8; */
 }
 
 .error-paragraf {

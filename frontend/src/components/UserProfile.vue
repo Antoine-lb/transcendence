@@ -39,12 +39,12 @@ export default {
 .stats {
   background-color: rgba(120, 61, 204, 0.2);
   backdrop-filter: blur(5px);
+  border-radius: 50px;
   text-align: center;
   font-size: 30px;
   padding-top: 50px;
   padding-bottom: 20px;
   margin-top: -30px;
-  border-radius: 50px;
   box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
     0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
     0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),

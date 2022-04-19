@@ -171,23 +171,25 @@ export default {
 <style scoped>
 .chat-container {
   display: flex;
-  margin-top: 20px;
+  margin-top: 30px;
   margin-bottom: 150px;
 }
 
 .chat-side {
-  width: 30%;
-  background-color: rgba(120, 61, 204, 0.2);
-  backdrop-filter: blur(5px);
-  border-radius: 50px;
-  box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+  width: 40%;
+  /* background-color: rgba(120, 61, 204, 0.2); */
+  /* backdrop-filter: blur(5px); */
+  /* border-radius: 50px; */
+  border-right: 2px solid #713ab8a8;
+  padding: 10px;
+  /* box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
     0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
     0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
-    0 0 54px rgba(211, 193, 236, 0.92);
+    0 0 54px rgba(211, 193, 236, 0.92); */
 }
 
 .main-chat {
-  width: 70%;
+  width: 60%;
   margin-left: 10px;
 }
 
