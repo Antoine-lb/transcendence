@@ -99,7 +99,6 @@ export class UsersService {
 
           if ((player.xp + valueXP) > 100 && player.lvl != 10) {
             
-            console.log('player XP->' + player.xp, 'valuexP->' + valueXP);
             await this.usersRepository.update(player.id, {
               lvl: player.lvl + 1,
               xp: 0,
