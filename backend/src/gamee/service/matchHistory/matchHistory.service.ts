@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { GamePlayedEntity } from 'src/gamee/model/gamePlayed.entity';
 import { GamePlayedI } from 'src/gamee/model/gamePlayed.interface';
-import { UserDto } from 'src/entities/users.dto';
 
 @Injectable()
 export class MatchHistoryService {

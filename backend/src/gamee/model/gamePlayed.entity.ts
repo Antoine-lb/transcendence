@@ -1,16 +1,10 @@
 import { UserEntity } from "src/entities/users.entity";
-import { StateI } from "src/gamee/model/state.interface";
 import {
     Entity,
     Column,
-    PrimaryColumn,
     PrimaryGeneratedColumn,
     CreateDateColumn,
-    ManyToOne,
     JoinTable,
-    OneToMany,
-    OneToOne,
-    JoinColumn,
     ManyToMany
 } from "typeorm";
 
