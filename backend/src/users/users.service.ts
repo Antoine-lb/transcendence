@@ -90,7 +90,7 @@ export class UsersService {
         return 5;
     }
   
-  async updateXP(players: UserEntity[], winnerId: number) {
+  async updateUserScore(players: UserEntity[], winnerId: number) {
       
       for (const player of players) {
         
@@ -99,15 +99,18 @@ export class UsersService {
 
           if ((player.xp + valueXP) > 100 && player.lvl != 10) {
             
-            console.log('player XP->' + player.xp, 'valuexP->' + valueXP);
             await this.usersRepository.update(player.id, {
               lvl: player.lvl + 1,
-              xp: 0
+              xp: 0,
+              victory: player.victory + 1,
+              played: player.played + 1,
             });
           }
           else if (player.lvl != 10)
             await this.usersRepository.update(player.id, {
-              xp: player.xp + valueXP
+              xp: player.xp + valueXP,
+              victory: player.victory + 1,
+              played: player.played + 1,
             });
 
         }
@@ -115,11 +118,15 @@ export class UsersService {
           if ((player.xp + valueXP / 2) > 100 && player.lvl != 10) 
           await this.usersRepository.update(player.id, {
             lvl: player.lvl + 1,
-            xp: 0
+            xp: 0,
+            defeats: player.defeats + 1,
+            played: player.played + 1,
           });
         else if (player.lvl != 10)
           await this.usersRepository.update(player.id, {
-            xp: player.xp + valueXP / 2
+            xp: player.xp + valueXP / 2,
+            defeats: player.defeats + 1,
+            played: player.played + 1,
           });
         }
       }

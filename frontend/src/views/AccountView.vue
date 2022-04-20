@@ -24,14 +24,19 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
-        <PublicProfile
+        <!-- <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
           :played="userStore.user.played"
           :victory="userStore.user.victory"
           :defeats="userStore.user.defeats"
+          :xp="userStore.user.xp"
+          :lvl="userStore.user.lvl"
           :id="userStore.user.id"
         />
+        <br />
+        <br />
+        <br /> -->
         <PrivateProfile />
       </div>
       <div v-if="!userStore.isLogged" class="form-group">

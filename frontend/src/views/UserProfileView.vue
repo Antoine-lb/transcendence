@@ -76,9 +76,14 @@ export default {
           :played="user.played"
           :victory="user.victory"
           :defeats="user.defeats"
+          :xp="user.xp"
+          :lvl="user.lvl"
           :id="user.id"
         />
-        <FriendshipManagement :user="user"/>
+        <br />
+        <br />
+        <br />
+        <FriendshipManagement :user="user" />
       </div>
     </div>
   </main>

@@ -377,12 +377,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.MatchHistoryService.create({
       players: players,
       winnerId: winnerId,
+      loserId: loserId,
       score: score,
     })
 
-    // Modif xp for the players
-
-    this.userService.updateXP(players, winnerId);
+    // Modif xp & match history for the players
+    this.userService.updateUserScore(players, winnerId);
 
     this.state.splice(parseInt(roomName), 1);
 
