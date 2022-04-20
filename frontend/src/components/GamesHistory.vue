@@ -67,9 +67,7 @@ export default {
       <p>is loading...</p>
     </div>
     <div v-if="!loading">
-      <h2 class="custom-title" v-if="history || history.length">
-        Match History
-      </h2>
+      <h2 class="custom-title" v-if="history.length">Match History</h2>
       <div v-for="game in history" :key="game.id">
         <SingleGameHistory
           :winnerId="game.winnerId"
