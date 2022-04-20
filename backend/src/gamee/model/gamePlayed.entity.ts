@@ -19,10 +19,10 @@ export class GamePlayedEntity {
     @JoinTable()
     players: UserEntity[];
 
-    @Column()
+    @Column({nullable: true})
     winnerId: number;
 
-    @Column()
+    @Column({nullable: true})
     loserId: number;
 
     @Column()
