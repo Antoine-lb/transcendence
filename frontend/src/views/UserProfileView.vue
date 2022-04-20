@@ -55,16 +55,6 @@ export default {
           this.userNotFound = true;
           console.log("user not found");
         }
-
-        // const responseHistory = await fetchWithHeaders(
-        //   `http://127.0.0.1:3000/api/history/${this.$route.params.id}`
-        // );
-        // if (responseHistory.status == 200) {
-        //   this.history = await responseHistory.json();
-        //   console.log("history", this.history);
-        // } else {
-        //   console.log("history not found");
-        // }
       } catch (error) {
         console.error(error);
       }
@@ -90,6 +80,9 @@ export default {
           :lvl="user.lvl"
           :id="user.id"
         />
+        <br />
+        <br />
+        <br />
         <FriendshipManagement :user="user" />
       </div>
     </div>
