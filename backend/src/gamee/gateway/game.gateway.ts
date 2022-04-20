@@ -321,9 +321,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName, this.state[roomName]);
       }
       else {
-        clearInterval(this.state[roomName].intervalId);
+        this.emitGameState(roomName, this.state[roomName]);
         this.emitGameOver(roomName, winner);
-
+        clearInterval(this.state[roomName].intervalId);
         // TODO : save the score
       }
     }, 1000 / FRAME_RATE);
@@ -372,6 +372,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
     let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
+
+    console.log(score);
 
     // save the game score for Match History
     this.MatchHistoryService.create({
