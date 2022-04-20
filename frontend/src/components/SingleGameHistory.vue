@@ -18,7 +18,10 @@ export default {
     winnerId: Number,
     loserId: Number,
     gameId: Number,
+<<<<<<< HEAD
 
+=======
+>>>>>>> 963ffbc528160e2ecd4417feb4021fd4b21644b0
     score: Number,
   },
   data() {
