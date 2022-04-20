@@ -150,6 +150,8 @@ export default {
 </template>
 
 <style scoped>
+@import url("https://fonts.googleapis.com/css2?family=Send+Flowers&display=swap");
+
 main {
   max-width: 500px;
   padding-top: 50px; /* Original 100px */
@@ -292,7 +294,7 @@ input[type="submit"]:hover {
   text-transform: capitalize;
   text-align: center;
   color: #703ab8;
-  font-family: "Pacifico", cursive;
+  font-family: "Send Flowers", cursive;
   margin-bottom: -50px;
   z-index: 30;
   text-shadow: 0 0 6px rgba(120, 61, 204, 0.92),
