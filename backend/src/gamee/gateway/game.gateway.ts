@@ -373,8 +373,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
     let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
 
-    console.log(score);
-
     // save the game score for Match History
     this.MatchHistoryService.create({
       players: players,
@@ -382,11 +380,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       loserId: loserId,
       score: score,
     })
-
     // Modif xp & match history for the players
     this.userService.updateUserScore(players, winnerId);
-
     this.state.splice(parseInt(roomName), 1);
-
   }
 }
