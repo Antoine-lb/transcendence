@@ -54,6 +54,12 @@ export class UserEntity {
   @Column({ default: 0, nullable: false})
   defeats: number;
 
+  @Column({ default: 0 })
+  lvl: number;
+  
+  @Column({ default: 0 })
+  xp: number;
+
   @OneToMany(
     () => FriendRequestEntity,
     (friendRequestEntity) => friendRequestEntity.creator,

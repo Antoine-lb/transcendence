@@ -15,12 +15,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -34,129 +34,143 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatMyRooms",
+  name: "ChatSelectedRoomParams",
   data() {
     return {
-      showPasswordToJoin: 0,
-      wrongPassword: false, // error
-      roles: {
-        OWNER: "owner",
-        ADMIN: "admin",
-        LAMBDA: "lambda",
-        MUTED: "muted",
-        // BANNED: "banned",
-        // AVAILABLE: "available",
-        // FORBIDDEN: "forbidden",
-      },
+      // Modification
+      showModifyPassword: false,
+      modifyingPasswordSuccess: false, // validation
+      // Addition
+      showAddPassword: false,
+      addingPasswordSuccess: false, // validation
+      // Deletion
+      deletingPasswordSuccess: false, // validation
     };
   },
   props: {
-    socket: Object,
-    user: Object, // = userStore.user
+    user: Object, // = this.user
     userRooms: Object,
     userRoomsRoles: Object,
     selectedRoom: {
       type: Object as () => RoomI,
     },
+    socket: Object,
+    userRolesInRoom: Object,
+    usersForRoom: Object,
   },
   components: {
     PasswordBtn,
   },
   methods: {
-    quitRoom(room: RoomI, user: UserInterface) {
-      this.resetProtectedRoom();
-      this.socket.emit("quitRoom", { room: room, user: user });
+    // roles check
+    getRole(user: UserInterface) {
+      return this.userRolesInRoom[user?.id];
     },
-    getRole(room: RoomI)
-    {
-      return this.userRoomsRoles[room.id]
+    isOwner(user: UserInterface) {
+      if (this.getRole(user) == UserRoomRole.OWNER) return true;
+      return false;
     },
-    isRoomInMyRooms(room: RoomI) {
-      var role = this.getRole(room);
-      if (role == UserRoomRole.OWNER || role == UserRoomRole.ADMIN || role == UserRoomRole.LAMBDA)
+    // room status check
+    isProtected() {
+      if (
+        this.selectedRoom.status == true &&
+        this.selectedRoom.protected == true &&
+        this.selectedRoom.password != null
+      )
         return true;
       return false;
     },
-    isOwner(room: RoomI) {
-      if (this.getRole(room) == UserRoomRole.OWNER)
+    isPublic() {
+      if (
+        this.selectedRoom.status == true &&
+        this.selectedRoom.protected == false &&
+        this.selectedRoom.password == null
+      )
         return true;
       return false;
     },
-    isRoomAvailable(room: RoomI) {
-      if (this.getRole(room) == UserRoomRole.AVAILABLE)
-        return true;
-      return false;
+    deletePassword(room: RoomI, modifier: UserInterface) {
+      this.socket.emit("deletePassword", { room: room, modifier: modifier });
     },
-    resetProtectedRoom() {
-      this.showPasswordToJoin = 0;
-      this.joiningPassword = null;
+    modifyingPasswordSubmit(room: RoomI, inputPassword: string) {
+      this.socket.emit("modifyPassword", {
+        room: room,
+        modifier: this.user,
+        password: inputPassword,
+      });
     },
-    selectRoom(room: RoomI, password: string) {
-      this.socket.emit("selectRoom", { room: room, password: password });
-      this.wrongPassword = false;
-      this.resetProtectedRoom();
-    },
-    leaveRoom(room: RoomI) {
-      this.socket.emit("leaveRoom", room);
-      this.resetProtectedRoom();
-    },
-    updateSelected(room: RoomI) {
-      if (this.selectedRoom && (room.id == this.selectedRoom.id))
-        this.leaveRoom(room);
-      else
-      {
-        if (room.protected == false)
-          this.selectRoom(room, null);
-        else
-          this.showPasswordToJoin = room.id; // affiche jsute la possibilite d'entrer un password
-      }
+    addingPasswordSubmit(room: RoomI, inputPassword: string) {
+      this.socket.emit("addPassword", {
+        room: room,
+        modifier: this.user,
+        password: inputPassword,
+      });
     },
   },
   async created() {
-    this.socket.on("updateSelected", (room) => {
-      this.$emit('updateSelected', room);
+    this.socket.on("modifyingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on modifyingPasswordSuccess in COMPONENT");
+      this.modifyingPasswordSuccess = true;
+      this.showModifyPassword = false;
+      this.$emit("refreshSelected", room);
     });
-    this.socket.on("WrongPassword", () => {
-      this.wrongPassword = true;
+    this.socket.on("addingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on addingPasswordSuccess in COMPONENT");
+      this.addingPasswordSuccess = true;
+      this.showAddPassword = false;
+      this.$emit("refreshSelected", room);
+    });
+    this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
+      console.log(">>>>>> return on deletingPasswordSuccess in COMPONENT");
+      this.deletingPasswordSuccess = true;
+      this.$emit("refreshSelected", room);
     });
   },
 };
 </script>
 <template>
-  <div class="box">
-    <h1>My rooms</h1>
-    <p v-if="wrongPassword" class="error-paragraf">
-      Password not matching
-    </p>
-    <div class="list-group">
-      <ul>
-      <div v-for="role in roles" class="users-list" :key="role"> 
-        <p class="table-title">
-          {{ role }}
+  <div style="margin: 20px">
+    <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())" class="box">
+      <h1 >Settings for {{ this.selectedRoom?.name }} </h1>
+      <div v-if="isPublic()">
+        <p>You are the owner of this public room.
+          <p>
+            <button class="new-room-button" @click="this.showAddPassword = !this.showAddPassword">Add Password</button>
+            <p v-if="showAddPassword">
+              <PasswordBtn @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
+            </p>
+            <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
+              Password added
+            </p>
+          </p>
         </p>
-        <div v-for="(room, index) in userRooms" :key="index">
-          <div v-if="getRole(room) == role" >
-            <div v-if="room.id == this.showPasswordToJoin" class="list-group-item list-group-item-action" >
-              💬 {{ room.name }}
-              <PasswordBtn @onSubmit="selectRoom" :room="room" :msg="'JOIN ROOM'"/>
-            </div>
-            <div v-else @click="updateSelected(room)" :class="'list-group-item list-group-item-action ' + ((room.id === this.selectedRoom?.id) ? 'selected' : '')">
-              💬 {{ room.name }}
-            </div>
-            <button class="new-room-button" @click="quitRoom(room, this.user)">Quit room</button>
-          </div>
-        </div>
       </div>
-      </ul>
+      <div v-if="isProtected()">
+        <p>You are the owner of this protected room.
+          <p>
+            <button class="new-room-button" @click="deletePassword(this.selectedRoom, this.user)">Delete Password</button>
+            <p v-if="this.deletingPasswordSuccess" class="validation-paragraf">
+              Password deleted
+            </p>
+            <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
+            <div v-if="showModifyPassword">
+              <PasswordBtn @onSubmit="modifyingPasswordSubmit" :room="this.selectedRoom" :msg="'MODIFY PASSWORD'"/>
+            </div>
+            <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
+              Password updated
+            </p>
+          </p>
+        </p>
+      </div>
     </div>
-  </div>
+    </div>
 </template>
 
 <style scoped>
 main {
   max-width: 500px;
   padding-top: 50px; /* Original 100px */
-  margin: auto;
+  /* margin: auto; */
 }
 
 input[type="submit"]:hover {
@@ -165,20 +179,24 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
+  /* background-color: white; */
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
   border-radius: 3px;
-  padding: 15px;
+  /* padding: 15px; */
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
+  /* border: 2px solid #703ab8; */
 }
 
 .error-paragraf {
   color: red;
+}
+
+.debug {
+  border: #703ab8 1px solid;
 }
 
 .validation-paragraf {
@@ -190,7 +208,6 @@ input[type="submit"]:hover {
   background-color: white;
   display: inline-block;
 }
-
 
 .bold-colored {
   color: #703ab8;

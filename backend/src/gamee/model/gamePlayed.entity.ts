@@ -1,16 +1,10 @@
 import { UserEntity } from "src/entities/users.entity";
-import { StateI } from "src/gamee/model/state.interface";
 import {
     Entity,
     Column,
-    PrimaryColumn,
     PrimaryGeneratedColumn,
     CreateDateColumn,
-    ManyToOne,
     JoinTable,
-    OneToMany,
-    OneToOne,
-    JoinColumn,
     ManyToMany
 } from "typeorm";
 
@@ -25,8 +19,11 @@ export class GamePlayedEntity {
     @JoinTable()
     players: UserEntity[];
 
-    @Column()
+    @Column({nullable: true})
     winnerId: number;
+
+    @Column({nullable: true})
+    loserId: number;
 
     @Column()
     score: number;

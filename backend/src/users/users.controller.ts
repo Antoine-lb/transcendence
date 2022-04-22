@@ -49,7 +49,8 @@ export const uploadOptions = {
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-  constructor( private readonly userService: UsersService
+  constructor(
+    private readonly userService: UsersService,
     ) {}
     
     @Get('/me')

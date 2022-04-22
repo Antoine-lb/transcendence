@@ -14,12 +14,12 @@ export interface RoomI {
 }
 
 export interface UserInterface {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: boolean;
 }
 
 export enum UserRoomRole {
@@ -33,110 +33,65 @@ export enum UserRoomRole {
 }
 
 export default {
-  name: "ChatSelectedRoomChat",
+  name: "ChatAvailableRooms",
   data() {
-    return {
-      text: "",
-      messages: [],
-    };
+    return {};
   },
   props: {
-    user: Object, // = this.user
+    socket: Object,
+    user: Object, // = userStore.user
     userRooms: Object,
     userRoomsRoles: Object,
-    selectedRoom: {
-      type: Object as () => RoomI,
-    },
-    socket: Object,
-    blockedFriends: Object,
   },
-  components: {
-  },
+  components: {},
   methods: {
-    getRole()
-    {
-      return this.userRoomsRoles[this.selectedRoom.id];
+    enterRoom(room: RoomI, user: UserInterface) {
+      this.socket.emit("enterRoom", { room: room, user: user });
     },
-    sendMessage() {
-      if (this.validateInput()) {
-        const message = {
-          user: this.user,
-          text: this.text,
-          room: this.selectedRoom,
-        };
-        console.log(">>>>>> emit addMessage : ", message, this.getRole());
-        this.socket.emit("addMessage", { message: message, role: this.getRole()});
-        this.text = "";
-        console.log("after sendMessage emit");
-      }
-    },
-    validateInput() {
-      return this.text.length > 0;
-    },
-    isBlocked(user: UserInterface) {
-      for (var blocked of this.blockedFriends)
-      {
-        if (user.id == blocked.id)
-          return true;
-      }
+    isRoomInMyRooms(room: RoomI) {
+      var role = this.userRoomsRoles[room.id];
+      if (
+        role == UserRoomRole.OWNER ||
+        role == UserRoomRole.ADMIN ||
+        role == UserRoomRole.LAMBDA
+      )
+        return true;
       return false;
-    }
+    },
+    isRoomAvailable(room: RoomI) {
+      var role = this.userRoomsRoles[room.id];
+      if (role == UserRoomRole.AVAILABLE) return true;
+      return false;
+    },
+    isRoomForbidden(room: RoomI) {
+      var role = this.userRoomsRoles[room.id];
+      if (role == UserRoomRole.FORBIDDEN || role == UserRoomRole.BANNED)
+        return true;
+      return false;
+    },
   },
-  async created() {
-    this.socket.on("updateSelected", (room) => {
-      this.$emit('updateSelected', room);
-    });
-    this.socket.on("messageAdded", (message) => {
-      this.messages.items.push(message);
-    });
-    this.socket.on("getMessages", (messages) => {
-      this.messages = messages;
-    });
-  },
+  async created() {},
 };
 </script>
 <template>
-  <div>
-      <div v-if="this.selectedRoom?.id" id="chat" class="box">
-        <h1>Chat in {{ this.selectedRoom.name }} </h1>
-        <div class="message-box">
-          <div id="messages-box" class="card-block">
-            <!-- Received messages -->
-            <div v-for="message of messages.items" :key="message.id">
-              <div class="message-box">
-                <div v-if="this.user.id !== message?.user.id" class="message" >
-                  <div v-if="isBlocked(message?.user)">
-                    <div class="message-content"> « This message is hidden because you blocked the sender. » </div>
-                  </div>
-                  <div v-else>
-                    <div class="message-user"> {{ message?.user.username }} </div>
-                    <div class="message-content"> {{ message?.text }} </div>
-                  </div>
-                </div>
-              </div>
-            <!-- Sent messages -->
-            <div class="message-box" style="flex-direction: row-reverse">
-              <div v-if="this.user.id === message?.user.id" class="my-message" >
-                <div class="my-message-user">
-                  {{ message?.user.username }}
-                </div>
-                <div class="my-message-content">{{ message?.text }}</div>
-              </div>
-            </div>
-            </div>
+  <div class="box">
+    <h1>Available rooms</h1>
+    <div class="list-group">
+      <ul>
+        <div v-for="(room, index) in userRooms" :key="index">
+          <div
+            v-if="isRoomAvailable(room)"
+            :class="'list-group-item list-group-item-action '"
+          >
+            💬 {{ room.name }}
+            <button class="new-room-button" @click="enterRoom(room, this.user)">
+              Join room
+            </button>
           </div>
         </div>
-        <br />
-        <div v-if="getRole() != 'muted'">
-          <textarea id="textarea" class="form-control" v-model="text" placeholder="Enter message..."></textarea>
-          <br />
-          <button id="send" class="btn" @click.prevent="sendMessage(this.selectedRoom)"> Send </button>
-        </div>
-        <div v-else>
-          You have been muted in this room.
-        </div>
-      </div>
+      </ul>
     </div>
+  </div>
 </template>
 
 <style scoped>
@@ -152,16 +107,13 @@ input[type="submit"]:hover {
 }
 
 .box {
-  background-color: white;
   border: none;
   font-weight: bold;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
-  border: 2px solid #703ab8;
 }
 
 .error-paragraf {
@@ -296,7 +248,6 @@ input[type="submit"]:hover {
 .message-content {
   overflow-wrap: break-word;
 }
-
 .my-message {
   color: #713ab8;
   align-self: end;
@@ -334,6 +285,6 @@ textarea {
   font-size: 30px;
   padding: 10px;
   border-radius: 13px;
-  /* margin-bottom: 100px; */
+  margin-bottom: 100px;
 }
 </style>

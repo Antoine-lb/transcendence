@@ -7,6 +7,13 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtAuthGuard } from './jwt.guard'
 import { AuthService } from './auth.service';
 import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+
+export const User = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
+      const request = ctx.switchToHttp().getRequest();
+      return request.user;
+    },
+);
 
 @ApiTags('auth')
 @Controller('auth')
@@ -50,8 +57,11 @@ export class AuthController{
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
             await res.cookie('access_token', accessToken, {httpOnly: true});
-
+            await this.userService.updateParams(user.id, {
+                isOnline: true
+            });
             if (auth === true) {
+
                 if (user.secret == null)
                     throw new UnauthorizedException('2FA enabled but secret not set');
                 res.redirect('http://127.0.0.1:8080/log2fa');
@@ -61,8 +71,8 @@ export class AuthController{
             }
         }
 
-        @Get('/status')
         @UseGuards(JwtAuthGuard)
+        @Get('/status')
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
@@ -78,8 +88,15 @@ export class AuthController{
             resp.send({ isTwoFaAuthenticated, isAuthenticated, user: req.user });
         }
 
+        @UseGuards(JwtAuthGuard)
         @Get('/logout')
-        logout(@Req() req: Request, @Res({ passthrough: true }) resp: Response) {
+        async logout(@Req() req: Request, @Res({ passthrough: true }) resp: Response, @User() logged_user) {
+            const user = await this.userService.findByName(logged_user['username']);
+            if (!user)
+                throw new UnauthorizedException('User does not exists');
+            await this.userService.updateParams(logged_user.id, {
+                isOnline: false
+            });
             resp.clearCookie('access_token');
             resp.status(302).redirect('http://127.0.0.1:8080')
         }

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
-import UserProfile from "@/components/UserProfile.vue";
+import PublicProfile from "@/components/PublicProfile.vue";
 
 export default {
   setup() {
@@ -12,7 +12,7 @@ export default {
 
   components: {
     TheWelcome,
-    UserProfile,
+    PublicProfile,
   },
 };
 </script>
@@ -22,18 +22,20 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <form v-if="userStore.isLogged" class="form-group">
-        <UserProfile
+        <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
           :played="userStore.user.played"
           :victory="userStore.user.victory"
           :defeats="userStore.user.defeats"
+          :xp="userStore.user.xp"
+          :lvl="userStore.user.lvl"
           :id="userStore.user.id"
         />
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
-              <p>Se deconnecter</p>
+              <p>Se déconnecter</p>
               <img
                 alt="Invader Logo"
                 class="logo-42"

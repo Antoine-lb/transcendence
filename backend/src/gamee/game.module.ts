@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { UsersModule } from 'src/users/users.module';
@@ -20,13 +20,16 @@ const grid = 15;
 const paddleWidth = 15;
 const paddleHeight = grid * 5; // 80
 const maxPaddleY = 585 - grid - paddleHeight;
-const canvas = { width : 750, height : 585};
+const canvas = { width: 750, height: 585 };
 
 @Module({
-  imports: [AuthModule, UsersModule, TypeOrmModule.forFeature([
-      GamePlayedEntity, ConnectedUserEntity
+  imports: [
+    forwardRef(() => UsersModule),
+    AuthModule,
+    TypeOrmModule.forFeature([
+      GamePlayedEntity,
     ]),
   ],
-  providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService ]
+  providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService]
 })
-export class GameModule {}
+export class GameModule { }
