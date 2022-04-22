@@ -28,6 +28,7 @@ const canvas = { width: 750, height: 585 };
     AuthModule,
     TypeOrmModule.forFeature([
       GamePlayedEntity,
+      ConnectedUserEntity
     ]),
   ],
   providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService]
