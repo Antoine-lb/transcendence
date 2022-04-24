@@ -65,6 +65,8 @@ export default {
       });
       this.socket.on("connect", () => {this.gameStatus = "idle"})
       this.socket.on("init", this.handleInit);
+      this.socket.on("test", this.test);
+      this.socket.on("invit", this.invitationRecu);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
       this.socket.on("gameCode", this.handleGameCode);
@@ -103,6 +105,19 @@ export default {
     handleJoinGame() {
       const code = this.gameCodeInput.value;
       this.socket.emit('joinGame', code);
+    },
+
+    invitationRecu(adversaire, code) {
+      console.log(`Ds invitation Reçu`);
+      
+      if (confirm(adversaire + ", vous défie au pong : lancer la partie ?"))
+        this.socket.emit('joinGame', code);
+      else
+        this.socket.emit('declineGameInvit');
+    },
+
+    test() {
+      console.log(`Front Test`);
     },
 
     handleSpecGame() {

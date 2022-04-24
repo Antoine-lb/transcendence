@@ -49,6 +49,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
+    console.log(`hello from game`);
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
@@ -82,35 +83,36 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('test') // to remove
+  async test(socket: Socket, user: UserDto) {
+    console.log(`Test`);
+    var opponentSocket = await this.findChatSocket(user);
+    console.log("opponentSocket : ", opponentSocket);
+  }
 
-  @SubscribeMessage('spec')
-  handleSpecGame(socket: Socket, roomName: string) {
 
-    let roomSize = 0;
+  @SubscribeMessage('newGame')
+  async handleNewGame(socket: Socket, user: UserDto) {
+    console.log(">>>>>> newGame");
+    // create random ID for the new room
+    let roomName = this.GameService.makeid(5);
 
-    const room = this.server.sockets.adapter.rooms.get(roomName)
+    var opponentSocket = await this.findChatSocket(user);
+    console.log("opponentSocket : ", opponentSocket);
 
-    if (room)
-      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
-
-    if (roomSize === 0) {
-      socket.emit('unknownCode');
-      return;
-    } else if (roomSize != 2) {
-      socket.emit('tooManyPlayers');
-      return;
-    }
-
+    // emit the new game ID to other player;
     this.clientRooms[socket.id] = roomName;
 
-    // set the creator to spectator mode
-    socket.data.status = "spec"
-    // join the room socket
-    socket.join(roomName);
-    // init the front for player 2
-    socket.emit('init', 3);
+    await this.server.to(opponentSocket).emit('invitedForGame', roomName);
 
-    // start the game when both player are connected
+    socket.emit('gameCode', roomName);
+
+    this.state[roomName] = this.GameService.initGame(false);
+    socket.data.number = 1;
+    socket.join(roomName);
+    socket.emit('init', 1);
+    this.state[this.clientRooms[socket.id]].gameState = "play"
+    socket.data.status = "play"
   }
 
   @SubscribeMessage('joinGame')
@@ -169,6 +171,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.join(roomName);
       // init the front for player 1
       socket.emit('init', 1);
+    // set the creator to player mode
+      socket.data.status = "play"
     }
     // [JOIN] the game if somebody is already in queue
     else {
@@ -177,16 +181,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
         return;
       }
-      //   console.log(this.server.sockets.adapter.rooms.get(roomName));
-
-      //   for (const playerId of this.server.sockets.adapter.rooms.get(roomName) ) {
-
-      //     //this is the socket of each client in the room.
-      //     const clientSocket = this.server.sockets.sockets.get(playerId);
-
-      //     if (clientSocket == socket)
-      //       return;
-      // }
       this.stackIndex++;
       this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
@@ -198,11 +192,43 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('init', 2);
       // Animation to warn players the game is starting
       this.server.to(roomName).emit('startGameAnimation')
+    // set the creator to player mode
+      socket.data.status = "play"
       // start the game when both player are connected
       setTimeout(() => {
         this.startGameInterval(roomName)
       }, 7000);
     }
+  }
+
+  @SubscribeMessage('spec')
+  handleSpecGame(socket: Socket, roomName: string) {
+
+    let roomSize = 0;
+
+    const room = this.server.sockets.adapter.rooms.get(roomName)
+
+    if (room)
+      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
+
+    if (roomSize === 0) {
+      socket.emit('unknownCode');
+      return;
+    } else if (roomSize != 2) {
+      socket.emit('tooManyPlayers');
+      return;
+    }
+
+    this.clientRooms[socket.id] = roomName;
+
+    // set the creator to spectator mode
+    socket.data.status = "spec"
+    // join the room socket
+    socket.join(roomName);
+    // init the front for player 2
+    socket.emit('init', 3);
+
+    // start the game when both player are connected
   }
 
   @SubscribeMessage('launchGame')
@@ -215,37 +241,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
 
-  async findChatSocket(user: UserDto)
-  {
+  async findChatSocket(user: UserDto) {
     var connectedUserRooms: ConnectedUserI[] = await this.ConnectedUserService.findByUser(user);
     var sockets = [];
     for (var connectedUser of connectedUserRooms)
-        sockets.push(connectedUser.socketID);
+      sockets.push(connectedUser.socketID);
     return sockets;
-  }
-
-  @SubscribeMessage('newGame')
-  async handleNewGame(socket: Socket, user: UserDto) {
-    console.log(">>>>>> newGame");
-    // create random ID for the new room
-    let roomName = this.GameService.makeid(5);
-
-    var opponentSocket = await this.findChatSocket(user);
-    console.log("opponentSocket : ", opponentSocket);
-
-    // emit the new game ID to other player;
-    this.clientRooms[socket.id] = roomName;
-
-    await this.server.to(opponentSocket).emit('invitedForGame', roomName);
-
-    socket.emit('gameCode', roomName);
-
-    this.state[roomName] = this.GameService.initGame(false);
-    socket.data.number = 1;
-    socket.join(roomName);
-    socket.emit('init', 1);
-    this.state[this.clientRooms[socket.id]].gameState = "play"
-    socket.data.status = "play"
   }
 
   @SubscribeMessage('pause')

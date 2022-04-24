@@ -53,6 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    }
 
   async handleConnection(socket: Socket, payload: string) {
+    console.log(`hello from chat`);
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
@@ -293,6 +294,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
 
+  ////////////////////////////////////////// GAME FUNCTIONS ////////////////////////////////////////////////////////////
+  
+  @SubscribeMessage('sendInvit')
+  async sendInvit(socket: Socket, [user/* : UserDto*/,  room, socketID]/* : RoomI */){
+    console.log('Send Invit');
+    console.log(user);
+    console.log('ESPACE');
+    console.log(room.name);
+    console.log('ESPACE');
+    console.log(socketID);
+    console.log(socket.id);
+    socket.to(room.name).emit('invit');
+
+    // this.server.emit("invit");
+    // this.server.sockets.in(room).emit('invit');
+  }
+  
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  
   @SubscribeMessage('addMessage')
