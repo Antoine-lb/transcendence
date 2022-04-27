@@ -111,12 +111,10 @@ export default {
     seeProfile(user: UserInterface) {
       this.$router.push("/user/" + user.id);
     },
-    sendInvit(user, room) {
-      console.log(user);
-      console.log(room);
-      console.log(`socket id ${this.socket.id}`);
-      // this.socket.emit("sendInvit" , 1, 2);
-      this.socket.emit("sendInvit" , user , room, this.socket.id);
+    sendInvit(user) {
+      console.log(`sendInvit`, user);
+      this.socket.emit("sendInvit" , user, this.user);
+      // this.socket.emit("testGame");
     },
   },
   async created() {},
@@ -137,7 +135,7 @@ export default {
             <p v-if="getRole(user) == role" class="">
                 <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
                 <span v-if="user.id != this.user.id">
-                  <button class="on-colors new-room-button" @click="sendInvit( user, this.selectedRoom)"> INVITE FOR A GAME </button>
+                  <button class="on-colors new-room-button" @click="sendInvit( user )"> INVITE FOR A GAME </button>
                   <span v-if="role != 'owner' && role != 'banned'">
                     <button v-if="isOwner(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
                   </span>

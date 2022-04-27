@@ -29,7 +29,7 @@ export const useUserStore = defineStore({
           credentials: "include",
         });
         const userTmp = await tmp.json();
-        console.log(userTmp);
+        // console.log(userTmp);
 
         this._response = await fetch("http://127.0.0.1:3000/api/users/me", {
           method: "GET",

@@ -36,7 +36,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private userService: UsersService,
     private GameService: GameService,
     private MatchHistoryService: MatchHistoryService,
-    private ConnectedUserService: ConnectedUserService,
+    private connectedUserService: ConnectedUserService,
 
   ) { }
 
@@ -90,20 +90,50 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log("opponentSocket : ", opponentSocket);
   }
 
+    ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
+  
+    @SubscribeMessage('sendInvit')
+    async sendInvit(socket: Socket, [user_defié , user_defiant]) {
+      var opponentSocket = await this.connectedUserService.findByUser(user_defié);
+      console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
+  
+      await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
+  
+      this.server.emit("test");
+      this.server.emit("testChat");
+      // if 
+      // await this.server.to(user.socketID).emit('sendInvit');
+  
+      // this.server.sockets.in(room).emit('invit');
+    }
+    
+    @SubscribeMessage('acceptInvit')
+    async acceptInvit(socket: Socket, [adversaire, roomCode]) {
+      console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
+    }
+  
+    @SubscribeMessage('declineGameInvit')
+    async declineGameInvit(socket: Socket, adversaire : UserDto) {
+      console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+  
 
   @SubscribeMessage('newGame')
-  async handleNewGame(socket: Socket, user: UserDto) {
-    console.log(">>>>>> newGame");
+  async handleNewGame(socket: Socket, roomCode : string) {
+    console.log(">>>>>> newGame roomCode : ",  roomCode);
     // create random ID for the new room
-    let roomName = this.GameService.makeid(5);
-
-    var opponentSocket = await this.findChatSocket(user);
-    console.log("opponentSocket : ", opponentSocket);
-
+    let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
     this.clientRooms[socket.id] = roomName;
 
-    await this.server.to(opponentSocket).emit('invitedForGame', roomName);
+    // var opponentSocket = await this.findChatSocket(user);
+    // console.log("opponentSocket : ", opponentSocket);
+    // await this.server.to(opponentSocket).emit('invitedForGame', roomName);
 
     socket.emit('gameCode', roomName);
 
@@ -124,7 +154,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
-      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
+      roomSize = room.size;
+    console.log(`roomSize : ${roomSize}`);
+    
 
     if (roomSize === 0) {
       console.log(">>>>>> unknownCode");
@@ -242,7 +274,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
   async findChatSocket(user: UserDto) {
-    var connectedUserRooms: ConnectedUserI[] = await this.ConnectedUserService.findByUser(user);
+    var connectedUserRooms: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
     var sockets = [];
     for (var connectedUser of connectedUserRooms)
       sockets.push(connectedUser.socketID);
@@ -403,7 +435,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     })
 
     // Modif xp & match history for the players
-    this.userService.updateUserScore(players, winnerId);
+    // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
 
     this.state.splice(parseInt(roomName), 1);
 
