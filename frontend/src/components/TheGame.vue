@@ -44,16 +44,10 @@ export default {
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
-      // myRooms: null,
-      // friendList: [],
-      // newRoomName: null,
-      // newRoomUsers: null,
-      // selectedRoom: {},
-      // room: {},
     };
   },
   created () {
-    // this.socketSetter();
+    this.socketSetter();
   },
 
   methods: {

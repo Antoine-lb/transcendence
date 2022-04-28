@@ -49,7 +49,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
-    console.log(`hello from game`);
+    // console.log(`hello from game`);
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
@@ -95,28 +95,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @SubscribeMessage('sendInvit')
     async sendInvit(socket: Socket, [user_defié , user_defiant]) {
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
-      console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
-  
+      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
-  
-      this.server.emit("test");
-      this.server.emit("testChat");
-      // if 
-      // await this.server.to(user.socketID).emit('sendInvit');
-  
-      // this.server.sockets.in(room).emit('invit');
     }
     
     @SubscribeMessage('acceptInvit')
     async acceptInvit(socket: Socket, [adversaire, roomCode]) {
-      console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
+      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
       this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
     }
   
     @SubscribeMessage('declineGameInvit')
     async declineGameInvit(socket: Socket, adversaire : UserDto) {
-      console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
+      // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
       this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
     }
@@ -125,16 +117,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket, roomCode : string) {
-    console.log(">>>>>> newGame roomCode : ",  roomCode);
+    // console.log(">>>>>> newGame roomCode : ",  roomCode);
     // create random ID for the new room
     let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
     this.clientRooms[socket.id] = roomName;
-
-    // var opponentSocket = await this.findChatSocket(user);
-    // console.log("opponentSocket : ", opponentSocket);
-    // await this.server.to(opponentSocket).emit('invitedForGame', roomName);
-
     socket.emit('gameCode', roomName);
 
     this.state[roomName] = this.GameService.initGame(false);
@@ -147,7 +134,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
-    console.log(">>>>>> joinGame in ", roomName);
+    // console.log(">>>>>> joinGame in ", roomName);
 
     let roomSize = 0;
 
@@ -155,7 +142,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (room)
       roomSize = room.size;
-    console.log(`roomSize : ${roomSize}`);
+    // console.log(`roomSize : ${roomSize}`);
     
 
     if (roomSize === 0) {
@@ -179,7 +166,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.data.status = "play"
 
     // start the game when both player are connected
-    console.log(">>>>>> about to start game in joinGame");
+    // console.log(">>>>>> about to start game in joinGame");
     this.startGameInterval(roomName);
   }
 
@@ -366,7 +353,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async afterInit() { }
 
   startGameInterval(roomName: string) {
-    console.log(">>>>>> startGameInterval : ", roomName);
+    // console.log(">>>>>> startGameInterval : ", roomName);
     this.state[roomName].intervalId = setInterval(() => {
 
       const winner = this.GameService.gameLoop(this.state[roomName]);

@@ -53,7 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    }
 
   async handleConnection(socket: Socket, payload: string) {
-    console.log(`hello from chat`);
+    // console.log(`hello from chat`);
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
