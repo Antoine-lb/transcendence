@@ -22,7 +22,7 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged" class="form-group">
-        <Chat :user="userStore.user" />
+        <Chat :user="userStore.user" :socket="userStore.socket" />
       </div>
       <div v-if="!userStore.isLogged" class="form-group">
         <p>Vous devez être connecté pour voir le chat</p>

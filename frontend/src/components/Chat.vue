@@ -62,6 +62,7 @@ export default {
   },
   props: {
     user: Object,
+    socket: Object,
   },
   components: {
     ChatCreateRoom,
@@ -89,11 +90,11 @@ export default {
     },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
+    // this.socket = io("http://127.0.0.1:3000", {
+    //   extraHeaders: {
+    //     Authorization: this.user.access_token,
+    //   },
+    // });
     this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
       this.userRooms = rooms;
       // console.log("chat ------------ getRoomsForUser : ", rooms);
@@ -169,17 +170,17 @@ export default {
     </div>
 
     <div>
-    <hr>
-          <!-- @refreshSelected="refreshSelected" -->
-    <ChatGame
-          :selectedRoom="this.selectedRoom"
-          :usersForRoom="this.usersForRoom"
-          :userRolesInRoom="this.userRolesInRoom"
-          :socket="this.socket"
-          :user="user"
-          :userRooms="this.userRooms"
-          :userRoomsRoles="this.userRoomsRoles"
-    />
+      <hr />
+      <!-- @refreshSelected="refreshSelected" -->
+      <ChatGame
+        :selectedRoom="this.selectedRoom"
+        :usersForRoom="this.usersForRoom"
+        :userRolesInRoom="this.userRolesInRoom"
+        :socket="this.socket"
+        :user="user"
+        :userRooms="this.userRooms"
+        :userRoomsRoles="this.userRoomsRoles"
+      />
     </div>
   </div>
 </template>
