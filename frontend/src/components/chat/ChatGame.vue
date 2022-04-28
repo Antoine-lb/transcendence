@@ -1,10 +1,21 @@
 <script lang="ts">
 import { ref, onMounted } from 'vue'
-import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
+import { useUserStore } from "../../stores/userStore";
+
+export interface RoomI {
+  created_date: string;
+  id: number;
+  name: string;
+  password: string;
+  protected: boolean;
+  status: boolean;
+  updated_date: string;
+  admins: [];
+  bans: [];
+}
 
 export default {
-  name: "TheGame",
+  name: "ChatGame",
    setup() {
       const userStore = useUserStore();
       const gameCodeDisplay = ref(null)
@@ -32,7 +43,15 @@ export default {
       }
     },
   props: {
-    user: Object,
+    user: Object, // = this.user
+    userRooms: Object,
+    userRoomsRoles: Object,
+    selectedRoom: {
+      type: Object as () => RoomI,
+    },
+    socket: Object,
+    userRolesInRoom: Object,
+    usersForRoom: Object,
   },
   data() {
     return {
@@ -40,10 +59,16 @@ export default {
       
       score : {},
       gameStatus : String("paused"),
-      socket: ref(),
+      // socket: ref(),
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
+      // myRooms: null,
+      // friendList: [],
+      // newRoomName: null,
+      // newRoomUsers: null,
+      // selectedRoom: {},
+      // room: {},
     };
   },
   created () {
@@ -52,15 +77,10 @@ export default {
 
   methods: {
     socketSetter() {
-      this.socket = io("http://127.0.0.1:3000", {
-        extraHeaders: {
-          Authorization: this.user.access_token,
-        },
-      });
-      //--> ALTERNATIVE this.userStore.socket.on("connect", () => {console.log(` userStoreSocket working`);})
       this.socket.on("connect", () => {this.gameStatus = "idle"})
       this.socket.on("init", this.handleInit);
-      this.socket.on("testGame", this.testGame);
+      this.socket.on("invit", this.invitationRecu);
+      // this.socket.on("joinGame", this.handleJoinGame);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
       this.socket.on("gameCode", this.handleGameCode);
@@ -86,6 +106,30 @@ export default {
           // status1: "ok"
         });
       });
+
+      this.socket.on("testChat", () => {
+        console.log("test Chat.vue");
+      });
+
+      this.socket.on("acceptInvit", async (roomCode) => {
+        console.log(">>>>>> acceptInvit roomCode : ", roomCode);
+        // await this.startGameAnimation()
+        this.socket.emit('joinGame', roomCode);
+      });
+      this.socket.on("declineGameInvit", () => {
+        console.log(">>>>>> declineGameInvit");
+        alert("your opponent decline the challenge");
+      });
+    },
+
+    invitationRecu(adversaire, code) {
+      console.log(`Ds invitation Reçu`);
+      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
+        this.socket.emit('newGame', code);
+        this.socket.emit('acceptInvit', adversaire, code);
+      }
+      else
+        this.socket.emit('declineGameInvit', adversaire);
     },
 
     joinQueue() {
@@ -99,10 +143,6 @@ export default {
     handleJoinGame() {
       const code = this.gameCodeInput.value;
       this.socket.emit('joinGame', code);
-    },
-
-    testGame() {
-      console.log(`Front TestGame`);
     },
 
     handleSpecGame() {

@@ -3,6 +3,7 @@ import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 import ChatCreateRoom from "./chat/ChatCreateRoom.vue";
 import ChatMyRooms from "./chat/ChatMyRooms.vue";
+import ChatGame from "./chat/ChatGame.vue";
 import ChatAvailableRooms from "./chat/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./chat/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./chat/ChatSelectedRoomParams.vue";
@@ -65,6 +66,7 @@ export default {
   components: {
     ChatCreateRoom,
     ChatMyRooms,
+    ChatGame,
     ChatAvailableRooms,
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
@@ -164,6 +166,20 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
       </div>
+    </div>
+
+    <div>
+    <hr>
+          <!-- @refreshSelected="refreshSelected" -->
+    <ChatGame
+          :selectedRoom="this.selectedRoom"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+    />
     </div>
   </div>
 </template>

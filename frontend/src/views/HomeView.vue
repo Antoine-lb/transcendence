@@ -6,8 +6,14 @@ import PublicProfile from "@/components/PublicProfile.vue";
 export default {
   setup() {
     const userStore = useUserStore();
+    console.log(`setup`);
+
     userStore.requestLogState();
     return { userStore };
+  },
+  created() {
+    console.log(`onCreated`);
+
   },
 
   components: {

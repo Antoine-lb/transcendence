@@ -45,6 +45,7 @@ export default {
         // AVAILABLE: "available",
         // FORBIDDEN: "forbidden",
       },
+      gameRoomName: null,
     };
   },
   props: {
@@ -110,10 +111,17 @@ export default {
     seeProfile(user: UserInterface) {
       this.$router.push("/user/" + user.id);
     },
+    sendInvit(user) {
+      console.log(`sendInvit`, user);
+      this.socket.emit("sendInvit" , user, this.user);
+      // this.socket.emit("testGame");
+    },
   },
   async created() {},
 };
 </script>
+
+
 <template>
   <div>
     <div v-if="this.selectedRoom?.name" class="box">
@@ -127,6 +135,7 @@ export default {
             <p v-if="getRole(user) == role" class="">
                 <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
                 <span v-if="user.id != this.user.id">
+                  <button class="on-colors new-room-button" @click="sendInvit( user )"> INVITE FOR A GAME </button>
                   <span v-if="role != 'owner' && role != 'banned'">
                     <button v-if="isOwner(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
                   </span>
@@ -165,6 +174,11 @@ input[type="submit"]:hover {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
+}
+
+.on-colors {
+  background-color: #703ab8;
+  color: white;
 }
 
 .error-paragraf {

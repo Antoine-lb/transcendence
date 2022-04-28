@@ -21,8 +21,8 @@ import { StateI } from 'src/gamee/model/state.interface';
 import { UserEntity } from 'src/entities/users.entity';
 import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service'
 import { RouterModule } from '@nestjs/core';
-
-
+import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
+import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
 
 @WebSocketGateway({
   cors: {
@@ -35,7 +35,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private authService: AuthService,
     private userService: UsersService,
     private GameService: GameService,
-    private MatchHistoryService: MatchHistoryService
+    private MatchHistoryService: MatchHistoryService,
+    private connectedUserService: ConnectedUserService,
+
   ) { }
 
 
@@ -47,6 +49,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
+    // console.log(`hello from game`);
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
 
@@ -80,6 +83,142 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('test') // to remove
+  async test(socket: Socket, user: UserDto) {
+    console.log(`Test`);
+    var opponentSocket = await this.findChatSocket(user);
+    console.log("opponentSocket : ", opponentSocket);
+  }
+
+    ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
+  
+    @SubscribeMessage('sendInvit')
+    async sendInvit(socket: Socket, [user_defié , user_defiant]) {
+      var opponentSocket = await this.connectedUserService.findByUser(user_defié);
+      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
+      await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
+    }
+    
+    @SubscribeMessage('acceptInvit')
+    async acceptInvit(socket: Socket, [adversaire, roomCode]) {
+      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
+    }
+  
+    @SubscribeMessage('declineGameInvit')
+    async declineGameInvit(socket: Socket, adversaire : UserDto) {
+      // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+
+  @SubscribeMessage('newGame')
+  async handleNewGame(socket: Socket, roomCode : string) {
+    // console.log(">>>>>> newGame roomCode : ",  roomCode);
+    // create random ID for the new room
+    let roomName = roomCode ? roomCode : this.GameService.makeid(5);
+    // emit the new game ID to other player;
+    this.clientRooms[socket.id] = roomName;
+    socket.emit('gameCode', roomName);
+
+    this.state[roomName] = this.GameService.initGame(false);
+    socket.data.number = 1;
+    socket.join(roomName);
+    socket.emit('init', 1);
+    this.state[this.clientRooms[socket.id]].gameState = "play"
+    socket.data.status = "play"
+  }
+
+  @SubscribeMessage('joinGame')
+  handleJoinGame(socket: Socket, roomName: string) {
+    // console.log(">>>>>> joinGame in ", roomName);
+
+    let roomSize = 0;
+
+    const room = this.server.sockets.adapter.rooms.get(roomName)
+
+    if (room)
+      roomSize = room.size;
+    // console.log(`roomSize : ${roomSize}`);
+    
+
+    if (roomSize === 0) {
+      console.log(">>>>>> unknownCode");
+      socket.emit('unknownCode');
+      return;
+    } else if (roomSize > 1) {
+      console.log(">>>>>> tooManyPlayers");
+      socket.emit('tooManyPlayers');
+      return;
+    }
+
+    this.clientRooms[socket.id] = roomName;
+
+    // set the creator to player 1
+    socket.data.number = 2;
+    // join the room socket
+    socket.join(roomName);
+    // init the front for player 2
+    socket.emit('init', 2);
+    socket.data.status = "play"
+
+    // start the game when both player are connected
+    // console.log(">>>>>> about to start game in joinGame");
+    this.startGameInterval(roomName);
+  }
+
+  @SubscribeMessage('joinQueue')
+  handleJoinQueue(socket: Socket) {
+
+    let roomName = Math.floor(this.stackIndex / 2).toString();
+    this.clientRooms[socket.id] = roomName;
+
+    // [CREATE] game state and wait other player if(nobody is in queue)
+    if (!(this.stackIndex % 2)) {
+      this.stackIndex++;
+      // init the game state 
+      this.state[roomName] = this.GameService.initGame(true)
+      this.state[roomName].userID = socket.data.user.id;
+
+      // set the creator to player 1
+      socket.data.number = 1;
+      this.clientRooms[socket.id] = roomName;
+      // join the room socket
+      socket.join(roomName);
+      // init the front for player 1
+      socket.emit('init', 1);
+    // set the creator to player mode
+      socket.data.status = "play"
+    }
+    // [JOIN] the game if somebody is already in queue
+    else {
+
+      if (this.state[roomName].userID == socket.data.user.id) {
+        // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
+        return;
+      }
+      this.stackIndex++;
+      this.state[roomName].userID = socket.data.user.id;
+      // set the creator to player 1
+      socket.data.number = 2;
+      this.clientRooms[socket.id] = roomName;
+      // join the room socket
+      socket.join(roomName);
+      // init the front for player 2
+      socket.emit('init', 2);
+      // Animation to warn players the game is starting
+      this.server.to(roomName).emit('startGameAnimation')
+    // set the creator to player mode
+      socket.data.status = "play"
+      // start the game when both player are connected
+      setTimeout(() => {
+        this.startGameInterval(roomName)
+      }, 7000);
+    }
+  }
 
   @SubscribeMessage('spec')
   handleSpecGame(socket: Socket, roomName: string) {
@@ -111,95 +250,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // start the game when both player are connected
   }
 
-  @SubscribeMessage('joinGame')
-  handleJoinGame(socket: Socket, roomName: string) {
-
-
-    let roomSize = 0;
-
-    const room = this.server.sockets.adapter.rooms.get(roomName)
-
-    if (room)
-      roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
-
-    if (roomSize === 0) {
-      socket.emit('unknownCode');
-      return;
-    } else if (roomSize > 1) {
-      socket.emit('tooManyPlayers');
-      return;
-    }
-
-    this.clientRooms[socket.id] = roomName;
-
-    // set the creator to player 1
-    socket.data.number = 2;
-    // join the room socket
-    socket.join(roomName);
-    // init the front for player 2
-    socket.emit('init', 2);
-    socket.data.status = "play"
-
-    // start the game when both player are connected
-    this.startGameInterval(roomName);
-  }
-
-  @SubscribeMessage('joinQueue')
-  handleJoinQueue(socket: Socket) {
-
-    let roomName = Math.floor(this.stackIndex / 2).toString();
-    this.clientRooms[socket.id] = roomName;
-
-    // [CREATE] game state and wait other player if(nobody is in queue)
-    if (!(this.stackIndex % 2)) {
-      this.stackIndex++;
-      // init the game state 
-      this.state[roomName] = this.GameService.initGame(true)
-      this.state[roomName].userID = socket.data.user.id;
-
-      // set the creator to player 1
-      socket.data.number = 1;
-      this.clientRooms[socket.id] = roomName;
-      // join the room socket
-      socket.join(roomName);
-      // init the front for player 1
-      socket.emit('init', 1);
-    }
-    // [JOIN] the game if somebody is already in queue
-    else {
-
-      if (this.state[roomName].userID == socket.data.user.id) {
-        // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
-        return;
-      }
-      //   console.log(this.server.sockets.adapter.rooms.get(roomName));
-
-      //   for (const playerId of this.server.sockets.adapter.rooms.get(roomName) ) {
-
-      //     //this is the socket of each client in the room.
-      //     const clientSocket = this.server.sockets.sockets.get(playerId);
-
-      //     if (clientSocket == socket)
-      //       return;
-      // }
-      this.stackIndex++;
-      this.state[roomName].userID = socket.data.user.id;
-      // set the creator to player 1
-      socket.data.number = 2;
-      this.clientRooms[socket.id] = roomName;
-      // join the room socket
-      socket.join(roomName);
-      // init the front for player 2
-      socket.emit('init', 2);
-      // Animation to warn players the game is starting
-      this.server.to(roomName).emit('startGameAnimation')
-      // start the game when both player are connected
-      setTimeout(() => {
-        this.startGameInterval(roomName)
-      }, 7000);
-    }
-  }
-
   @SubscribeMessage('launchGame')
   launchGame(/* roomId: number */) {
     // console.log(`socket.data.user.id ${this.socket.data.user.id}`);
@@ -209,22 +259,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // this.startGameInterval(this.state[roomName].id);
   }
 
-  @SubscribeMessage('newGame')
-  handleNewGame(socket: Socket) {
 
-    // create random ID for the new room
-    let roomName = this.GameService.makeid(5);
-
-    // emit the new game ID to other player;
-    this.clientRooms[socket.id] = roomName;
-    socket.emit('gameCode', roomName);
-
-    this.state[roomName] = this.GameService.initGame(false);
-    socket.data.number = 1;
-    socket.join(roomName);
-    socket.emit('init', 1);
-    this.state[this.clientRooms[socket.id]].gameState = "play"
-    socket.data.status = "play"
+  async findChatSocket(user: UserDto) {
+    var connectedUserRooms: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+    var sockets = [];
+    for (var connectedUser of connectedUserRooms)
+      sockets.push(connectedUser.socketID);
+    return sockets;
   }
 
   @SubscribeMessage('pause')
@@ -312,11 +353,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async afterInit() { }
 
   startGameInterval(roomName: string) {
-
+    // console.log(">>>>>> startGameInterval : ", roomName);
     this.state[roomName].intervalId = setInterval(() => {
 
       const winner = this.GameService.gameLoop(this.state[roomName]);
-
       if (!winner) {
         this.emitGameState(roomName, this.state[roomName]);
       }
@@ -381,7 +421,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       score: score,
     })
     // Modif xp & match history for the players
-    this.userService.updateUserScore(players, winnerId);
+    // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
+
     this.state.splice(parseInt(roomName), 1);
   }
 }
