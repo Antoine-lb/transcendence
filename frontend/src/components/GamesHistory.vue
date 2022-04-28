@@ -1,5 +1,5 @@
 <script lang="ts">
-import SingleGameHistory from "@/components/SingleGameHistory.vue";
+import SingleGameHistory from "./SingleGameHistory.vue";
 
 function fetchWithHeaders(url) {
   return fetch(url, {

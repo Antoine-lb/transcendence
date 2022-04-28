@@ -127,13 +127,13 @@ export class GameService {
     if (ball.x < 0) {
       state.score.p2++
       this.resetState(state)
-      if (state.score.p2 > scoreLimit)
+      if (state.score.p2 >= scoreLimit)
         return 2;
     }
     if (ball.x > canvas.width) {
       state.score.p1++
       this.resetState(state)
-      if (state.score.p1 > scoreLimit)
+      if (state.score.p1 >= scoreLimit)
         return 1;
     }
     return 0;

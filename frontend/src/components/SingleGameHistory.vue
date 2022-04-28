@@ -18,6 +18,7 @@ export default {
     winnerId: Number,
     loserId: Number,
     gameId: Number,
+
     score: Number,
   },
   data() {
@@ -95,7 +96,7 @@ export default {
           <p class="player-name">{{ winner.username }}</p>
         </a>
       </div>
-      <span style="font-size: 35px">4 - {{ score - 4 }}</span>
+      <span style="font-size: 35px">10 - {{ score - 10 }}</span>
       <div class="player-profile">
         <a class="username" :href="'/user/' + loserId">
           <div

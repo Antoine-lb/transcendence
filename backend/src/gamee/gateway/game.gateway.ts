@@ -361,9 +361,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName, this.state[roomName]);
       }
       else {
-        clearInterval(this.state[roomName].intervalId);
+        this.emitGameState(roomName, this.state[roomName]);
         this.emitGameOver(roomName, winner);
-
+        clearInterval(this.state[roomName].intervalId);
         // TODO : save the score
       }
     }, 1000 / FRAME_RATE);
@@ -420,11 +420,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       loserId: loserId,
       score: score,
     })
-
     // Modif xp & match history for the players
     // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
 
     this.state.splice(parseInt(roomName), 1);
-
   }
 }
