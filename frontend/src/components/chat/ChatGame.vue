@@ -99,6 +99,7 @@ export default {
         // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
       });
+
       this.socket.on("declineGameInvit", () => {
         console.log(">>>>>> declineGameInvit");
         alert("your opponent decline the challenge");
@@ -106,7 +107,7 @@ export default {
     },
 
     invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu`);
+      console.log(`Ds invitation Reçu (ChatGame) room : ${code}`);
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
         this.socket.emit('acceptInvit', adversaire, code);
@@ -235,8 +236,8 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
-      // console.log("this.gameStatus : ", this.gameStatus);
-      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
+      console.log("this.gameStatus : ", this.gameStatus);
+      // if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")// c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
     },
 

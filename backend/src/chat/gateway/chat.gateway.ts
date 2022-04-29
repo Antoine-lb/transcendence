@@ -297,9 +297,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }
-   
- async afterInit() {}
-   
+      
     ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
   
     @SubscribeMessage('sendInvit')

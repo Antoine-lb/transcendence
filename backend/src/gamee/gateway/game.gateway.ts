@@ -80,7 +80,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket, roomCode : string) {
-    // console.log(">>>>>> newGame roomCode : ",  roomCode);
+    console.log(">>>>>> newGame roomCode : ",  roomCode);
     // create random ID for the new room
     let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
@@ -304,8 +304,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     socket.disconnect();
   }
-
-  async afterInit() { }
 
   startGameInterval(roomName: string, playWithPowerUP : boolean) {
     console.log(">>>>>> startGameInterval : ", roomName);
