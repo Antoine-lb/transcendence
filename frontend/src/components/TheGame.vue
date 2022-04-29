@@ -7,7 +7,6 @@ export default {
   name: "TheGame",
   setup() {
     const userStore = useUserStore();
-    const gameCodeDisplay = ref(null);
     const initialScreen = ref(null);
     const gameCodeInput = ref(null);
     const gameCodeSpec = ref(null);
@@ -17,11 +16,9 @@ export default {
     const canvas = ref(null);
     onMounted(() => {
       // the DOM element will be assigned to the ref after initial render
-      console.log(gameCodeDisplay.value); // <div>This is a gameCodeDisplay element</div>
     });
 
     return {
-      gameCodeDisplay,
       initialScreen,
       gameCodeInput,
       gameCodeSpec,
@@ -49,6 +46,15 @@ export default {
   },
   created() {
     this.socketSetter();
+    console.log(`created`);
+  },
+  mounted(){
+    console.log(`mounted`);
+    this.reset()
+  },
+  unmounted() {
+    this.socket.removeAllListeners();
+    // alert("unmonted")
   },
 
   methods: {
@@ -58,10 +64,9 @@ export default {
         this.gameStatus = "idle";
       });
       this.socket.on("init", this.handleInit);
-      this.socket.on("testGame", this.testGame);
+      this.socket.on("invit", this.invitationRecu);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
-      this.socket.on("gameCode", this.handleGameCode);
       this.socket.on("unknownCode", this.handleUnknownCode);
       this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
       this.socket.on("paused", this.handlePause);
@@ -69,6 +74,7 @@ export default {
       this.socket.on("broadcastMsg", this.receiveMsg);
       this.socket.on("disconnection", this.handleDisconnection);
       this.socket.on("startGameAnimation", this.startGameAnimation);
+      this.socket.on("acceptInvit", this.acceptInvit);
       this.socket.on("disconnect", (reason) => {
         if (reason === "io server disconnect") {
           // console.log("the disconnection was initiated by the server, you need to reconnect manually")
@@ -86,21 +92,35 @@ export default {
       });
     },
 
-    joinQueue() {
-      this.socket.emit("joinQueue");
+    joinQueue(playWithPowerUP : boolean) {
+      this.socket.emit("joinQueue", playWithPowerUP);
+      this.gameState = "play";
     },
 
     createNewGame() {
       this.socket.emit("newGame");
     },
 
+    invitationRecu(adversaire, code) {
+      console.log(`Ds invitation Reçu`);
+      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
+        this.socket.emit('newGame', code);
+        this.socket.emit('acceptInvit', adversaire, code);
+        this.$router.push("Chat");
+      }
+      else
+        this.socket.emit('declineGameInvit', adversaire);
+    },
+    
+    acceptInvit (roomCode) {
+        console.log(">>>>>> acceptInvitGame roomCode : ", roomCode);
+        // await this.startGameAnimation()
+        this.socket.emit('joinGame', roomCode);
+    },
+
     handleJoinGame() {
       const code = this.gameCodeInput.value;
       this.socket.emit("joinGame", code);
-    },
-
-    testGame() {
-      console.log(`Front TestGame`);
     },
 
     handleSpecGame() {
@@ -126,8 +146,8 @@ export default {
     keydown(e) {
       if (!this.socket.connected) return;
       this.socket.emit("keydown", e.keyCode);
-      if (e.key == "d") this.socket.disconnect();
-      if (e.key == "f") this.socket.connect();
+      // if (e.key == "d") this.socket.disconnect();
+      // if (e.key == "f") this.socket.connect();
     },
 
     keyup(e) {
@@ -148,7 +168,6 @@ export default {
           );
           await this.sleep(10);
         }
-      this.socket.emit("launchGame");
     },
 
     sleep(ms) {
@@ -221,6 +240,8 @@ export default {
     },
 
     handleInit(number) {
+      console.log(`handleInit`);
+      
       this.playerNumber = number;
       this.init();
     },
@@ -231,7 +252,7 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
-      // console.log("this.gameStatus : ", this.gameStatus);
+      console.log("this.gameStatus : ", this.gameStatus);
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         requestAnimationFrame(() => this.paintGame(gameState));
     },
@@ -260,10 +281,6 @@ export default {
           duration: 6000,
         });
       }
-    },
-
-    handleGameCode(gameCode) {
-      this.gameCodeDisplay.innerText = gameCode;
     },
 
     handleUnknownCode() {
@@ -299,11 +316,13 @@ export default {
     },
 
     reset() {
+      this.gameStatus = "idle";
       this.playerNumber = null;
       this.gameCodeInput.value = "";
       this.gameCodeSpec.value = "";
       this.initialScreen.style.display = "block";
       this.gameScreen.style.display = "none";
+      this.msgBox.innerText = "";
     },
   },
 };
@@ -328,8 +347,11 @@ export default {
             {{ this.socket != null ? this.socket.id : "Undefined yet" }}
           </h1>
           <div>
-            <button type="submit" class="btn btn-success" @click="joinQueue">
-              Play
+            <button type="submit" class="btn btn-success" @click="joinQueue(false)">
+              Play Basic Pong
+            </button>
+            <button type="submit" class="btn btn-success" @click="joinQueue(true)">
+              Play PowerUP Pong!!!
             </button>
           </div>
           <div>OR</div>
@@ -389,7 +411,6 @@ export default {
             myRoom is :
             {{ this.socket != null ? this.socket.id : "Undefined yet" }}
           </h1>
-          <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
           <canvas ref="canvas"></canvas>
           <button
             type="submit"
@@ -408,10 +429,19 @@ export default {
           >
             claimVictory
           </button>
+          <button
+            type="submit"
+            class="btn btn-success"
+            ref="notifyButton"
+            v-if="!this.gameActive"
+            v-on:click="reset"
+          >
+           ← Go back ←
+          </button>
         </div>
         <div class="chat">
+          <h1>Instant Chat</h1>
           <div ref="msgBox" class="message-box"></div>
-
           <div>
             <textarea
               id="textarea"
@@ -420,7 +450,6 @@ export default {
             >
             </textarea>
           </div>
-
           <div>
             <button type="submit" ref="sendButton" v-on:click="sendMsg">
               Send
@@ -452,7 +481,7 @@ textarea {
   margin: 10px;
 }
 .message-box {
-  overflow: scroll;
+  overflow: hidden; 
   border: 3px solid #703ab8;
   border-radius: 13px;
   width: 100%;

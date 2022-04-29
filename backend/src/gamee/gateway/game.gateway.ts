@@ -60,20 +60,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       else {
         socket.data.user = user;
 
-
-        // il me faut le socket des que l on clique sur "jeux"
-
         // connect directly the client to the room if he was in game
-
         if (this.clientDisconnected[user.id]) {
           socket.data.status = "play"
           // join the room socket
           socket.join(this.clientDisconnected[user.id].roomName);
           socket.data.number = this.clientDisconnected[user.id].player;
           // init the front for player 2
-          socket.emit('init', this.clientDisconnected[user.id].player);
+          socket.emit('init', this.clientDisconnected[user.id].player); // PROBLEM
         }
-
         return;
       }
     }
@@ -82,38 +77,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return this.disconnect(socket);
     }
   }
-
-  @SubscribeMessage('test') // to remove
-  async test(socket: Socket, user: UserDto) {
-    console.log(`Test`);
-    var opponentSocket = await this.findChatSocket(user);
-    console.log("opponentSocket : ", opponentSocket);
-  }
-
-    ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
-  
-    @SubscribeMessage('sendInvit')
-    async sendInvit(socket: Socket, [user_defié , user_defiant]) {
-      var opponentSocket = await this.connectedUserService.findByUser(user_defié);
-      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
-      await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
-    }
-    
-    @SubscribeMessage('acceptInvit')
-    async acceptInvit(socket: Socket, [adversaire, roomCode]) {
-      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
-      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
-      this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
-    }
-  
-    @SubscribeMessage('declineGameInvit')
-    async declineGameInvit(socket: Socket, adversaire : UserDto) {
-      // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
-      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
-      this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
-    }
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-  
 
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket, roomCode : string) {
@@ -167,15 +130,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // start the game when both player are connected
     // console.log(">>>>>> about to start game in joinGame");
-    this.startGameInterval(roomName);
+    this.startGameInterval(roomName, false);
   }
 
   @SubscribeMessage('joinQueue')
-  handleJoinQueue(socket: Socket) {
+  handleJoinQueue(socket: Socket, playWithPowerUP : boolean) {
 
     let roomName = Math.floor(this.stackIndex / 2).toString();
     this.clientRooms[socket.id] = roomName;
-
+    console.log(`>>>> joinQueue ${roomName} socket.id ${socket.id}`);
+    
     // [CREATE] game state and wait other player if(nobody is in queue)
     if (!(this.stackIndex % 2)) {
       this.stackIndex++;
@@ -195,7 +159,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     // [JOIN] the game if somebody is already in queue
     else {
-
+      console.log(`else`);
+      
       if (this.state[roomName].userID == socket.data.user.id) {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
         return;
@@ -215,7 +180,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.data.status = "play"
       // start the game when both player are connected
       setTimeout(() => {
-        this.startGameInterval(roomName)
+        this.startGameInterval(roomName, playWithPowerUP)
       }, 7000);
     }
   }
@@ -250,16 +215,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // start the game when both player are connected
   }
 
-  @SubscribeMessage('launchGame')
-  launchGame(/* roomId: number */) {
-    // console.log(`socket.data.user.id ${this.socket.data.user.id}`);
-    // console.log(`socket.data.user.id`);
-
-    // let roomName: number = this.GameService.getRoomById(this.state, roomId);
-    // this.startGameInterval(this.state[roomName].id);
-  }
-
-
   async findChatSocket(user: UserDto) {
     var connectedUserRooms: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
     var sockets = [];
@@ -284,7 +239,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
     else {
-      this.startGameInterval(this.clientRooms[socket.id]);
+      this.startGameInterval(this.clientRooms[socket.id], false);
       this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
         text: "Game Resumed by player",
@@ -352,11 +307,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async afterInit() { }
 
-  startGameInterval(roomName: string) {
-    // console.log(">>>>>> startGameInterval : ", roomName);
+  startGameInterval(roomName: string, playWithPowerUP : boolean) {
+    console.log(">>>>>> startGameInterval : ", roomName);
     this.state[roomName].intervalId = setInterval(() => {
 
-      const winner = this.GameService.gameLoop(this.state[roomName]);
+      const winner = this.GameService.gameLoop(this.state[roomName], playWithPowerUP);
       if (!winner) {
         this.emitGameState(roomName, this.state[roomName]);
       }
@@ -407,7 +362,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       else
         loserId = clientSocket.data.user.id;
       //both player leave the room
-      clientSocket.leave(roomName)
+      // clientSocket.leave(roomName) // <-- commenté si on veut que les joueurs puissent continuer à chatter
     }
 
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);

@@ -47,7 +47,7 @@ export class GameService {
         x: canvas.width / 2,
         y: canvas.height / 2,
       }],
-      powerUp_t: "lightblue",
+      powerUp_t: "transparent",
       launchPowerUp: false,
       intervalId: null,
       is_public: is_public,
@@ -56,7 +56,7 @@ export class GameService {
     return state;
   }
 
-  gameLoop(state: StateI, powerUPenable: Boolean = true): number {
+  gameLoop(state: StateI, powerUPenable: boolean = true): number {
     if (!state) {
       return -1;
     }
