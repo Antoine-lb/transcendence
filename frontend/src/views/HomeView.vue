@@ -37,6 +37,7 @@ export default {
           :xp="userStore.user.xp"
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
+          :socket="userStore.socket"
         />
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">

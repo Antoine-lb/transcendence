@@ -27,7 +27,7 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="userStore.isLogged">
-        <MyFriends />
+        <MyFriends :socket="userStore.socket" />
       </div>
       <div v-if="!userStore.isLogged">
         <p>Vous devez être connecté pour voir vos amis</p>

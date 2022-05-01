@@ -269,6 +269,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('blockUser')
   async onBlockUser(socket: Socket, room: RoomI){}
+  
+  async afterInit() {}
 
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  

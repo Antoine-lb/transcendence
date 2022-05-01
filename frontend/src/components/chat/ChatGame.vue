@@ -50,7 +50,7 @@ export default {
     return {
       title: "Game Room",
       score : {},
-      gameStatus : String("paused"),
+      gameStatus : String("idle"),
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
@@ -59,7 +59,10 @@ export default {
   created () {
     this.socketSetter();
   },
-    unmounted() {
+  mounted() {
+    this.init();
+  },
+  unmounted() {
     this.socket.removeAllListeners();
   },
 
@@ -95,13 +98,13 @@ export default {
       });
 
       this.socket.on("acceptInvit", async (roomCode) => {
-        console.log(">>>>>> acceptInvit roomCode : ", roomCode);
+        console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
       });
 
       this.socket.on("declineGameInvit", () => {
-        console.log(">>>>>> declineGameInvit");
+        console.log(">>>>>> declineGameInvit (chat)");
         alert("your opponent decline the challenge");
       });
     },
@@ -237,7 +240,7 @@ export default {
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
       console.log("this.gameStatus : ", this.gameStatus);
-      // if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")// c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
+      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")// c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
     },
 

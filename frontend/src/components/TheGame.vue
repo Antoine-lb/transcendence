@@ -64,7 +64,6 @@ export default {
         this.gameStatus = "idle";
       });
       this.socket.on("init", this.handleInit);
-      this.socket.on("invit", this.invitationRecu);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
       this.socket.on("unknownCode", this.handleUnknownCode);
@@ -74,6 +73,7 @@ export default {
       this.socket.on("broadcastMsg", this.receiveMsg);
       this.socket.on("disconnection", this.handleDisconnection);
       this.socket.on("startGameAnimation", this.startGameAnimation);
+      this.socket.on("invit", this.invitationRecu);
       this.socket.on("acceptInvit", this.acceptInvit);
       this.socket.on("disconnect", (reason) => {
         if (reason === "io server disconnect") {
@@ -113,7 +113,7 @@ export default {
     },
     
     acceptInvit (roomCode) {
-        console.log(">>>>>> acceptInvitGame roomCode : ", roomCode);
+        console.log(">>>>>> acceptInvitGame (game) roomCode : ", roomCode);
         // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
     },

@@ -378,4 +378,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.state.splice(parseInt(roomName), 1);
   }
+
+  // async afterInit() {}
 }

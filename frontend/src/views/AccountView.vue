@@ -37,9 +37,11 @@ export default {
         <br />
         <br />
         <br /> -->
-        <PrivateProfile />
+        <PrivateProfile 
+          :socket="userStore.socket"
+        />
       </div>
-      <div v-if="!userStore.isLogged" class="form-group">
+      <div v-if="!userStore.isLogged" :socket="userStore.socket" class="form-group">
         <p>Vous devez être connecté pour voir votre profil</p>
       </div>
     </div>
