@@ -12,9 +12,9 @@ export class TwoFAService {
   ) {}
 
   public isTwoFACodeValid(twoFACode: string, user: UserEntity) {
-    console.log("[2fa] >>> code checking ");
-    console.log("[twoFACode] >>>", twoFACode);
-    console.log("[user] >>>", user);
+    // console.log("[2fa] >>> code checking ");
+    // console.log("[twoFACode] >>>", twoFACode);
+    // console.log("[user] >>>", user);
     return authenticator.verify({
       token: twoFACode,
       secret: user.secret
@@ -23,8 +23,8 @@ export class TwoFAService {
 
   // SETUP : n'est fait qu'une seule fois
   public async generateTwoFASecret(user: UserEntity) {
-    console.log("[2fa] >>> generate secret ");
-    console.log("[user] >>> " + user);
+    // console.log("[2fa] >>> generate secret ");
+    // console.log("[user] >>> " + user);
     // génère un secret (clé publique) pour l'utilisateur
     const secret = authenticator.generateSecret();
     // crée une URL unique que G.Auth utilisera
@@ -41,7 +41,7 @@ export class TwoFAService {
 // SETUP : n'est fait qu'une seule fois
 // transforme l'URL en QRCode
   public async pipeQrCodeStream(stream: Response, otpauthUrl: string) {
-    console.log("[2fa] >>> create qrcode ");
+    // console.log("[2fa] >>> create qrcode ");
     return toFileStream(stream, otpauthUrl);
   }
 
