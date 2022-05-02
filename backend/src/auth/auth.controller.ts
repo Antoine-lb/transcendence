@@ -35,18 +35,45 @@ export class AuthController{
             else res.status(302).redirect('/api/auth/callback')
         }
     
+        // @Get('/islog')
+        // async islog(@Res() res: Response, @Req() req: Request) {
+        //     if (req.cookies && req.cookies['access_token']) {
+        //         if (this.authService.verifyToken(req.cookies['access_token']))
+        //             return await res.status(200).send({ logged: true });
+        //         else
+        //             return await res.status(200).send({ logged: false });
+        //     }
+        //     return await res.status(200).send({ logged: false });
+        // }
+    
+        // apres "authorise 42 : token 1 mais pas token 2"
+        // apres "validation code : les 2 tokens"
         @Get('/islog')
         async islog(@Res() res: Response, @Req() req: Request) {
-            if (req.cookies && req.cookies['access_token']) {
-                if (this.authService.verifyToken(req.cookies['access_token']))
-                    return await res.status(200).send({ logged: true });
-                else
-                    return await res.status(200).send({ logged: false });
+            // console.log("req.cookies : ", req.cookies);
+            var is_logged = false;
+            var is_2fa_logged = false;
+            if (req.cookies)
+            {
+                if (req.cookies['access_token'])
+                    if (await this.authService.verifyToken(req.cookies['access_token']))
+                        is_logged = true;
+                if (req.cookies['access_token_2fa']) // TO DO : properly verify token
+                {
+                    if (await this.authService.verifyToken(req.cookies['access_token_2fa']))
+                        is_2fa_logged = true;
+                }
+                // console.log("is_logged : ", is_logged);
+                // console.log("is_2fa_logged : ", is_2fa_logged);
             }
-            return await res.status(200).send({ logged: false });
+            return await res.status(200).send({logged : is_logged, logged_2fa: is_2fa_logged });
         }
-        
-        
+
+        // is_logged & is_logged_2fa
+        // false   -   false   : not logged
+        // false   -   true    : should not happen
+        // true    -   false   : logged if 2fa not enabled
+        // true    -   true    : logged
 
         @UseGuards(Guard42)
         @Get('/callback')
@@ -98,6 +125,7 @@ export class AuthController{
                 isOnline: false
             });
             resp.clearCookie('access_token');
+            resp.clearCookie('access_token_2fa');
             resp.status(302).redirect('http://127.0.0.1:8080')
         }
     }
