@@ -43,7 +43,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 
   @WebSocketServer() server: Server;
-  state: StateI[] = [];
+  state = {};
   clientRooms = {};
   stackIndexBasicPong = 2;
   stackIndexPowerUPPong = 500;
@@ -135,15 +135,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinQueue')
-  handleJoinQueue(socket: Socket, playWithPowerUP : boolean) {
+  handleJoinQueue(socket: Socket, playWithPowerUP: boolean) {
 
     let roomName = Math.floor((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) / 2).toString();
     this.clientRooms[socket.id] = roomName;
-    console.log(`>>>> joinQueue ${roomName} socket.id ${socket.id}`);
     
     // [CREATE] game state and wait other player if(nobody is in queue)
-    if (!((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong)% 2)) {
+    if (!((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) % 2)) {
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
+
       // init the game state 
       this.state[roomName] = this.GameService.initGame(true)
       this.state[roomName].userID = socket.data.user.id;
@@ -160,7 +160,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     // [JOIN] the game if somebody is already in queue
     else {
-      console.log(`else`);
       
       if (this.state[roomName].userID == socket.data.user.id) {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
@@ -377,6 +376,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Modif xp & match history for the players
     // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
 
-    this.state.splice(parseInt(roomName), 1);
+    delete this.state[roomName];
+    console.log('----------------after splice------------')
+    console.log(JSON.stringify(this.state))
+
   }
 }

@@ -18,7 +18,7 @@ export class GameService {
   constructor() { }
 
   initGame(is_public: Boolean) {
-    let state: StateI = {
+    let state = {
       gameState: "pending",
       score: { p1: 0, p2: 0 },
       ball: {
