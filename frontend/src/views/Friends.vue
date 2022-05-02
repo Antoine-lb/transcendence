@@ -15,6 +15,16 @@ export default {
   },
   components : {
     MyFriends,
+  },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
   }
 };
 
@@ -26,10 +36,10 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged">
+      <div v-if="isLogged()">
         <MyFriends />
       </div>
-      <div v-if="!userStore.isLogged">
+      <div v-else>
         <p>Vous devez être connecté pour voir vos amis</p>
       </div>
     </div>

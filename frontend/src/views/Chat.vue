@@ -13,18 +13,28 @@ export default {
   components: {
     Chat,
   },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
+  }
 };
 </script>
 
 <template>
   <div>
     <div v-if="userStore.isLoading">Loading...</div>
-
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
+      <div v-if="isLogged()" class="form-group">
         <Chat :user="userStore.user" />
       </div>
-      <div v-if="!userStore.isLogged" class="form-group">
+
+      <div v-else class="form-group">
         <p>Vous devez être connecté pour voir le chat</p>
       </div>
     </div>

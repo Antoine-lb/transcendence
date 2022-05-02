@@ -13,6 +13,16 @@ export default {
   components: {
     TheGame,
   },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
+  }
 };
 </script>
 
@@ -21,10 +31,10 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
+      <div v-if="isLogged()" class="form-group">
         <TheGame :user="userStore.user" />
       </div>
-      <div v-if="!userStore.isLogged" class="form-group">
+      <div v-else class="form-group">
         <p>Vous devez être connecté pour voir le Game</p>
       </div>
     </div>

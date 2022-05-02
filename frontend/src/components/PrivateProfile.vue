@@ -39,7 +39,6 @@ export default {
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           this.goToAccount();
-          console.log("res : ", res)
         })
         .catch(err => {
           console.log("err : ", err)
@@ -56,13 +55,11 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
-      console.log("submitFile : ", this.file);
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
           this.goToAccount();
-          console.log("res : ", res)
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -88,7 +85,6 @@ export default {
         this.img = null;
         return;
       }
-      console.log("generateQrCode()")
       const token = this.userStore.user.access_token
       axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
       .then(async res => {
@@ -103,11 +99,8 @@ export default {
      if (this.code)
       {
         const token = this.userStore.user.access_token
-        console.log(token)
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
         .then(async res => {
-          console.log("turn-on success : ", res)
           this.pushToLog2fa();
         })
         .catch(err => {
@@ -122,10 +115,8 @@ export default {
     },
     turnOff2fa() {
         const token = this.userStore.user.access_token
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
-          console.log("turn-off success : ", res)
           this.goToAccount();
         })
         .catch(err => {
