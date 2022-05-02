@@ -52,6 +52,7 @@ export class GameService {
       intervalId: null,
       is_public: is_public,
       status: 0,
+      userID: -1,
     };
     return state;
   }

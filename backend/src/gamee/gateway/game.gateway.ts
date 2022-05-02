@@ -45,7 +45,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   state: StateI[] = [];
   clientRooms = {};
-  stackIndex = 2;
+  stackIndexBasicPong = 2;
+  stackIndexPowerUPPong = 500;
   clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
@@ -136,13 +137,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('joinQueue')
   handleJoinQueue(socket: Socket, playWithPowerUP : boolean) {
 
-    let roomName = Math.floor(this.stackIndex / 2).toString();
+    let roomName = Math.floor((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) / 2).toString();
     this.clientRooms[socket.id] = roomName;
     console.log(`>>>> joinQueue ${roomName} socket.id ${socket.id}`);
     
     // [CREATE] game state and wait other player if(nobody is in queue)
-    if (!(this.stackIndex % 2)) {
-      this.stackIndex++;
+    if (!((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong)% 2)) {
+      (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
       // init the game state 
       this.state[roomName] = this.GameService.initGame(true)
       this.state[roomName].userID = socket.data.user.id;
@@ -165,7 +166,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
         return;
       }
-      this.stackIndex++;
+      (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
       this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
       socket.data.number = 2;
@@ -378,6 +379,4 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.state.splice(parseInt(roomName), 1);
   }
-
-  // async afterInit() {}
 }
