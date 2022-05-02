@@ -40,7 +40,6 @@ export class TwoFAController {
     const qrcode = require('qrcode');
     const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(request.user);
     const ret = await qrcode.toDataURL(otpauthUrl);
-    console.log("ret : ", ret)
     await res.send({ img_src : ret });
     return res;
   }
@@ -52,16 +51,14 @@ export class TwoFAController {
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto) {
-    console.log("___ turn-on 2fa ___ ", twoFACode)
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
-    console.log(request.user)
     if (!isCodeValid) {
       throw new ImATeapotException('Wrong authentication 2fa turn-on code');
     }
-    console.log("CODE IS VALID - TURNING ON 2FA ON USER");
+    // console.log("CODE IS VALID - TURNING ON 2FA ON USER");
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
   }
@@ -71,8 +68,6 @@ export class TwoFAController {
   @UseGuards(JwtAuthGuard)
   async turnOffTwoFA(
     @Req() request: RequestWithUser) {
-    console.log("___ turn-off 2fa ___ ")
-    console.log(request.user)
     await this.usersService.turnOffTwoFA(request.user.id);
   }
 
@@ -84,32 +79,20 @@ export class TwoFAController {
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto
   ) {
-    console.log("___ 2fa authenticate (login) ___ ", twoFACode)
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
     if (!isCodeValid) {
-      console.log('>>> authenticate code non valide')
+      // console.log('>>> authenticate code non valide')
       throw new ImATeapotException('Wrong authentication 2fa code');
     }
     // cree cookie qui contient le token
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
     // renvoie le cookie qui contient le token dans la reponse
     request.res.setHeader('Set-Cookie', [accessTokenCookie]);
-    console.log("CODE IS VALID - AUTHENTICATION OK - returning user w/ new token with full access");
+    // console.log("CODE IS VALID - AUTHENTICATION OK - returning user w/ new token with full access");
  
     return request.user;
   }
-
-  // @Post('generate')
-  // @UseGuards(JwtAuthGuard)
-  // async register(@Res() response: Response, @Req() req: Request) {
-  //   const user: UserEntity = await this.userService.findByName(req.user['username']);
-  //   console.log(">>>>>> USER");
-  //   console.log(user);
-  //   const { otpauthUrl } = await this.twoFAService.generateTwoFASecret(user);
-  //   // génère un QRcode
-  //   return this.twoFAService.pipeQrCodeStream(response, otpauthUrl);
-  // }
 }

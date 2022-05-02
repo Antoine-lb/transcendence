@@ -27,7 +27,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
     const user: UserEntity = await this.usersService.findById(payload.id);
     if (!user)
     {
-      console.log("2FA validation : undefined user")
+      // console.log("2FA validation : undefined user")
       throw new UnauthorizedException('Jwt 2fa Strategy')
     }
     if (!user.isTwoFA) {
@@ -35,11 +35,11 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       return user;
     }
     if (payload.isTwoFAAuthenticated) {
-      console.log("2FA VALIDATION = OK")
+      // console.log("2FA VALIDATION = OK")
       return user;
     }
     else {
-      console.log("2FA VALIDATION = NOT OK")
+      // console.log("2FA VALIDATION = NOT OK")
     }
     // sinon on ne retourne rien donc on ne valide pas
   }
