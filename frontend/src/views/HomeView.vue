@@ -6,20 +6,23 @@ import PublicProfile from "@/components/PublicProfile.vue";
 export default {
   setup() {
     const userStore = useUserStore();
-    console.log(`setup`);
-
     userStore.requestLogState();
     return { userStore };
   },
-  created() {
-    console.log(`onCreated`);
-
-  },
-
   components: {
     TheWelcome,
     PublicProfile,
   },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
+  }
 };
 </script>
 
@@ -27,7 +30,7 @@ export default {
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
-      <form v-if="userStore.isLogged" class="form-group">
+      <form v-if="isLogged()" class="form-group">
         <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
@@ -51,7 +54,7 @@ export default {
           </a>
         </div>
       </form>
-      <div v-if="!userStore.isLogged">
+      <div v-else>
         <TheWelcome />
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">

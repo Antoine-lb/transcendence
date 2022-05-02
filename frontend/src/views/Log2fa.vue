@@ -16,28 +16,16 @@ export default {
       errors: [],
     }
   },
-  watch: {
-
-  },
-  computed: {
-
-  },
   components : {
     TheWelcome
   },
   methods: {
-    goToAccount() {
-      this.$router.go('/account');
-    },
     log2fa() {
       if (this.code)
       {
         const token = this.userStore.user.access_token
-        console.log(token)
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/authenticate", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
-          console.log("log2fa authenticate success : ", res)
           this.$router.push('/');
         })
         .catch(err => {
@@ -48,6 +36,12 @@ export default {
       this.errors = [];
       this.errors.push('Code required.');
     },
+    isHalfLogged() {
+      if (this.userStore.isHalfLogged)
+        return true;
+      else
+        this.$router.push('/');
+    }
   },
 };
 
@@ -57,9 +51,7 @@ export default {
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
-        <h1>Bonjour {{ userStore.user.username }}</h1>
-        <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
+      <div v-if="isHalfLogged()" class="form-group">
         <p v-if="errors.length">
         <b>Please correct the following error(s):</b>
           <ul>
@@ -73,7 +65,6 @@ export default {
               <button type="submit" @click="log2fa()" >Submit</button>
             </p>
         </div>
-
         <div class="login-container">
           <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
             <div class="intra-login-wrapper">
@@ -86,22 +77,6 @@ export default {
             </div>
           </a>
         </div>
-      </div>
-      <div v-if="!userStore.isLogged">
-        <TheWelcome />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se connecter avec</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
-
       </div>
     </div>
   </main>

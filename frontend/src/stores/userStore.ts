@@ -5,14 +5,16 @@ export const useUserStore = defineStore({
 
   state: () => ({
     _user: {},
-    _isLog: false,
+    // _isLog: false,
     _isFullyLogged: false,
     _isHalfLogged: false,
     _isLoading: false,
     _response: {},
   }),
   getters: {
-    isLogged: (state) => state._isLog,
+    // isLogged: (state) => state._isLog,
+    isFullyLogged: (state) => state._isFullyLogged,
+    isHalfLogged: (state) => state._isHalfLogged,
     isLoading: (state) => state._isLoading,
     user: (state) => state._user,
     avatarUrl: (state) => `http://localhost:3000${state._user.avatar}`,
@@ -31,7 +33,7 @@ export const useUserStore = defineStore({
           credentials: "include",
         });
         const userLogged = await tmp.json();
-        console.log("userLogged : ", userLogged);
+        // console.log("userLogged : ", userLogged);
         
         this._response = await fetch("http://127.0.0.1:3000/api/users/me", {
           method: "GET",
@@ -43,7 +45,7 @@ export const useUserStore = defineStore({
           credentials: "include",
         });
         if (this._response.status == 200) {
-          this._isLog = true;
+          // this._isLog = true;
           const userTmp = await this._response.json();
           if (userLogged.logged && !userTmp.user.isTwoFA ||
               userLogged.logged && userLogged.logged_2fa && userTmp.user.isTwoFA)
@@ -61,9 +63,6 @@ export const useUserStore = defineStore({
             this._isHalfLogged = false;
             this._isFullyLogged = false;            
           }
-          console.log("userTmp 2 : ", userTmp);
-          console.log("this._isHalfLogged : ", this._isHalfLogged);
-          console.log("this._isFullyLogged : ", this._isFullyLogged);
           this._user = userTmp.user;
           this._user.access_token = userTmp.access_token;
           this._user.access_token_2fa = userTmp.access_token_2fa;
