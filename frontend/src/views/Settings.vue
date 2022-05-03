@@ -6,7 +6,7 @@ import Log from "@/components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
-  name: "Game",
+  name: "Settings",
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
