@@ -319,3 +319,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.disconnect();
   }
 
+  async afterInit() { }
+  
+}
