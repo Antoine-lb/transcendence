@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import Log from "@/components/Log.vue";
 import axios from "axios";
 
 
@@ -17,7 +18,8 @@ export default {
     }
   },
   components : {
-    TheWelcome
+    TheWelcome,
+    Log
   },
   methods: {
     log2fa() {
@@ -65,18 +67,7 @@ export default {
               <button type="submit" @click="log2fa()" >Submit</button>
             </p>
         </div>
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-            <div class="intra-login-wrapper">
-              <p>Se déconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
+        <Log />
       </div>
     </div>
   </main>

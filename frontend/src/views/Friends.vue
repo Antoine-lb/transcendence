@@ -1,5 +1,6 @@
 <script lang="ts">
 import MyFriends from "../components/MyFriends.vue";
+import Log from "../components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -15,6 +16,7 @@ export default {
   },
   components : {
     MyFriends,
+    Log,
   },
   methods: {
     isLogged() {
@@ -41,6 +43,7 @@ export default {
       </div>
       <div v-else>
         <p>Vous devez être connecté pour voir vos amis</p>
+        <Log />
       </div>
     </div>
   </main>

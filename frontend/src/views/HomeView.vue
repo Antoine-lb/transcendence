@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import Log from "@/components/Log.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
 
 export default {
@@ -12,6 +13,7 @@ export default {
   components: {
     TheWelcome,
     PublicProfile,
+    Log,
   },
   methods: {
     isLogged() {
@@ -41,33 +43,11 @@ export default {
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
         />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-            <div class="intra-login-wrapper">
-              <p>Se déconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
+        <Log />
       </form>
       <div v-else>
         <TheWelcome />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se connecter avec</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
+        <Log/>
       </div>
     </div>
   </main>
