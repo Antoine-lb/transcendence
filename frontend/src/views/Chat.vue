@@ -38,7 +38,6 @@ export default {
 
       <div v-else class="form-group">
         <p>Vous devez être connecté pour voir le chat</p>
-        <Log />
       </div>
     </div>
   </div>

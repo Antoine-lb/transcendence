@@ -43,7 +43,6 @@ export default {
       </div>
       <div v-else>
         <p>Vous devez être connecté pour voir vos amis</p>
-        <Log />
       </div>
     </div>
   </main>

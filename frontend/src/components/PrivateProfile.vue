@@ -175,8 +175,6 @@ export default {
         </div>
       </div>
     </div>
-    <!-- Logout -->
-    <Log />
   </div>
 </template>
 

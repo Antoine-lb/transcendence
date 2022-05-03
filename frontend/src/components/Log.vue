@@ -52,28 +52,45 @@ export default {
 
 <style scoped>
 
-input[type="submit"]:hover {
-  background-color: white;
-  color: #703ab8;
+.intra-login {
+  margin: auto;
+  color: rgba(0, 0, 0, 0.822);
+  display: flex;
+  flex-direction: row;
 }
 
-.pwd-btn {
-  background-color: white;
-  border: none;
-  color: #703ab8;
-  font-weight: bold;
+.intra-login:hover {
+  background-color: rgba(0, 0, 0, 0.096);
+}
+
+.intra-login-wrapper {
+  border: 4px solid rgba(0, 0, 0, 0.822);
+  padding: 10px;
+  align-items: stretch;
+  justify-content: center;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  border-radius: 3px;
-  padding: 6px 15px;
-  cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  margin-top: 10px;
-  margin: 10px;
-  border: 2px solid #703ab8;
+}
+.intra-login-wrapper:hover {
+  padding: 10px 25px;
+  align-items: stretch;
+  justify-content: center;
 }
 
-.on-colors {
-  background-color: #703ab8;
-  color: white;
+.intra-login-wrapper p {
+  display: inline-block;
+  font-size: 30px;
+  vertical-align: middle;
 }
+
+.logo-42 {
+  display: inline-block;
+  /* max-width: 100%; */
+  /* align: center; */
+  vertical-align: middle;
+  width: 70px;
+}
+
+
+
 </style>

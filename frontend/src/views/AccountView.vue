@@ -50,7 +50,6 @@ export default {
       </div>
       <div v-else class="form-group">
         <p>Vous devez être connecté pour modifier votre profil</p>
-        <Log />
       </div>
     </div>
   </main>
