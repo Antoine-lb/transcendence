@@ -19,6 +19,7 @@ export default {
     pendingFriendList: [];
     blockedFriendList: [];
     addFriendUsername: string;
+    showAddFriendError: string;
   } {
     return {
       loading: false,
@@ -26,6 +27,7 @@ export default {
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
+      showAddFriendError: undefined,
     };
   },
   setup() {
@@ -141,15 +143,25 @@ export default {
     },
     addFriend: async function () {
       this.loading = true;
+
+      if (this.userStore.user.username === this.addFriendUsername) {
+        this.showAddFriendError = "Cannot add your-self";
+        this.loading = false;
+        return;
+      }
       try {
         const response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/friends/add/${this.addFriendUsername}`
         );
         if (response.status == 200) {
           this.fetchAllData();
+          this.showAddFriendError = "";
+        } else {
+          this.showAddFriendError = "User not found";
         }
       } catch (error) {
         console.error(error);
+        this.showAddFriendError = "User not found";
       }
       this.loading = false;
     },
@@ -233,6 +245,9 @@ export default {
       </div>
 
       <h1>Ajouter un ami</h1>
+      <p v-if="showAddFriendError" style="color: red; margin-bottom: 10px">
+        {{ showAddFriendError }}
+      </p>
       <form @submit.prevent="addFriend">
         <input
           class="input-username"
