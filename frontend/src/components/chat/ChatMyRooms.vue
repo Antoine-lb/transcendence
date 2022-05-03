@@ -63,10 +63,6 @@ export default {
     PasswordBtn,
   },
   methods: {
-    quitRoom(room: RoomI, user: UserInterface) {
-      this.resetProtectedRoom();
-      this.socket.emit("quitRoom", { room: room, user: user });
-    },
     getRole(room: RoomI) {
       return this.userRoomsRoles[room.id];
     },
