@@ -68,7 +68,7 @@ export class AuthController{
             const user = await this.userService.findByName(req.user['username']);
             if (!user)
                 throw new UnauthorizedException('User does not exists');
-            console.log("req.user['isNew'] : ", req.user['isNew']);
+            // console.log("req.user['isNew'] : ", req.user['isNew']);
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
