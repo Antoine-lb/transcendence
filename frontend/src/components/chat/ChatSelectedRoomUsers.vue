@@ -189,9 +189,9 @@ export default {
       <button class="quit-room-button" @click="quitRoom()" title="Quit Room">
         👋 quit room
       </button>
-      <code>
+      <!-- <code>
         <pre>{{ this.usersForRoom }}</pre>
-      </code>
+      </code> -->
     </div>
   </div>
 </template>
