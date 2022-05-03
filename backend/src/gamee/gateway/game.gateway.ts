@@ -10,17 +10,12 @@ import { Logger, UnauthorizedException } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
-import { runInThisContext } from 'vm';
 import { UserDto } from 'src/entities/users.dto';
-import { comparePassword } from 'src/utils/bcrypt';
 import { GameService } from 'src/gamee/service/game/game.service';
-import { FRAME_RATE, maxPaddleY, grid, canvas, paddleHeight, } from 'src/utils/constants';
-import { RoomEntity } from 'src/chat/model/room.entity';
-import { RoomI } from 'src/chat/model/room.interface';
+import { FRAME_RATE, scoreLimit } from 'src/utils/constants';
 import { StateI } from 'src/gamee/model/state.interface';
 import { UserEntity } from 'src/entities/users.entity';
 import { MatchHistoryService } from 'src/gamee/service/matchHistory/matchHistory.service'
-import { RouterModule } from '@nestjs/core';
 import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
 import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
 
@@ -47,7 +42,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   clientRooms = {};
   stackIndexBasicPong = 2;
   stackIndexPowerUPPong = 500;
-  clientDisconnected = {};
 
   async handleConnection(socket: Socket, payload: string) {
     // console.log(`hello from game`);
@@ -60,16 +54,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return this.disconnect(socket);
       else {
         socket.data.user = user;
-
-        // connect directly the client to the room if he was in game
-        if (this.clientDisconnected[user.id]) {
-          socket.data.status = "play"
-          // join the room socket
-          socket.join(this.clientDisconnected[user.id].roomName);
-          socket.data.number = this.clientDisconnected[user.id].player;
-          // init the front for player 2
-          socket.emit('init', this.clientDisconnected[user.id].player); // PROBLEM
-        }
         return;
       }
     }
@@ -81,7 +65,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket, roomCode : string) {
-    console.log(">>>>>> newGame roomCode : ",  roomCode);
     // create random ID for the new room
     let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
@@ -98,29 +81,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinGame')
   handleJoinGame(socket: Socket, roomName: string) {
-    // console.log(">>>>>> joinGame in ", roomName);
 
     let roomSize = 0;
-
     const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
       roomSize = room.size;
-    // console.log(`roomSize : ${roomSize}`);
-    
-
     if (roomSize === 0) {
-      console.log(">>>>>> unknownCode");
       socket.emit('unknownCode');
       return;
-    } else if (roomSize > 1) {
-      console.log(">>>>>> tooManyPlayers");
+    }
+    else if (roomSize > 1) {
       socket.emit('tooManyPlayers');
       return;
     }
-
     this.clientRooms[socket.id] = roomName;
-
     // set the creator to player 1
     socket.data.number = 2;
     // join the room socket
@@ -283,19 +258,32 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // C'est celui qui marche
   handleDisconnect(socket: Socket) {
+
+    const roomName = this.clientRooms[socket.id];
     const room = [this.clientRooms[socket.id]];
+    const winner = this.GameService.gameLoop(this.state[roomName]);
 
-    const winner = this.GameService.gameLoop(this.state[this.clientRooms[socket.id]]);
 
-    if (winner != -1) {
-      this.clientDisconnected[socket.data.user.id] = { player: socket.data.number, roomName: this.clientRooms[socket.id] };
-      socket.leave(this.clientRooms[socket.id]);
+    if (roomName && winner != -1) {
+      // identify witch client is disconnect and give him -42
+      if (socket.data.number == 1) {
+        clearInterval(this.state[roomName].intervalId);
+        this.state[roomName].score.p1 = -42;
+        this.state[roomName].score.p2 = scoreLimit;
+        this.emitGameState(roomName);
+        this.emitGameOver(roomName, 2);
+      }
+      else {
+        clearInterval(this.state[roomName].intervalId);
+        this.state[roomName].score.p2 = -42;
+        this.state[roomName].score.p1 = scoreLimit;
+        this.emitGameState(roomName);
+        this.emitGameOver(roomName, 1);
 
+      }
     }
-    else {
-      this.server.sockets.in(room).emit('disconnection');
-      socket.disconnect();
-    }
+    this.server.sockets.in(room).emit('disconnection');
+    socket.disconnect();
   }
 
   private disconnect(socket: Socket) {
@@ -306,15 +294,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   startGameInterval(roomName: string, playWithPowerUP : boolean) {
-    console.log(">>>>>> startGameInterval : ", roomName);
     this.state[roomName].intervalId = setInterval(() => {
 
       const winner = this.GameService.gameLoop(this.state[roomName], playWithPowerUP);
       if (!winner) {
-        this.emitGameState(roomName, this.state[roomName]);
+        this.emitGameState(roomName);
       }
       else {
-        this.emitGameState(roomName, this.state[roomName]);
+        this.emitGameState(roomName);
         this.emitGameOver(roomName, winner);
         clearInterval(this.state[roomName].intervalId);
         // TODO : save the score
@@ -322,8 +309,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }, 1000 / FRAME_RATE);
   }
 
-  emitGameState(roomName: string, state: StateI) {
-
+  emitGameState(roomName: string) {
     // Send this event to everyone in the room.
     this.server.to(roomName)
       .emit('gameState', JSON.stringify(this.state[roomName]));
@@ -333,7 +319,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
-    this.server.sockets.in(room).emit('gameOver', JSON.stringify({ winner }));
+    this.server.sockets.in(room).emit('gameOver', winner);
 
     let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
 
@@ -343,28 +329,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!playersSockets)
       return;
     for (const playerId of playersSockets) {
-
       //this is the socket of each client in the room.
       const clientSocket = this.server.sockets.sockets.get(playerId);
 
       clientSocket.data.status = "connected";
 
-
-      // delete the client of disconnect.Array
-      if (this.clientDisconnected[clientSocket.data.user.id])
-        if (this.clientDisconnected[clientSocket.data.user.id].roomName == roomName)
-          delete this.clientDisconnected[clientSocket.data.user.id];
-
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;
       else
         loserId = clientSocket.data.user.id;
-      //both player leave the room
-      // clientSocket.leave(roomName) // <-- commenté si on veut que les joueurs puissent continuer à chatter
     }
 
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
-    let score: number = this.state[roomName].score.p1 + this.state[roomName].score.p2;
+    let score: number = (this.state[roomName].score.p1 > this.state[roomName].score.p2) ? this.state[roomName].score.p2 : this.state[roomName].score.p1;
 
     // save the game score for Match History
     this.MatchHistoryService.create({
@@ -377,8 +354,5 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
 
     delete this.state[roomName];
-    console.log('----------------after splice------------')
-    console.log(JSON.stringify(this.state))
-
   }
 }
