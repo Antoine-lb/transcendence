@@ -1,6 +1,4 @@
 <script lang="ts">
-import { io } from "socket.io-client";
-
 export interface RoomI {
   created_date: string;
   id: number;
@@ -113,8 +111,17 @@ export default {
     },
     sendInvit(user) {
       console.log(`sendInvit`, user);
-      this.socket.emit("sendInvit" , user, this.user);
+      this.socket.emit("sendInvit", user, this.user);
       // this.socket.emit("testGame");
+    },
+    quitRoom() {
+      console.log("this.usersForRoom", this.usersForRoom);
+      console.log("this.usersForRoom", this.usersForRoom.length);
+      this.socket.emit("quitRoom", {
+        room: this.selectedRoom,
+        user: this.user,
+      });
+      location.reload();
     },
   },
   async created() {},
@@ -125,31 +132,66 @@ export default {
 <template>
   <div>
     <div v-if="this.selectedRoom?.name" class="box">
-      <h1>Users in {{ this.selectedRoom?.name }} </h1>
+      <h1>Users in {{ this.selectedRoom?.name }}</h1>
       <div v-for="role in roles" class="users-list" :key="role">
-        <p v-if="role != 'banned' || isAdmin(this.user)">
-          <p class="table-title">
-            • {{ role }}
-          </p>
-          <p v-for="user in this.usersForRoom" class="table-body" :key="user.id">
+        <div v-if="role != 'banned' || isAdmin(this.user)">
+          <p class="table-title">• {{ role }}</p>
+          <div
+            v-for="user in this.usersForRoom"
+            class="table-body"
+            :key="user.id"
+          >
             <p v-if="getRole(user) == role" class="">
-                <button class="profile-button" @click="seeProfile(user)">{{ user.username }}</button>
-                <span v-if="user.id != this.user.id">
-                  <button class="on-colors new-room-button" @click="sendInvit( user )"> INVITE FOR A GAME </button>
-                  <span v-if="role != 'owner' && role != 'banned'">
-                    <button v-if="isOwner(this.user)" class="new-room-button" @click="addAdmin(this.selectedRoom, user)">{{ isAdmin(user) ? 'Remove from admins' : 'Add to admins'}}</button>
-                  </span>
-                  <span v-if="role != 'owner'">
-                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="banUser(this.selectedRoom, user)">{{ isBanned(user) ? 'Accept' : 'Ban'}} user</button>
-                  </span>
-                  <span v-if="isAdmin(this.user) && (isLambda(user) || isMuted(user))">
-                    <button v-if="isAdmin(this.user)" class="new-room-button" @click="muteUser(this.selectedRoom, user)">{{ isMuted(user) ? 'Unmute' : 'Mute'}} user</button>
-                  </span>
+              <button class="profile-button" @click="seeProfile(user)">
+                {{ user.username }}
+              </button>
+              <span v-if="user.id != this.user.id">
+                <button
+                  class="on-colors new-room-button"
+                  @click="sendInvit(user)"
+                >
+                  INVITE FOR A GAME
+                </button>
+                <span v-if="role != 'owner' && role != 'banned'">
+                  <button
+                    v-if="isOwner(this.user)"
+                    class="new-room-button"
+                    @click="addAdmin(this.selectedRoom, user)"
+                  >
+                    {{ isAdmin(user) ? "Remove from admins" : "Add to admins" }}
+                  </button>
                 </span>
+                <span v-if="role != 'owner'">
+                  <button
+                    v-if="isAdmin(this.user)"
+                    class="new-room-button"
+                    @click="banUser(this.selectedRoom, user)"
+                  >
+                    {{ isBanned(user) ? "Accept" : "Ban" }} user
+                  </button>
+                </span>
+                <span
+                  v-if="isAdmin(this.user) && (isLambda(user) || isMuted(user))"
+                >
+                  <button
+                    v-if="isAdmin(this.user)"
+                    class="new-room-button"
+                    @click="muteUser(this.selectedRoom, user)"
+                  >
+                    {{ isMuted(user) ? "Unmute" : "Mute" }} user
+                  </button>
+                </span>
+              </span>
             </p>
-          </p>
-        </p>
+          </div>
+        </div>
       </div>
+      <button class="quit-room-button" @click="quitRoom()" title="Quit Room">
+        👋 quit room
+      </button>
+      <!-- <code>
+        <pre>{{ this.usersForRoom }}</pre>
+      </code> -->
     </div>
   </div>
 </template>
@@ -394,5 +436,28 @@ textarea {
   padding: 10px;
   border-radius: 13px;
   margin-bottom: 100px;
+}
+
+.quit-room-button {
+  background-color: white;
+  border: none;
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 20px;
+  box-shadow: 0 3px 6px rgba(221, 7, 7, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  /* padding: 6px 6px; */
+  height: 40px;
+  /* width: 45px; */
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* display: block; */
+  margin: 10px;
+  padding: 10px;
+  border: 4px solid #dc2626;
+  border-radius: 50px;
+  display: inline-block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
