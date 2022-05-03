@@ -61,7 +61,7 @@ export default {
         <div v-if="userStore.user.isTwoFA">
             <p>
               Please enter 2fa code below :
-              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="log2fa" placeholder="_ _ _ _ _ _">
               <button type="submit" @click="log2fa()" >Submit</button>
             </p>
         </div>

@@ -32,7 +32,7 @@ export default {
     pushToLog2fa() {
       this.$router.push('/log2fa');
     },
-    checkForm: function (e) {
+    checkFormUsername: function (e) {
       if (this.name)
       {
         const token = this.userStore.user.access_token
@@ -139,9 +139,9 @@ export default {
       <!-- Update username -->
       <div class="text space">
         <p> Update your username :
-          <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
+          <input v-model="name" type="text" name="username" v-on:keyup.enter="checkFormUsername" :placeholder=userStore.user.username>
         </p>
-        <p><button class="pwd-btn" type="submit" @click="checkForm()" >Submit</button></p>
+        <p><button class="pwd-btn" type="submit" @click="checkFormUsername()" >Submit</button></p>
       </div>
       <!-- Update avatar -->
       <div class="text space">
@@ -160,7 +160,7 @@ export default {
             <img :src="img" />
             <p>
               Please enter 2fa code below :
-              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
               <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>
           </div>

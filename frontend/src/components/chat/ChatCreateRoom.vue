@@ -116,7 +116,7 @@ export default {
   <div class="box">
     <h1>Create new Room</h1>
     <div>
-      <input type="text" v-model="newRoomName" placeholder="Room Name" />
+      <input type="text" v-model="newRoomName" v-on:keyup.enter="createRooms" placeholder="Room Name" />
       <button
         @click="toggleStatus"
         :class="[
@@ -135,7 +135,7 @@ export default {
       </button>
       <div v-if="!isPublic">
         <div>
-          <input type="text" v-model="newRoomUser" placeholder="Room Users" />
+          <input type="text" v-model="newRoomUser" v-on:keyup.enter="newUser" placeholder="Room Users" />
           <button class="add-user" @click="newUser">Add user</button>
         </div>
         <li v-for="user in newRoomUsers" :key="user.username">
@@ -158,6 +158,7 @@ export default {
           :type="passwordFieldType"
           v-model="newRoomPassword"
           placeholder="Password"
+          v-on:keyup.enter="createRooms" 
         />
         <button class="add-user" @click="switchVisibility">
           {{ passwordFieldType == "password" ? "SHOW" : "HIDE" }}
