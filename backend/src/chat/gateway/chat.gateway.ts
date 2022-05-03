@@ -291,9 +291,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
-  @SubscribeMessage('blockUser')
-  async onBlockUser(socket: Socket, room: RoomI){}
-
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  
   @SubscribeMessage('addMessage')
@@ -321,8 +318,4 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }
-   
- async afterInit() {}
-   
- }
 
