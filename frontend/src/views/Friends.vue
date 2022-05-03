@@ -126,7 +126,6 @@ export default {
       this.loading = false;
     },
     blockFriend: async function (id) {
-      console.log("block in PARENT : ", id);
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -139,10 +138,8 @@ export default {
         console.error(error);
       }
       this.loading = false;
-      console.log("blocked");
     },
     unblockFriend: async function (id) {
-      console.log("unblock in PARENT : ", id);
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -155,10 +152,8 @@ export default {
         console.error(error);
       }
       this.loading = false;
-      console.log("unblocked");
     },
     addFriend: async function (username: string) {
-      console.log("username in PARENT: ", username);
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
