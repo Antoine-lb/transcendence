@@ -62,13 +62,10 @@ export default {
       this.loading = false;
     },
     isLogged() {
-      if (this.userStore.isFullyLogged)
-        return true;
-      else if (this.userStore.isHalfLogged)
-        this.$router.push('/log2fa');
-      else
-        return false;
-    }
+      if (this.userStore.isFullyLogged) return true;
+      else if (this.userStore.isHalfLogged) this.$router.push("/log2fa");
+      else return false;
+    },
   },
 };
 </script>
@@ -93,7 +90,10 @@ export default {
           <br />
           <br />
           <br />
-          <FriendshipManagement :user="user" />
+          <FriendshipManagement
+            :user="user"
+            v-if="this.userStore.user.id !== user.id"
+          />
         </div>
       </div>
       <div v-else class="form-group">
