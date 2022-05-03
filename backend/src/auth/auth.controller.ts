@@ -34,23 +34,12 @@ export class AuthController{
             }
             else res.status(302).redirect('/api/auth/callback')
         }
-    
-        // @Get('/islog')
-        // async islog(@Res() res: Response, @Req() req: Request) {
-        //     if (req.cookies && req.cookies['access_token']) {
-        //         if (this.authService.verifyToken(req.cookies['access_token']))
-        //             return await res.status(200).send({ logged: true });
-        //         else
-        //             return await res.status(200).send({ logged: false });
-        //     }
-        //     return await res.status(200).send({ logged: false });
-        // }
-    
+
+
+        @Get('/islog')
         // apres "authorise 42 : token 1 mais pas token 2"
         // apres "validation code : les 2 tokens"
-        @Get('/islog')
         async islog(@Res() res: Response, @Req() req: Request) {
-            // console.log("req.cookies : ", req.cookies);
             var is_logged = false;
             var is_2fa_logged = false;
             if (req.cookies)
@@ -63,8 +52,6 @@ export class AuthController{
                     if (await this.authService.verifyToken(req.cookies['access_token_2fa']))
                         is_2fa_logged = true;
                 }
-                // console.log("is_logged : ", is_logged);
-                // console.log("is_2fa_logged : ", is_2fa_logged);
             }
             return await res.status(200).send({logged : is_logged, logged_2fa: is_2fa_logged });
         }
@@ -79,7 +66,9 @@ export class AuthController{
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
             const user = await this.userService.findByName(req.user['username']);
-            if (!user) throw new UnauthorizedException('User does not exists');
+            if (!user)
+                throw new UnauthorizedException('User does not exists');
+            console.log("req.user['isNew'] : ", req.user['isNew']);
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
@@ -94,7 +83,10 @@ export class AuthController{
                 res.redirect('http://127.0.0.1:8080/log2fa');
             } 
             else {
-                res.status(302).redirect('http://127.0.0.1:8080');
+                if (req.user['isNew'] == false)
+                    res.status(302).redirect('http://127.0.0.1:8080');
+                else
+                    res.status(302).redirect('http://127.0.0.1:8080/setup');
             }
         }
 
