@@ -48,7 +48,7 @@ export default {
         if (responseHistory.status == 200) {
           const tmp = await responseHistory.json();
           this.history = tmp.items;
-          console.log("history", this.history);
+          // console.log("history", this.history);
         } else {
           console.log("history not found");
         }

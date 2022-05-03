@@ -49,7 +49,7 @@ export default {
         );
         if (response.status == 200) {
           this.winner = await response.json();
-          console.log("this.winner", this.winner);
+          // console.log("this.winner", this.winner);
           if (this.winner)
             this.winnerAvatar = "http://localhost:3000" + this.winner.avatar;
         } else {
@@ -61,7 +61,7 @@ export default {
         );
         if (response.status == 200) {
           this.loser = await response.json();
-          console.log("this.loser", this.loser);
+          // console.log("this.loser", this.loser);
           if (this.loser)
             this.loserAvatar = "http://localhost:3000" + this.loser.avatar;
         } else {
