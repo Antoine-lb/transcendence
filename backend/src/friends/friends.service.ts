@@ -127,16 +127,16 @@ export class FriendsService {
     async removeFriend(currentUser: UserDto, friend_id: number): Promise<any> {
         const receiver: UserDto = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
-        if (!friendship)
+        if (!friendship || friendship.status == FriendStatus.STATUS_BLOCKED)
             throw new NotAcceptableException('No relation with this user')
-        if (friendship.status != FriendStatus.STATUS_BLOCKED)
-           return await this.friendRepository.delete(friendship.id)
-        return false
+        return await this.friendRepository.delete(friendship.id)
     }
 
     async blockUser(currentUser: UserDto, friend_id: number){
         const receiver: UserDto = await this.checkFriendId(currentUser, friend_id)
         const friendship: FriendRequestEntity = await this.findRelationBetween(currentUser, receiver)
+        if (!friendship || friendship.status == FriendStatus.STATUS_BLOCKED)
+            throw new NotAcceptableException('No relation with this user - please refresh')
         if (currentUser.id == friendship.creator.id) {
             friendship.blockedByCreator = true
             friendship.status = FriendStatus.STATUS_BLOCKED
@@ -163,6 +163,8 @@ export class FriendsService {
             friendship.status = FriendStatus.STATUS_ACCEPTED
             this.friendRepository.save(friendship)
         }
+        else
+            throw new NotAcceptableException('No relation with this user - please refresh')
     }
 
     async findRelationBetween(creator: UserDto, receiver: UserDto): Promise<FriendRequestEntity> {
