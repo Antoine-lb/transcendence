@@ -8,6 +8,7 @@ import ChatAvailableRooms from "./chat/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./chat/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./chat/ChatSelectedRoomParams.vue";
 import ChatSelectedRoomUsers from "./chat/ChatSelectedRoomUsers.vue";
+import ChatCreatePrivateRoom from "./chat/ChatCreatePrivateRoom.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -71,6 +72,7 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
+    ChatCreatePrivateRoom
   },
   methods: {
     createRoom(room: newRoomInterface) {
@@ -124,13 +126,14 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
-        <ChatCreateRoom @onSubmit="createRoom" />
         <ChatAvailableRooms
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
+        <ChatCreateRoom @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
         <ChatSelectedRoomChat
