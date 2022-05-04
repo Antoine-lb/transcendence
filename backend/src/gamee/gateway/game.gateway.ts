@@ -257,29 +257,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // C'est celui qui marche
-  handleDisconnect(socket: Socket) {
+   handleDisconnect(socket: Socket) {
 
     const roomName = this.clientRooms[socket.id];
     const room = [this.clientRooms[socket.id]];
     const winner = this.GameService.gameLoop(this.state[roomName]);
 
 
-    if (roomName && winner != -1) {
+     if (roomName && winner != -1) {
+      
+      clearInterval(this.state[roomName].intervalId);
+       
+
       // identify witch client is disconnect and give him -42
       if (socket.data.number == 1) {
-        clearInterval(this.state[roomName].intervalId);
         this.state[roomName].score.p1 = -42;
         this.state[roomName].score.p2 = scoreLimit;
         this.emitGameState(roomName);
-        this.emitGameOver(roomName, 2);
+        this.emitGameOver(roomName, 2, socket.data.user.id);
       }
       else {
-        clearInterval(this.state[roomName].intervalId);
         this.state[roomName].score.p2 = -42;
         this.state[roomName].score.p1 = scoreLimit;
         this.emitGameState(roomName);
-        this.emitGameOver(roomName, 1);
-
+        this.emitGameOver(roomName, 1, socket.data.user.id);
       }
     }
     this.server.sockets.in(room).emit('disconnection');
@@ -302,7 +303,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       else {
         this.emitGameState(roomName);
-        this.emitGameOver(roomName, winner);
+        this.emitGameOver(roomName, winner, -1);
         clearInterval(this.state[roomName].intervalId);
         // TODO : save the score
       }
@@ -315,7 +316,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       .emit('gameState', JSON.stringify(this.state[roomName]));
   }
 
-  async emitGameOver(roomName: string, winner: number) {
+  async emitGameOver(roomName: string, winner: number, disconnectedPlayerId: number) {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
@@ -324,6 +325,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
 
     let winnerId, loserId;
+
+
+    if (disconnectedPlayerId != -1)
+      loserId = disconnectedPlayerId; // je garde l 'id du mec qui a deco vue que j ai plus acces a son socket
 
     // Disconnect both players to the room 
     if (!playersSockets)
@@ -343,7 +348,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
     let score: number = (this.state[roomName].score.p1 > this.state[roomName].score.p2) ? this.state[roomName].score.p2 : this.state[roomName].score.p1;
 
-    // save the game score for Match History
+    // save the game score for Match History 
     this.MatchHistoryService.create({
       players: players,
       winnerId: winnerId,
@@ -351,8 +356,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       score: score,
     })
     // Modif xp & match history for the players
-    // this.userService.updateUserScore(players, winnerId); <-- C'est ça qui cause les CORS à la fin du jeu
+    this.userService.updateUserScore(players, winnerId);// <-- C'est ça qui cause les CORS à la fin du jeu
 
     delete this.state[roomName];
   }
-}
+} 
