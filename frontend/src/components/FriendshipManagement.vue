@@ -229,10 +229,11 @@ export default {
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
       <p class="txt" v-if="isFriend()">{{ user.username }} is {{ user.isOnline ? "online" : "offline" }}</p>
       <p class="txt">{{ getFriendshipStatus() }}</p>
-      <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
+      <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived() && !isBlocked()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
       <button v-if="isFriend()" class="pwd-btn on-colors" @click="removeFriend(this.user.id)"> REMOVE {{ this.user.username }} FROM FRIENDS</button> 
-      <button v-if="!isBlocked()" class="pwd-btn on-colors" @click="blockFriend(this.user.id)"> BLOCK {{ this.user.username }} </button> 
-      <button v-if="isBlocked()" class="pwd-btn on-colors" @click="unblockFriend(this.user.id)"> UNBLOCK {{ this.user.username }} </button> 
+      <!-- <button v-if="!isBlocked() && (isFriend() || isPendingSent() || isPendingReceived())"
+        class="pwd-btn on-colors" @click="blockFriend(this.user.id)"> BLOCK {{ this.user.username }} </button> 
+      <button v-if="isBlocked()" class="pwd-btn on-colors" @click="unblockFriend(this.user.id)"> UNBLOCK {{ this.user.username }} </button>  -->
       <button v-if="isPendingReceived()" class="pwd-btn on-colors" @click="acceptPendingRequest(this.user.id)"> ACCEPT PENDING REQUEST </button> 
       <div v-if="isPendingSent()" class="no-btn"> ...WAITING FOR {{this.user.username}} APPROVAL... </div> 
   </div>
