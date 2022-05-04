@@ -39,6 +39,9 @@ export default {
     addFriend () {
       this.$emit("addFriend", this.addFriendUsername);
     },
+    getAvatar(user) {
+      return "http://localhost:3000" + user.avatar;
+    }
   },
 };
 </script>
@@ -58,6 +61,15 @@ export default {
           <a class="username" :href="'/user/' + friend.id">{{
             friend.username
           }}</a>
+          <div
+            v-bind:style="{
+              backgroundImage:
+                'url(' +
+                getAvatar(friend) +
+                '), linear-gradient(to bottom right, #8141d4, #9268c9, #9a82ba)',
+            }"
+            class="mini-profile-image"
+          />
           <div>
             <button class="button" @click="removeFriend(friend.id)">
               Supprimer l'amitié
@@ -144,6 +156,21 @@ export default {
   display: flex;
   justify-content: space-between;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.mini-profile-image {
+  z-index: 30;
+  flex-shrink: 0;
+  margin: auto;
+  height: calc(20px + 6vw);
+  width: calc(20px + 6vw);
+  /* border: calc(1px + 0.2vw) solid transparent; */
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  background-size: cover;
+  box-sizing: border-box;
+  box-shadow: 0 0 6px rgba(120, 61, 204, 0.92);
+  border-radius: 20% 20%;
 }
 
 .username {
