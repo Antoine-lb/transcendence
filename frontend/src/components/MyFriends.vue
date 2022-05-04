@@ -2,18 +2,17 @@
 import { useUserStore } from "../stores/userStore";
 
 export default {
-  data(): {
-    loading: boolean;
-  } {
+  data() {
     return {
       loading: false,
-      addFriendUsername: "",
+      addFriendUsername: ""
     };
   },
   props: {
     friendList: Array,
     pendingFriendList: Array,
     blockedFriendList: Array,
+    showAddFriendError: String
   },
   setup() {
     const userStore = useUserStore();
@@ -119,6 +118,9 @@ export default {
       </div>
 
       <h1>Ajouter un ami</h1>
+      <p v-if="showAddFriendError" style="color: red; margin-bottom: 10px">
+        {{ showAddFriendError }}
+      </p>
       <form @submit.prevent="addFriend">
         <input
           class="input-username"

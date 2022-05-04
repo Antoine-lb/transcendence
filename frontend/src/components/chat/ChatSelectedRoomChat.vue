@@ -1,6 +1,4 @@
 <script lang="ts">
-import { io } from "socket.io-client";
-
 export interface RoomI {
   created_date: string;
   id: number;
@@ -62,13 +60,11 @@ export default {
           text: this.text,
           room: this.selectedRoom,
         };
-        console.log(">>>>>> emit addMessage : ", message, this.getRole());
         this.socket.emit("addMessage", {
           message: message,
           role: this.getRole(),
         });
         this.text = "";
-        console.log("after sendMessage emit");
       }
     },
     validateInput() {

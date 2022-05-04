@@ -23,6 +23,7 @@ export default {
       friendList: [],
       pendingFriendList: [],
       blockedFriendList: [],
+      showAddFriendError: "",
     };
   },
   setup() {
@@ -153,17 +154,26 @@ export default {
       }
       this.loading = false;
     },
-    addFriend: async function (username: string) {
+    addFriend: async function (username) {
       this.loading = true;
+      if (this.userStore.user.username === username) {
+        this.showAddFriendError = "Cannot add your-self";
+        this.loading = false;
+        return;
+      }
       try {
         const response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/friends/add/${username}`
         );
         if (response.status == 200) {
           this.refresh();
+          this.showAddFriendError = "";
+        } else {
+          this.showAddFriendError = "User not found";
         }
       } catch (error) {
         console.error(error);
+        this.showAddFriendError = "User not found";
       }
       this.loading = false;
     },
@@ -183,6 +193,7 @@ export default {
           :friendList="friendList"
           :pendingFriendList="pendingFriendList"
           :blockedFriendList="blockedFriendList"
+          :showAddFriendError="showAddFriendError"
           @blockFriend="blockFriend"
           @unblockFriend="unblockFriend"
           @acceptPendingRequest="acceptPendingRequest"
