@@ -63,10 +63,6 @@ export default {
     PasswordBtn,
   },
   methods: {
-    quitRoom(room: RoomI, user: UserInterface) {
-      this.resetProtectedRoom();
-      this.socket.emit("quitRoom", { room: room, user: user });
-    },
     getRole(room: RoomI) {
       return this.userRoomsRoles[room.id];
     },
@@ -160,13 +156,6 @@ export default {
               >
                 💬 {{ room.name }}
               </div>
-              <button
-                class="quit-room-button"
-                @click="quitRoom(room, this.user)"
-                title="Quit Room"
-              >
-                👋
-              </button>
             </div>
           </div>
         </div>
@@ -244,28 +233,6 @@ input[type="submit"]:hover {
   font-size: 15px;
   display: inline-block;
   color: black;
-}
-
-.quit-room-button {
-  background-color: white;
-  border: none;
-  color: #dc2626;
-  font-weight: bold;
-  font-size: 20px;
-  box-shadow: 0 3px 6px rgba(221, 7, 7, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  /* padding: 6px 6px; */
-  height: 40px;
-  width: 45px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  /* display: block; */
-  margin: 10px;
-  border: 4px solid #dc2626;
-  border-radius: 50px;
-  display: inline-block;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .add-user {

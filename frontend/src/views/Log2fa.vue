@@ -1,6 +1,7 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import Log from "@/components/Log.vue";
 import axios from "axios";
 
 
@@ -16,28 +17,17 @@ export default {
       errors: [],
     }
   },
-  watch: {
-
-  },
-  computed: {
-
-  },
   components : {
-    TheWelcome
+    TheWelcome,
+    Log
   },
   methods: {
-    goToAccount() {
-      this.$router.go('/account');
-    },
     log2fa() {
       if (this.code)
       {
         const token = this.userStore.user.access_token
-        console.log(token)
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/authenticate", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
-          console.log("log2fa authenticate success : ", res)
           this.$router.push('/');
         })
         .catch(err => {
@@ -48,6 +38,12 @@ export default {
       this.errors = [];
       this.errors.push('Code required.');
     },
+    isHalfLogged() {
+      if (this.userStore.isHalfLogged)
+        return true;
+      else
+        this.$router.push('/');
+    }
   },
 };
 
@@ -57,9 +53,7 @@ export default {
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
-        <h1>Bonjour {{ userStore.user.username }}</h1>
-        <img :src=userStore.avatarUrl style="max-height: 400px; max-width: 400px;" />
+      <div v-if="isHalfLogged()" class="form-group">
         <p v-if="errors.length">
         <b>Please correct the following error(s):</b>
           <ul>
@@ -69,88 +63,16 @@ export default {
         <div v-if="userStore.user.isTwoFA">
             <p>
               Please enter 2fa code below :
-              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="log2fa" placeholder="_ _ _ _ _ _">
               <button type="submit" @click="log2fa()" >Submit</button>
             </p>
         </div>
-
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-            <div class="intra-login-wrapper">
-              <p>Se déconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
-      </div>
-      <div v-if="!userStore.isLogged">
-        <TheWelcome />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se connecter avec</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
-
       </div>
     </div>
   </main>
 </template>
 
 <style>
-.login-container {
-  padding-top: 50px;
-  display: flex;
-}
-
-.intra-login {
-  margin: auto;
-  color: rgba(0, 0, 0, 0.822);
-  display: flex;
-  flex-direction: row;
-}
-
-.intra-login:hover {
-  background-color: rgba(0, 0, 0, 0.096);
-}
-
-.intra-login-wrapper {
-  border: 4px solid rgba(0, 0, 0, 0.822);
-  padding: 10px;
-  align-items: stretch;
-  justify-content: center;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.intra-login-wrapper:hover {
-  padding: 10px 25px;
-  align-items: stretch;
-  justify-content: center;
-}
-
-.intra-login-wrapper p {
-  display: inline-block;
-  font-size: 30px;
-  vertical-align: middle;
-}
-
-.logo-42 {
-  display: inline-block;
-  /* max-width: 100%; */
-  /* align: center; */
-  vertical-align: middle;
-  width: 70px;
-}
 
 /* POUR LA TICK BOX */
 input[type="checkbox"] {

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
+import Log from "@/components/Log.vue";
 import axios from "axios";
 
 export default {
@@ -30,6 +31,9 @@ export default {
     unmounted() {
     this.socket.removeAllListeners();
   },
+  components : {
+    Log
+  },
   methods: {
     goToAccount() {
       this.$router.go('/account');
@@ -37,14 +41,13 @@ export default {
     pushToLog2fa() {
       this.$router.push('/log2fa');
     },
-    checkForm: function (e) {
+    checkFormUsername: function (e) {
       if (this.name)
       {
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           this.goToAccount();
-          console.log("res : ", res)
         })
         .catch(err => {
           console.log("err : ", err)
@@ -61,13 +64,11 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
-      console.log("submitFile : ", this.file);
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
           this.goToAccount();
-          console.log("res : ", res)
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -93,7 +94,6 @@ export default {
         this.img = null;
         return;
       }
-      console.log("generateQrCode()")
       const token = this.userStore.user.access_token
       axios.post("http://127.0.0.1:3000/api/2fa/generate", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
       .then(async res => {
@@ -108,11 +108,8 @@ export default {
      if (this.code)
       {
         const token = this.userStore.user.access_token
-        console.log(token)
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
         .then(async res => {
-          console.log("turn-on success : ", res)
           this.pushToLog2fa();
         })
         .catch(err => {
@@ -127,10 +124,8 @@ export default {
     },
     turnOff2fa() {
         const token = this.userStore.user.access_token
-        console.log(this.userStore.user)
         axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
-          console.log("turn-off success : ", res)
           this.goToAccount();
         })
         .catch(err => {
@@ -169,9 +164,9 @@ export default {
       <!-- Update username -->
       <div class="text space">
         <p> Update your username :
-          <input v-model="name" type="text" name="username" :placeholder=userStore.user.username>
+          <input v-model="name" type="text" name="username" v-on:keyup.enter="checkFormUsername" :placeholder=userStore.user.username>
         </p>
-        <p><button class="pwd-btn" type="submit" @click="checkForm()" >Submit</button></p>
+        <p><button class="pwd-btn" type="submit" @click="checkFormUsername()" >Submit</button></p>
       </div>
       <!-- Update avatar -->
       <div class="text space">
@@ -190,7 +185,7 @@ export default {
             <img :src="img" />
             <p>
               Please enter 2fa code below :
-              <input v-model="code" type="text" name="twoFACode" placeholder="_ _ _ _ _ _">
+              <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
               <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>
           </div>
@@ -200,19 +195,6 @@ export default {
           <p><button class="pwd-btn" type="submit" @click="turnOff2fa()">Disable 2-factor authentication</button></p>
         </div>
       </div>
-    </div>
-    <!-- Logout -->
-    <div class="login-container">
-      <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-        <div class="intra-login-wrapper">
-          <p>Se déconnecter</p>
-          <img
-            alt="Invader Logo"
-            class="logo-42"
-            src="@/assets/logo-42-black.png"
-          />
-        </div>
-      </a>
     </div>
   </div>
 </template>
