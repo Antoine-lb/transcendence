@@ -131,7 +131,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="this.selectedRoom?.name" class="box">
+    <div v-if="this.selectedRoom?.name && getRole(user) != 'banned'" class="box">
       <h1>Users in {{ this.selectedRoom?.name }}</h1>
       <div v-for="role in roles" class="users-list" :key="role">
         <div v-if="role != 'banned' || isAdmin(this.user)">

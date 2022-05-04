@@ -92,7 +92,7 @@ export default {
 </script>
 <template>
   <div>
-    <div v-if="this.selectedRoom?.id" id="chat" class="box">
+    <div v-if="this.selectedRoom?.id && getRole() != 'banned'" id="chat" class="box">
       <h1 class="name-title">{{ this.selectedRoom.name }}</h1>
       <div class="message-box">
         <div id="messages-box" class="card-block">
