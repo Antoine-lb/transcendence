@@ -52,7 +52,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // console.log(`hello from game`);
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
-
+      console.log("decodedToken game : ", decodedToken);
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user)
