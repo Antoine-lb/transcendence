@@ -75,6 +75,7 @@ export default {
       this.socket.on("startGameAnimation", this.startGameAnimation);
       this.socket.on("invit", this.invitationRecu);
       this.socket.on("acceptInvit", this.acceptInvit);
+      this.socket.on("pushLiveGame", this.pushLiveGame);
       this.socket.on("disconnect", (reason) => {
         if (reason === "io server disconnect") {
           // console.log("the disconnection was initiated by the server, you need to reconnect manually")
@@ -324,6 +325,15 @@ export default {
       this.gameScreen.style.display = "none";
       this.msgBox.innerText = "";
     },
+    liveGame() {
+      this.socket.emit('getLiveGame', (response) => {
+      console.log(response)  
+      })
+    },
+    pushLiveGame(liveGame) {
+      console.log('ds pushLiveGame');
+      console.log(liveGame);
+    }
   },
 };
 </script>
@@ -347,6 +357,9 @@ export default {
             {{ this.socket != null ? this.socket.id : "Undefined yet" }}
           </h1>
           <div>
+            <button type="submit" class="btn btn-success" @click="liveGame">
+              liveGame
+            </button>
             <button type="submit" class="btn btn-success" @click="joinQueue(false)">
               Play Basic Pong
             </button>
