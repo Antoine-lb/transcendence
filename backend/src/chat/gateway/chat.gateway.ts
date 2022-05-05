@@ -57,7 +57,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
-      console.log("decodedToken chat : ", decodedToken);
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user) {
