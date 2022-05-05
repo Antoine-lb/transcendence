@@ -7,7 +7,7 @@ export interface UserI {
     avatar: string;
     isTwoFA: boolean;
     secret?: string;
-    isOnline: boolean;
+    isOnline: number;
 }
 
 function fetchWithHeaders(url) {

@@ -20,7 +20,7 @@ export interface UserInterface {
   avatar: string;
   isTwoFA: boolean;
   secret?: string;
-  isOnline: boolean;
+  isOnline: number;
 }
 
 export enum UserRoomRole {

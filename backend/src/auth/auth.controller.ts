@@ -58,7 +58,7 @@ export class AuthController{
             
             await res.cookie('access_token', accessToken, {httpOnly: true});
             await this.userService.updateParams(user.id, {
-                isOnline: true
+                isOnline: 1
             });
             if (auth === true) {
 
@@ -95,7 +95,7 @@ export class AuthController{
             if (!user)
                 throw new UnauthorizedException('User does not exists');
             await this.userService.updateParams(logged_user.id, {
-                isOnline: false
+                isOnline: 0
             });
             resp.clearCookie('access_token');
             resp.status(302).redirect('http://127.0.0.1:8080')

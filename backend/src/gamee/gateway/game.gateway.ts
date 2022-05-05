@@ -54,6 +54,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return this.disconnect(socket);
       else {
         socket.data.user = user;
+        this.userService.updateUserStatus(user.id, 1);
         return;
       }
     }
@@ -95,6 +96,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('tooManyPlayers');
       return;
     }
+
+    // change status for both player
+    let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
+    for (const playerId of playersSockets) {
+      this.userService.updateUserStatus(playerId, 2);     
+    }
+
     this.clientRooms[socket.id] = roomName;
     // set the creator to player 1
     socket.data.number = 2;
@@ -107,6 +115,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // start the game when both player are connected
     // console.log(">>>>>> about to start game in joinGame");
     this.startGameInterval(roomName, false);
+    
   }
 
   @SubscribeMessage('joinQueue')
@@ -140,6 +149,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
         return;
       }
+      let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
+
+      for (const playerId of playersSockets) {
+        this.userService.updateUserStatus(playerId, 2);     
+      }
+
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
       this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
@@ -282,7 +297,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName);
         this.emitGameOver(roomName, 1, socket.data.user.id);
       }
-    }
+     }
+    this.userService.updateUserStatus(socket.data.user.id);
     this.server.sockets.in(room).emit('disconnection');
     socket.disconnect();
   }
@@ -338,6 +354,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const clientSocket = this.server.sockets.sockets.get(playerId);
 
       clientSocket.data.status = "connected";
+
+      this.userService.updateUserStatus(parseInt(playerId));
 
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;

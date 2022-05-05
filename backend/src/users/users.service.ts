@@ -90,6 +90,13 @@ export class UsersService {
         return 5;
     }
   
+  async updateUserStatus(playerId: number, status: number) {
+      
+      await this.usersRepository.update(playerId, {
+        isOnline: status
+      });
+  }
+  
   async updateUserScore(players: UserEntity[], winnerId: number) {
       
       for (const player of players) {
