@@ -35,11 +35,11 @@ export class UsersService {
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
-      console.log("___add/create user")
+      // console.log("___add/create user")
       var defaultfile = await join('/public/avatar_default.png')
       var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
       const fs = require("fs");
-      console.log("default path : ", defaultpath)
+      // console.log("default path : ", defaultpath)
       if (!fs.existsSync(defaultpath)) {
         throw new NotFoundException('Cannot create user - Default avatar does not exists')
       }

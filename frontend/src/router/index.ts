@@ -47,7 +47,7 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import("../views/AccountView.vue"),
+      component: () => import("../views/Settings.vue"),
     },
     {
       path: "/user/:id",
@@ -64,6 +64,14 @@ const router = createRouter({
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import("../views/Log2fa.vue"),
+    },
+    {
+      path: "/setup",
+      name: "Setup",
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import("../views/Setup.vue"),
     },
   ],
 });

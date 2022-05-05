@@ -1,25 +1,30 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
+import Log from "@/components/Log.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
 
 export default {
   setup() {
     const userStore = useUserStore();
-    console.log(`setup`);
-
     userStore.requestLogState();
     return { userStore };
   },
-  created() {
-    console.log(`onCreated`);
-
-  },
-
   components: {
     TheWelcome,
     PublicProfile,
+    Log,
   },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
+  }
 };
 </script>
 
@@ -27,7 +32,7 @@ export default {
   <main>
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
-      <form v-if="userStore.isLogged" class="form-group">
+      <form v-if="isLogged()" class="form-group">
         <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
@@ -39,33 +44,9 @@ export default {
           :id="userStore.user.id"
           :socket="userStore.socket"
         />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
-            <div class="intra-login-wrapper">
-              <p>Se déconnecter</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
       </form>
-      <div v-if="!userStore.isLogged">
+      <div v-else>
         <TheWelcome />
-        <div class="login-container">
-          <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
-            <div class="intra-login-wrapper">
-              <p>Se connecter avec</p>
-              <img
-                alt="Invader Logo"
-                class="logo-42"
-                src="@/assets/logo-42-black.png"
-              />
-            </div>
-          </a>
-        </div>
       </div>
     </div>
   </main>
@@ -123,45 +104,6 @@ export default {
 .login-container {
   padding-top: 50px;
   display: flex;
-}
-
-.intra-login {
-  margin: auto;
-  color: rgba(0, 0, 0, 0.822);
-  display: flex;
-  flex-direction: row;
-}
-
-.intra-login:hover {
-  background-color: rgba(0, 0, 0, 0.096);
-}
-
-.intra-login-wrapper {
-  border: 4px solid rgba(0, 0, 0, 0.822);
-  padding: 10px;
-  align-items: stretch;
-  justify-content: center;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.intra-login-wrapper:hover {
-  padding: 10px 25px;
-  align-items: stretch;
-  justify-content: center;
-}
-
-.intra-login-wrapper p {
-  display: inline-block;
-  font-size: 30px;
-  vertical-align: middle;
-}
-
-.logo-42 {
-  display: inline-block;
-  /* max-width: 100%; */
-  /* align: center; */
-  vertical-align: middle;
-  width: 70px;
 }
 
 /* POUR LA TICK BOX */

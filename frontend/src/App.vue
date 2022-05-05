@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import HelloWorld from "@/components/HelloWorld.vue";
+import Log from "@/components/Log.vue";
 </script>
 
 <template>
@@ -23,6 +24,7 @@ import HelloWorld from "@/components/HelloWorld.vue";
   </header>
   <notifications />
   <RouterView />
+  <Log />
 </template>
 
 <style>

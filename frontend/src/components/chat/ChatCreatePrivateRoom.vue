@@ -22,7 +22,7 @@ function fetchWithHeaders(url) {
 }
 
 export default {
-  name: "ChatCreateRoom",
+  name: "ChatCreatePrivateRoom",
   data() {
     return {
       userStore: useUserStore(),
@@ -31,7 +31,7 @@ export default {
       newRoomUserShowError: false,
       newRoomUsers: [],
       allUsers: [],
-      isPublic: true,
+      isPublic: false,
       newRoomPassword: null,
       passwordFieldType: "password",
     };
@@ -55,6 +55,7 @@ export default {
   },
   methods: {
     newUser() {
+      console.log(this.userStore.user.username)
       let valid = false;
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
@@ -67,46 +68,32 @@ export default {
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;
+          this.createRooms();
         }
       });
       if (!valid) {
         this.newRoomUserShowError = true;
       }
     },
-    removeUser(user) {
-      this.allUsers.map((element) => {
-        if (element.username === user.username) {
-          console.log(
-            "remove user { id: element.id }",
-            { id: element.id },
-            element.username
-          );
-          this.newRoomUsers.splice(this.newRoomUsers.indexOf(user), 1);
-        }
-      });
-    },
     createRooms() {
-      let room: newRoomInterface = {
-        name: this.newRoomName ? this.newRoomName : "No Name",
-        users: this.newRoomUsers,
-        status: this.isPublic ? true : false,
-        protected: this.newRoomPassword ? true : false,
-        password: !this.isPublic
-          ? false
-          : this.newRoomPassword
-          ? this.newRoomPassword
-          : null,
-      };
-      this.$emit("onSubmit", room);
-    },
-    toggleStatus() {
-      this.isPublic = !this.isPublic;
-      if (!this.isPublic) this.newRoomPassword = null;
-      else this.newRoomUsers = [];
-    },
-    switchVisibility() {
-      if (this.passwordFieldType == "password") this.passwordFieldType = "text";
-      else this.passwordFieldType = "password";
+      console.log(this.newRoomUsers[0].username)
+
+      if (this.newRoomUsers[0].username !== this.userStore.user.username)
+      {
+        let room: newRoomInterface = {
+          name: `${this.newRoomUsers[0].username} and ${this.userStore.user.username}`,
+          users: this.newRoomUsers,
+          status: false,
+          protected: false,
+          password: null,
+        };
+        this.$emit("onSubmit", room);
+        location.reload();
+
+      }
+      else {
+        this.newRoomUserShowError = true;
+      }
     },
   },
 };
@@ -114,63 +101,15 @@ export default {
 
 <template>
   <div class="box">
-    <h1>Create new Room</h1>
+    <h1>Create new Private Room</h1>
     <div>
-      <input type="text" v-model="newRoomName" v-on:keyup.enter="createRooms" placeholder="Room Name" />
-      <button
-        @click="toggleStatus"
-        :class="[
-          isPublic ? 'room-settings on-colors' : 'room-settings off-colors',
-        ]"
-      >
-        Public
-      </button>
-      <button
-        @click="toggleStatus"
-        :class="[
-          !isPublic ? 'room-settings on-colors' : 'room-settings off-colors',
-        ]"
-      >
-        Private
-      </button>
-      <div v-if="!isPublic">
         <div>
-          <input type="text" v-model="newRoomUser" v-on:keyup.enter="newUser" placeholder="Room Users" />
-          <button class="add-user" @click="newUser">Add user</button>
+          <input type="text" v-model="newRoomUser" v-on:keyup.enter="newUser" placeholder="User Login" />
+          <button class="add-user" @click="newUser">Send message</button>
         </div>
-        <li v-for="user in newRoomUsers" :key="user.username">
-          {{ user.username }}
-          <button class="add-user" @click="removeUser(user)">
-            Remove user
-          </button>
-        </li>
         <p v-if="newRoomUserShowError" class="error-paragraf">
-          Username not found
+          Username not found or not valid
         </p>
-      </div>
-
-      <div v-if="isPublic">
-        <br />
-        You may add a password to protect this public room (leave empty for no
-        password) :
-        <br />
-        <input
-          :type="passwordFieldType"
-          v-model="newRoomPassword"
-          placeholder="Password"
-          v-on:keyup.enter="createRooms" 
-        />
-        <button class="add-user" @click="switchVisibility">
-          {{ passwordFieldType == "password" ? "SHOW" : "HIDE" }}
-        </button>
-      </div>
-      <div v-else>
-        <br />
-        This room will be private (only you and added users can see it).
-      </div>
-      <button class="submit-new-room new-room-button" @click="createRooms">
-        Create {{ newRoomName }}
-      </button>
     </div>
   </div>
 </template>

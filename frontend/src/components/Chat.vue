@@ -8,6 +8,7 @@ import ChatAvailableRooms from "./chat/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./chat/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./chat/ChatSelectedRoomParams.vue";
 import ChatSelectedRoomUsers from "./chat/ChatSelectedRoomUsers.vue";
+import ChatCreatePrivateRoom from "./chat/ChatCreatePrivateRoom.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -72,10 +73,10 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
+    ChatCreatePrivateRoom
   },
   methods: {
     createRoom(room: newRoomInterface) {
-      console.log("createRoom", room);
       this.socket.emit("createRoom", room);
     },
     updateSelected(room: RoomI) {
@@ -84,7 +85,6 @@ export default {
       else this.selectedRoom = room;
     },
     refreshSelected(room: RoomI) {
-      console.log(">>>>>> refreshSelected in PARENT");
       this.socket.emit("getRoles", room);
       this.selectedRoom = room;
     },
@@ -97,9 +97,7 @@ export default {
     // });
     this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
       this.userRooms = rooms;
-      // console.log("chat ------------ getRoomsForUser : ", rooms);
       this.socket.emit("getAllRolesForUser", this.user);
-      console.log(">>>>>> getAllRolesForUser");
     });
     this.socket.on("getAllRolesForUser", (roles) => {
       this.userRoomsRoles = roles;
@@ -113,7 +111,6 @@ export default {
     });
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
-      console.log(">>>>>> getBlockedFriends");
     });
   },
 };
@@ -130,13 +127,14 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
-        <ChatCreateRoom @onSubmit="createRoom" />
         <ChatAvailableRooms
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
+        <ChatCreateRoom @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
         <ChatSelectedRoomChat

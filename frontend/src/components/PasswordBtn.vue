@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div>
-    <input :type="passwordFieldType" v-model="inputPassword" placeholder="Password" />
+    <input :type="passwordFieldType" v-model="inputPassword" v-on:keyup.enter="submitPwd(this.room, inputPassword)"  placeholder="Password" />
     <button class="pwd-btn" @click="switchVisibility">{{passwordFieldType == "password" ? 'SHOW' : 'HIDE'}}</button>
     <button class="pwd-btn on-colors" @click="submitPwd(this.room, inputPassword)">{{ msg }}</button> 
   </div>

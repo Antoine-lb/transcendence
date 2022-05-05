@@ -2,10 +2,11 @@
 <script lang="ts">
 import PrivateProfile from "@/components/PrivateProfile.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
+import Log from "@/components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
-  name: "Game",
+  name: "Settings",
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
@@ -14,7 +15,18 @@ export default {
   components: {
     PrivateProfile,
     PublicProfile,
+    Log,
   },
+  methods: {
+    isLogged() {
+      if (this.userStore.isFullyLogged)
+        return true;
+      else if (this.userStore.isHalfLogged)
+        this.$router.push('/log2fa');
+      else
+        return false;
+    }
+  }
 };
 </script>
 
@@ -23,7 +35,7 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
-      <div v-if="userStore.isLogged" class="form-group">
+      <div v-if="isLogged()" class="form-group">
         <!-- <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
@@ -33,16 +45,11 @@ export default {
           :xp="userStore.user.xp"
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
-        />
-        <br />
-        <br />
-        <br /> -->
-        <PrivateProfile 
-          :socket="userStore.socket"
-        />
+        /> -->
+        <PrivateProfile />
       </div>
-      <div v-if="!userStore.isLogged" :socket="userStore.socket" class="form-group">
-        <p>Vous devez être connecté pour voir votre profil</p>
+      <div v-else class="form-group">
+        <p>Vous devez être connecté pour modifier votre profil</p>
       </div>
     </div>
   </main>

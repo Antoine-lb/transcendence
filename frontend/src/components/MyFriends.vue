@@ -1,35 +1,19 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 
-function fetchWithHeaders(url) {
-  return fetch(url, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Cache: "no-cache",
-    },
-    credentials: "include",
-  });
-}
 export default {
-  data(): {
-    loading: boolean;
-    friendList: [];
-    pendingFriendList: [];
-    blockedFriendList: [];
-    addFriendUsername: string;
-  } {
+  data() {
     return {
       loading: false,
-      friendList: [],
-      pendingFriendList: [],
-      blockedFriendList: [],
-      addFriendUsername: "",
+      addFriendUsername: ""
     };
   },
     props: {
     socket: Object,
+    friendList: Array,
+    pendingFriendList: Array,
+    blockedFriendList: Array,
+    showAddFriendError: String
   },
   setup() {
     const userStore = useUserStore();
@@ -44,124 +28,23 @@ export default {
     this.socket.removeAllListeners();
   },
   methods: {
-    fetchAllData: function () {
-      this.fetchFriends();
-      this.fetchPendingFriends();
-      this.fetchBlockedFriends();
+    refresh: function () {
+      this.$router.push('/friends');
     },
-    fetchFriends: async function () {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          "http://127.0.0.1:3000/api/friends"
-        );
-        if (response.status == 200) {
-          this.friendList = await response.json();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
+    acceptPendingRequest (id) {
+      this.$emit("acceptPendingRequest", id);
     },
-    fetchPendingFriends: async function () {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          "http://127.0.0.1:3000/api/friends/requests"
-        );
-        if (response.status == 200) {
-          this.pendingFriendList = await response.json();
-          console.log("this.pendingFriendList", this.pendingFriendList);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
+    removeFriend (id) {
+      this.$emit("removeFriend", id);
     },
-    fetchBlockedFriends: async function () {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          "http://127.0.0.1:3000/api/friends/blocked"
-        );
-        if (response.status == 200) {
-          this.blockedFriendList = await response.json();
-          console.log("this.blockedFriendList", this.blockedFriendList);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
+    blockFriend (id) {
+      this.$emit("blockFriend", id);
     },
-    acceptPendingRequest: async function (id) {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          `http://127.0.0.1:3000/api/friends/update/${id}`
-        );
-        if (response.status == 200) {
-          this.fetchAllData();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
+    unblockFriend (id) {
+      this.$emit("unblockFriend", id);
     },
-    removeFriend: async function (id) {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          `http://127.0.0.1:3000/api/friends/remove/${id}`
-        );
-        if (response.status == 200) {
-          this.fetchAllData();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
-    },
-    blockFriend: async function (id) {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          `http://127.0.0.1:3000/api/friends/block/${id}`
-        );
-        if (response.status == 200) {
-          this.fetchAllData();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
-    },
-    unblockFriend: async function (id) {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          `http://127.0.0.1:3000/api/friends/unblock/${id}`
-        );
-        if (response.status == 200) {
-          this.fetchAllData();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
-    },
-    addFriend: async function () {
-      this.loading = true;
-      try {
-        const response = await fetchWithHeaders(
-          `http://127.0.0.1:3000/api/friends/add/${this.addFriendUsername}`
-        );
-        if (response.status == 200) {
-          this.fetchAllData();
-        }
-      } catch (error) {
-        console.error(error);
-      }
-      this.loading = false;
+    addFriend () {
+      this.$emit("addFriend", this.addFriendUsername);
     },
     invitationRecu(adversaire, code) {
       console.log(`Ds invitation Reçu room : ${code}`);
@@ -188,7 +71,6 @@ export default {
     <div v-if="loading">Loading...</div>
     <div v-if="!loading">
       <h1>Amis</h1>
-
       <div>
         <p v-if="!friendList.length">Vous n'avez pas d'amis</p>
         <div
@@ -200,10 +82,10 @@ export default {
             friend.username
           }}</a>
           <div>
-            <button class="button" v-on:click="() => removeFriend(friend.id)">
+            <button class="button" @click="removeFriend(friend.id)">
               Supprimer l'amitié
             </button>
-            <button class="button" v-on:click="() => blockFriend(friend.id)">
+            <button class="button" @click="blockFriend(friend.id)">
               Bloquer
             </button>
           </div>
@@ -229,7 +111,7 @@ export default {
           <button
             class="button"
             v-if="pendingReq.f_creatorId !== userStore.user.id"
-            v-on:click="() => acceptPendingRequest(pendingReq.f_creatorId)"
+            @click="acceptPendingRequest(pendingReq.f_creatorId)"
           >
             Ajouter ami
           </button>
@@ -251,7 +133,7 @@ export default {
           }}</a>
           <button
             class="button"
-            v-on:click="() => unblockFriend(blockedFriend.id)"
+            @click="unblockFriend(blockedFriend.id)"
           >
             Débloquer
           </button>
@@ -259,6 +141,9 @@ export default {
       </div>
 
       <h1>Ajouter un ami</h1>
+      <p v-if="showAddFriendError" style="color: red; margin-bottom: 10px">
+        {{ showAddFriendError }}
+      </p>
       <form @submit.prevent="addFriend">
         <input
           class="input-username"

@@ -26,6 +26,7 @@ export default {
   },
   setup() {
     const userStore = useUserStore();
+    userStore.requestLogState();
     return { userStore };
   },
   created() {
@@ -60,6 +61,11 @@ export default {
       }
       this.loading = false;
     },
+    isLogged() {
+      if (this.userStore.isFullyLogged) return true;
+      else if (this.userStore.isHalfLogged) this.$router.push("/log2fa");
+      else return false;
+    },
   },
 };
 </script>
@@ -68,22 +74,30 @@ export default {
   <main>
     <div v-if="loading">Loading...</div>
     <div v-if="!loading">
-      <div v-if="userNotFound">L'utilisateur est introuvable</div>
-      <div v-if="!userNotFound">
-        <PublicProfile
-          :username="user.username"
-          :avatarUrl="this.userAvatar"
-          :played="user.played"
-          :victory="user.victory"
-          :defeats="user.defeats"
-          :xp="user.xp"
-          :lvl="user.lvl"
-          :id="user.id"
-        />
-        <br />
-        <br />
-        <br />
-        <FriendshipManagement :user="user" />
+      <div v-if="isLogged()" class="form-group">
+        <div v-if="userNotFound">L'utilisateur est introuvable</div>
+        <div v-if="!userNotFound">
+          <PublicProfile
+            :username="user.username"
+            :avatarUrl="this.userAvatar"
+            :played="user.played"
+            :victory="user.victory"
+            :defeats="user.defeats"
+            :xp="user.xp"
+            :lvl="user.lvl"
+            :id="user.id"
+          />
+          <br />
+          <br />
+          <br />
+          <FriendshipManagement
+            :user="user"
+            v-if="this.userStore.user.id !== user.id"
+          />
+        </div>
+      </div>
+      <div v-else class="form-group">
+        <p>Vous devez être connecté pour voir un profil</p>
       </div>
     </div>
   </main>
