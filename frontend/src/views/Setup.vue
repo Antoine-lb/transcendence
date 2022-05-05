@@ -48,7 +48,8 @@ export default {
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
         /> -->
-        <PrivateProfile />
+        <PrivateProfile 
+        :socket="userStore.socket"/>
       </div>
       <div v-else class="form-group">
         <p>Vous devez être connecté pour modifier votre profil</p>

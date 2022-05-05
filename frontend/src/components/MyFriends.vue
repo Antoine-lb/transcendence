@@ -20,7 +20,7 @@ export default {
     return { userStore };
   },
   created() {
-    this.fetchAllData();
+    // this.fetchAllData();
     this.socket.on("invit", this.invitationRecu);
     this.socket.on("acceptInvit", this.acceptInvit);
   },

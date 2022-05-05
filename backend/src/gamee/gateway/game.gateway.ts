@@ -111,7 +111,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // init the front for player 2
     socket.emit('init', 2);
     socket.data.status = "play"
-
+    // maj des onLiveGame vers les autres clients
+    socket.emit('pushLiveGame', this.clientRooms)
     // start the game when both player are connected
     // console.log(">>>>>> about to start game in joinGame");
     this.startGameInterval(roomName, false);
@@ -168,6 +169,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(roomName).emit('startGameAnimation')
     // set the creator to player mode
       socket.data.status = "play"
+      // maj des onLiveGame vers les autres clients
+      socket.emit('pushLiveGame', this.clientRooms)
       // start the game when both player are connected
       setTimeout(() => {
         this.startGameInterval(roomName, playWithPowerUP)
@@ -269,6 +272,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   broadcastMsg(socket: Socket, msg: string) {
     const room = [this.clientRooms[socket.id]];
     this.server.sockets.in(room).emit('broadcastMsg', msg);
+  }
+
+  @SubscribeMessage('getLiveGame')
+  async myMessage (socket: Socket) {
+     return {
+      clientRooms : this.clientRooms
+     }
+  }
+
+  pushLiveGame(socket: Socket) {
+    socket.emit('pushLiveGame', this.clientRooms)
   }
 
   // C'est celui qui marche
