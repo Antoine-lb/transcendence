@@ -72,12 +72,11 @@ export default {
 
 <template>
   <main>
-    <div v-if="loading">Loading...</div>
-    <div v-if="!loading">
+    <div v-if="loading || userStore.isLoading">Loading...</div>
+    <div v-if="!loading && !userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
         <div v-if="userNotFound">L'utilisateur est introuvable</div>
         <div v-if="!userNotFound">
-    <!--    socket => {{userStore.socket}} -->
           <PublicProfile
             :username="user.username"
             :avatarUrl="this.userAvatar"
@@ -94,6 +93,8 @@ export default {
           <br />
           <FriendshipManagement
             :user="user"
+            :socket="userStore.socket"
+            :userStore="userStore"
             v-if="this.userStore.user.id !== user.id"
           />
         </div>

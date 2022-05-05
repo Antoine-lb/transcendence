@@ -1,13 +1,11 @@
 <script lang="ts">
-import { useUserStore } from "../stores/userStore";
-
 export interface UserI {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: number;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: number;
 }
 
 function fetchWithHeaders(url) {
@@ -25,7 +23,6 @@ function fetchWithHeaders(url) {
 export default {
   data() {
     return {
-      userStore: useUserStore(),
       loading: false,
       friendList: [],
       pendingFriendList: [],
@@ -37,16 +34,13 @@ export default {
   props: {
     user: {
       type: Object as () => UserI,
-    }, 
-  },
-  setup() {
-    const userStore = useUserStore();
-    userStore.requestLogState();
-    return { userStore };
+    },
+    socket: Object,
+    userStore: Object,
   },
   created() {
     this.fetchAllData();
-    this.socket.on("status", stat => this.status = stat);
+    this.socket.on("status", (stat) => (this.status = stat));
   },
   methods: {
     fetchAllData: function () {
@@ -175,48 +169,47 @@ export default {
       this.loading = false;
     },
     isFriend() {
-      for (var f of this.friendList)
-      {
-        if (f.id == this.user.id)
-          return true;
+      for (var f of this.friendList) {
+        if (f.id == this.user.id) return true;
       }
       return false;
     },
     isPendingSent() {
-      for (var f of this.pendingFriendList)
-      {
-        if (f.f_creatorId == this.userStore.user.id && f.f_receiverId == this.user.id)
+      for (var f of this.pendingFriendList) {
+        if (
+          f.f_creatorId == this.userStore.user.id &&
+          f.f_receiverId == this.user.id
+        )
           return true;
       }
       return false;
     },
     isPendingReceived() {
-      for (var f of this.pendingFriendList)
-      {
-        if (f.f_creatorId == this.user.id && f.f_receiverId == this.userStore.user.id)
+      for (var f of this.pendingFriendList) {
+        if (
+          f.f_creatorId == this.user.id &&
+          f.f_receiverId == this.userStore.user.id
+        )
           return true;
       }
       return false;
     },
     isBlocked() {
-      for (var f of this.blockedFriendList)
-      {
-        if (f.id == this.user.id)
-          return true;
+      for (var f of this.blockedFriendList) {
+        if (f.id == this.user.id) return true;
       }
       return false;
     },
     getFriendshipStatus() {
       if (this.isFriend())
-        return ("You and " + this.user.username + " are friends.");
+        return "You and " + this.user.username + " are friends.";
       if (this.isPendingSent())
-        return ("You have sent a friend request to " + this.user.username + ".");
+        return "You have sent a friend request to " + this.user.username + ".";
       if (this.isPendingReceived())
-        return (this.user.username + " sent you a friend request.");
+        return this.user.username + " sent you a friend request.";
       if (this.isBlocked())
-        return ("You have blocked " + this.user.username + ".");
-      else
-        return ("You and " + this.user.username + " are not friends.");
+        return "You have blocked " + this.user.username + ".";
+      else return "You and " + this.user.username + " are not friends.";
     },
   },
 };
@@ -224,24 +217,57 @@ export default {
 
 <template>
   <div>
-      <!-- <p> loading => {{ this.loading }} </p>
+    <!-- <p> loading => {{ this.loading }} </p>
       <p> friendList => {{ this.friendList }} </p>
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
-      <p class="txt" v-if="isFriend()">{{ user.username }} is {{ this.status }}</p>
-      <p class="txt">{{ getFriendshipStatus() }}</p>
-      <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
-      <button v-if="isFriend()" class="pwd-btn on-colors" @click="removeFriend(this.user.id)"> REMOVE {{ this.user.username }} FROM FRIENDS</button> 
-      <button v-if="!isBlocked()" class="pwd-btn on-colors" @click="blockFriend(this.user.id)"> BLOCK {{ this.user.username }} </button> 
-      <button v-if="isBlocked()" class="pwd-btn on-colors" @click="unblockFriend(this.user.id)"> UNBLOCK {{ this.user.username }} </button> 
-      <button v-if="isPendingReceived()" class="pwd-btn on-colors" @click="acceptPendingRequest(this.user.id)"> ACCEPT PENDING REQUEST </button> 
-      <div v-if="isPendingSent()" class="no-btn"> ...WAITING FOR {{this.user.username}} APPROVAL... </div> 
+    <p class="txt" v-if="isFriend()">
+      {{ user.username }} is {{ this.status }}
+    </p>
+    <p class="txt">{{ getFriendshipStatus() }}</p>
+    <button
+      v-if="!isFriend() && !isPendingSent() && !isPendingReceived()"
+      class="pwd-btn on-colors"
+      @click="addFriend()"
+    >
+      ADD {{ this.user.username }} AS FRIENDS
+    </button>
+    <button
+      v-if="isFriend()"
+      class="pwd-btn on-colors"
+      @click="removeFriend(this.user.id)"
+    >
+      REMOVE {{ this.user.username }} FROM FRIENDS
+    </button>
+    <button
+      v-if="!isBlocked()"
+      class="pwd-btn on-colors"
+      @click="blockFriend(this.user.id)"
+    >
+      BLOCK {{ this.user.username }}
+    </button>
+    <button
+      v-if="isBlocked()"
+      class="pwd-btn on-colors"
+      @click="unblockFriend(this.user.id)"
+    >
+      UNBLOCK {{ this.user.username }}
+    </button>
+    <button
+      v-if="isPendingReceived()"
+      class="pwd-btn on-colors"
+      @click="acceptPendingRequest(this.user.id)"
+    >
+      ACCEPT PENDING REQUEST
+    </button>
+    <div v-if="isPendingSent()" class="no-btn">
+      ...WAITING FOR {{ this.user.username }} APPROVAL...
+    </div>
   </div>
 </template>
 
 <style scoped>
-
 .pwd-btn {
   background-color: white;
   border: none;
@@ -283,5 +309,4 @@ export default {
 .txt {
   /* text-transform: capitalize; */
 }
-
 </style>
