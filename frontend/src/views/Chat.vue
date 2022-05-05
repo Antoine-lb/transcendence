@@ -33,7 +33,7 @@ export default {
     <div v-if="userStore.isLoading">Loading...</div>
     <div v-if="!userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
-        <Chat :user="userStore.user" />
+        <Chat :user="userStore.user"  :socket="userStore.socket" />
       </div>
 
       <div v-else class="form-group">
