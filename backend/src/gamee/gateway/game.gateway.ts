@@ -100,7 +100,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // change status for both player
     let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
     for (const playerId of playersSockets) {
-      this.userService.updateUserStatus(playerId, 2);     
+      this.userService.updateUserStatus(parseInt(playerId), 2);     
     }
 
     this.clientRooms[socket.id] = roomName;
@@ -152,7 +152,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
 
       for (const playerId of playersSockets) {
-        this.userService.updateUserStatus(playerId, 2);     
+        this.userService.updateUserStatus(parseInt(playerId), 2);     
       }
 
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
@@ -298,7 +298,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameOver(roomName, 1, socket.data.user.id);
       }
      }
-    this.userService.updateUserStatus(socket.data.user.id);
+    this.userService.updateUserStatus(socket.data.user.id, 0);
     this.server.sockets.in(room).emit('disconnection');
     socket.disconnect();
   }
@@ -355,7 +355,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       clientSocket.data.status = "connected";
 
-      this.userService.updateUserStatus(parseInt(playerId));
+      this.userService.updateUserStatus(parseInt(playerId), 1);
 
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;
