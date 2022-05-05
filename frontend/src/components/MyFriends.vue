@@ -8,7 +8,8 @@ export default {
       addFriendUsername: ""
     };
   },
-  props: {
+    props: {
+    socket: Object,
     friendList: Array,
     pendingFriendList: Array,
     blockedFriendList: Array,
@@ -19,6 +20,12 @@ export default {
     return { userStore };
   },
   created() {
+    // this.fetchAllData();
+    this.socket.on("invit", this.invitationRecu);
+    this.socket.on("acceptInvit", this.acceptInvit);
+  },
+  unmounted() {
+    this.socket.removeAllListeners();
   },
   methods: {
     refresh: function () {
@@ -41,7 +48,23 @@ export default {
     },
     getAvatar(user) {
       return "http://localhost:3000" + user.avatar;
-    }
+    },
+    invitationRecu(adversaire, code) {
+      console.log(`Ds invitation Reçu room : ${code}`);
+      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
+        this.socket.emit('newGame', code);
+        this.socket.emit('acceptInvit', adversaire, code);
+        this.$router.push("Chat");
+      }
+      else
+        this.socket.emit('declineGameInvit', adversaire);
+    },
+    
+    acceptInvit (roomCode) {
+        console.log(">>>>>> acceptInvitGame (game) roomCode : ", roomCode);
+        // await this.startGameAnimation()
+        this.socket.emit('joinGame', roomCode);
+    },
   },
 };
 </script>

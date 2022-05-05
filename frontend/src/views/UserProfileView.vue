@@ -77,6 +77,7 @@ export default {
       <div v-if="isLogged()" class="form-group">
         <div v-if="userNotFound">L'utilisateur est introuvable</div>
         <div v-if="!userNotFound">
+    <!--    socket => {{userStore.socket}} -->
           <PublicProfile
             :username="user.username"
             :avatarUrl="this.userAvatar"
@@ -86,6 +87,7 @@ export default {
             :xp="user.xp"
             :lvl="user.lvl"
             :id="user.id"
+            :socket="userStore.socket"
           />
           <br />
           <br />

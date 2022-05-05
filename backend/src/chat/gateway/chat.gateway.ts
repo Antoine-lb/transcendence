@@ -162,30 +162,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     await this.emitRolesForConnectedUsers(room);
   }
 
-  // @SubscribeMessage('joinRoom')
-  // async onJoinRoom(socket: Socket, { room, password }) {
-  //   if (room.protected == true) {
-  //      if (!password) {
-  //        socket.emit('WrongPassword', new UnauthorizedException());
-  //        return;
-  //      }
-  //     const matched = comparePassword(password, room.password)
-  //      if (!matched) {
-  //        socket.emit('WrongPassword', new UnauthorizedException());
-  //        return;
-  //      }
-  //   }
-  //   // Find previous Room Messages
-  //   const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-  //    // check if already join (for if the client switch between)
-  //   var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
-  //   // Save Connection to Room in DB
-  //   if (found.length == 0)
-  //     await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
-  //   // Send Last Message to User
-  //   await this.server.to(socket.id).emit('messages', messages);
-  // }
-
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
     // console.log(">>>>>> onSelectRoom");
@@ -291,6 +267,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
+  @SubscribeMessage('blockUser')
+  async onBlockUser(socket: Socket, room: RoomI){}
+  
+  async afterInit() {}
+
   //////////////////////////////////////// MESSAGES FUNCTIONS ////////////////////////////////////////////////////////////
  
   @SubscribeMessage('addMessage')
@@ -318,7 +299,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     socket.emit('Error', new UnauthorizedException());
     socket.disconnect();
   }
-
-  async afterInit() { }
+      
+    ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
   
-}
+    @SubscribeMessage('sendInvit')
+    async sendInvit(socket: Socket, [user_defié , user_defiant]) {
+      var opponentSocket = await this.connectedUserService.findByUser(user_defié);
+      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
+      await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
+    }
+    
+    @SubscribeMessage('acceptInvit')
+    async acceptInvit(socket: Socket, [adversaire, roomCode]) {
+      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
+    }
+  
+    @SubscribeMessage('declineGameInvit')
+    async declineGameInvit(socket: Socket, adversaire : UserDto) {
+      // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
+      var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
+    }
+ }

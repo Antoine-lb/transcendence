@@ -18,25 +18,18 @@ export default {
   name: "ChatGame",
    setup() {
       const userStore = useUserStore();
-      const gameCodeDisplay = ref(null)
-      const initialScreen = ref(null)
       const gameCodeInput = ref(null)
       const gameCodeSpec = ref(null)
 
-      const gameScreen = ref(null)
       const msgBox = ref(null)
       const canvas = ref(null)
       onMounted(() => {
         // the DOM element will be assigned to the ref after initial render
-        console.log(gameCodeDisplay.value) // <div>This is a gameCodeDisplay element</div>
       })
 
       return {
-        gameCodeDisplay,
-        initialScreen,
         gameCodeInput,
         gameCodeSpec,
-        gameScreen,
         msgBox,
         canvas,
         userStore,
@@ -56,23 +49,21 @@ export default {
   data() {
     return {
       title: "Game Room",
-      
       score : {},
-      gameStatus : String("paused"),
-      // socket: ref(),
+      gameStatus : String("idle"),
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
-      // myRooms: null,
-      // friendList: [],
-      // newRoomName: null,
-      // newRoomUsers: null,
-      // selectedRoom: {},
-      // room: {},
     };
   },
   created () {
     this.socketSetter();
+  },
+  mounted() {
+    this.init();
+  },
+  unmounted() {
+    this.socket.removeAllListeners();
   },
 
   methods: {
@@ -83,7 +74,6 @@ export default {
       // this.socket.on("joinGame", this.handleJoinGame);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
-      this.socket.on("gameCode", this.handleGameCode);
       this.socket.on("unknownCode", this.handleUnknownCode);
       this.socket.on("tooManyPlayers", this.handleTooManyPlayers);
       this.socket.on("paused", this.handlePause);
@@ -107,33 +97,26 @@ export default {
         });
       });
 
-      this.socket.on("testChat", () => {
-        console.log("test Chat.vue");
-      });
-
       this.socket.on("acceptInvit", async (roomCode) => {
-        console.log(">>>>>> acceptInvit roomCode : ", roomCode);
+        console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
       });
+
       this.socket.on("declineGameInvit", () => {
-        console.log(">>>>>> declineGameInvit");
+        console.log(">>>>>> declineGameInvit (chat)");
         alert("your opponent decline the challenge");
       });
     },
 
     invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu`);
+      console.log(`Ds invitation Reçu (ChatGame) room : ${code}`);
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
         this.socket.emit('acceptInvit', adversaire, code);
       }
       else
         this.socket.emit('declineGameInvit', adversaire);
-    },
-
-    joinQueue() {
-      this.socket.emit("joinQueue");
     },
 
     createNewGame() {
@@ -152,8 +135,6 @@ export default {
     },
 
     init() {
-      this.initialScreen.style.display = "none";
-      this.gameScreen.style.display = "block";
       this.ctx = this.canvas.getContext("2d");
       this.canvas.width = 750;
       this.canvas.height = 590;
@@ -191,7 +172,6 @@ export default {
           this.ctx.strokeText(String(cntDown), this.canvas.width / 3 - index / 3, this.canvas.height / 3 + index / 3);
           await this.sleep(10);
         }
-      this.socket.emit('launchGame');
     },
 
     sleep(ms) {
@@ -243,11 +223,6 @@ export default {
       this.ctx.strokeText(String(this.score.p2), this.canvas.width / 2 + 25, 40);
     },
 
-    sendMsg() {      
-      this.socket.emit('msg', this.msg);
-      this.msg = "";
-    },
-
     receiveMsg(msg) { // Sig : "broadcastMsg"
       this.msgBox.innerText += '\n' + msg;
       this.msgBox.scrollTop = this.msgBox.scrollHeight;
@@ -264,8 +239,8 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
-      // console.log("this.gameStatus : ", this.gameStatus);
-      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
+      console.log("this.gameStatus : ", this.gameStatus);
+      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")// c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
     },
 
@@ -293,10 +268,6 @@ export default {
           duration : 6000
       });
       }
-    },
-
-    handleGameCode(gameCode) {
-      this.gameCodeDisplay.innerText = gameCode;
     },
 
     handleUnknownCode() {
@@ -332,8 +303,6 @@ export default {
       this.playerNumber = null;
       this.gameCodeInput.value = "";
       this.gameCodeSpec.value = "";
-      this.initialScreen.style.display = "block";
-      this.gameScreen.style.display = "none";
     },
   },
 };
@@ -342,134 +311,37 @@ export default {
 <template>
   <section class="vh-100">
     <div class="container h-100">
-
-      <div ref="initialScreen" class="h-100">
-        <div class="d-flex flex-column align-items-center justify-content-center h-100">
-            <h1>Multiplayer Pong Game</h1>
-            <h1>myRoom is : {{this.socket != null ? this.socket.id : "Undefined yet"}}</h1>
-          <div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              @click="joinQueue"
-            >
-              Play 
-            </button>
-          </div>
-            <div>OR</div>
-          <div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              @click="createNewGame"
-            >
-              Create Game code 
-            </button>
-          </div>
-
-            <div class="form-group">
-              <input type="text" placeholder="Enter Game Code" ref="gameCodeInput"/>
-            </div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              v-on:click="handleJoinGame"
-            >
-              Join Game
-            </button>
-
-
-            <div class="form-groupp">
-              <input type="text" placeholder="Enter Game Codee" ref="gameCodeSpec"/>
-            </div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              v-on:click="handleSpecGame"
-            >
-              Spec Game
-            </button>
-        </div>
+      <div class="d-flex flex-column align-items-center justify-content-center h-100">
+          <h1>Multiplayer Pong Game</h1>
       </div>
-
-      <div ref="gameScreen" id="gameScreen" class="h-100">
+      <div class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
-          <h1>myRoom is : {{this.socket != null ? this.socket.id : "Undefined yet"}}</h1>
-          <h1>Your game code is: <span ref="gameCodeDisplay"></span></h1>
           <canvas ref="canvas"></canvas>
+          
           <button
+            v-if="this.gameStatus !== 'idle'"
             type="submit"
             class="btn btn-success"
             ref="pauseButton"
-            v-on:click="handlePause()"
+            v-on:click="handlePause"
           >
-          pause
+          pause {{this.gameStatus}}
           </button>
-          <button type="submit"
+
+          <button
+            v-if="this.gameStatus === 'opponentLeft'"
+            type="submit"
             class="btn btn-success"
             ref="notifyButton"
-            v-if="this.gameStatus === 'opponentLeft'"
             v-on:click="claimVictory"
           >
           claimVictory
           </button>
         </div>
-          <div class=chat>
-            <div 
-              ref="msgBox"
-              class="message-box">
-            </div>
-
-            <div>
-              <textarea
-                id="textarea"
-                v-model="msg"
-                placeholder="Enter message...">
-              </textarea>
-            </div>
-
-            <div>
-              <button type="submit"
-              ref="sendButton"
-
-              v-on:click="sendMsg">
-              Send
-              </button>
-            </div>
-          </div>
       </div>
-
     </div>
   </section>
 </template>
 
 <style scoped>
-#gameScreen {
-  display: none;
-}
-
-.chat {
-  height: 40px;
-  color: blueviolet;
-  border: 1px;
-  border-radius: 25px;
-}
-
-textarea {
-  border: 3px solid #703ab8;
-  border-radius: 13px;
-  width: 100%;
-  padding: 10px;
-  margin: 10px;
-}
-.message-box {
-  overflow: scroll;
-  border: 3px solid #703ab8;
-  border-radius: 13px;
-  width: 100%;
-  height: 300%;
-  padding: 10px;
-  margin: 10px;
-
-}
 </style>

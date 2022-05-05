@@ -18,7 +18,7 @@ export class GameService {
   constructor() { }
 
   initGame(is_public: Boolean) {
-    let state: StateI = {
+    let state = {
       gameState: "pending",
       score: { p1: 0, p2: 0 },
       ball: {
@@ -47,16 +47,17 @@ export class GameService {
         x: canvas.width / 2,
         y: canvas.height / 2,
       }],
-      powerUp_t: "lightblue",
+      powerUp_t: "transparent",
       launchPowerUp: false,
       intervalId: null,
       is_public: is_public,
       status: 0,
+      userID: -1,
     };
     return state;
   }
 
-  gameLoop(state: StateI, powerUPenable: Boolean = true): number {
+  gameLoop(state: StateI, powerUPenable: boolean = true): number {
     if (!state) {
       return -1;
     }

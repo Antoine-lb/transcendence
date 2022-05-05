@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { io } from "socket.io-client";
 
 export const useUserStore = defineStore({
   id: "user",
@@ -10,6 +11,7 @@ export const useUserStore = defineStore({
     _isHalfLogged: false,
     _isLoading: false,
     _response: {},
+    _socket: {},
   }),
   getters: {
     // isLogged: (state) => state._isLog,
@@ -17,6 +19,7 @@ export const useUserStore = defineStore({
     isHalfLogged: (state) => state._isHalfLogged,
     isLoading: (state) => state._isLoading,
     user: (state) => state._user,
+    socket: (state) => state._socket,
     avatarUrl: (state) => `http://localhost:3000${state._user.avatar}`,
   },
   actions: {
@@ -66,6 +69,16 @@ export const useUserStore = defineStore({
           this._user = userTmp.user;
           this._user.access_token = userTmp.access_token;
           this._user.access_token_2fa = userTmp.access_token_2fa;
+          if (!this._socket?.connected) {
+            console.log("new socket created");
+            this._socket = await io("http://127.0.0.1:3000", {
+              extraHeaders: {
+                Authorization: userTmp.access_token,
+              },
+            });
+          } else {
+            console.log("no socket created because there is already one");
+          }
         }
       } catch (error) {
         console.error(error);

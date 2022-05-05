@@ -42,6 +42,7 @@ export default {
           :xp="userStore.user.xp"
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
+          :socket="userStore.socket"
         />
       </form>
       <div v-else>

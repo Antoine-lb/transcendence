@@ -65,8 +65,8 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
     ports:
       - "5432:5432"
-    volumes:
-      - ./database/entrypoint/:/docker-entrypoint-initdb.d
+    # volumes:
+      # - ./database/entrypoint/:/docker-entrypoint-initdb.d
     restart: always
 
   pgadmin:

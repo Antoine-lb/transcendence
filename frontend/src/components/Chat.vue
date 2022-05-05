@@ -8,6 +8,7 @@ import ChatAvailableRooms from "./chat/ChatAvailableRooms.vue";
 import ChatSelectedRoomChat from "./chat/ChatSelectedRoomChat.vue";
 import ChatSelectedRoomParams from "./chat/ChatSelectedRoomParams.vue";
 import ChatSelectedRoomUsers from "./chat/ChatSelectedRoomUsers.vue";
+import ChatCreatePrivateRoom from "./chat/ChatCreatePrivateRoom.vue";
 
 export interface newRoomInterface {
   name: string;
@@ -62,6 +63,7 @@ export default {
   },
   props: {
     user: Object,
+    socket: Object,
   },
   components: {
     ChatCreateRoom,
@@ -71,6 +73,7 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
+    ChatCreatePrivateRoom
   },
   methods: {
     createRoom(room: newRoomInterface) {
@@ -87,11 +90,11 @@ export default {
     },
   },
   async created() {
-    this.socket = io("http://127.0.0.1:3000", {
-      extraHeaders: {
-        Authorization: this.user.access_token,
-      },
-    });
+    // this.socket = io("http://127.0.0.1:3000", {
+    //   extraHeaders: {
+    //     Authorization: this.user.access_token,
+    //   },
+    // });
     this.socket.on("getRoomsForUser", (rooms: RoomI[]) => {
       this.userRooms = rooms;
       this.socket.emit("getAllRolesForUser", this.user);
@@ -124,13 +127,14 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
-        <ChatCreateRoom @onSubmit="createRoom" />
         <ChatAvailableRooms
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
+        <ChatCreateRoom @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
         <ChatSelectedRoomChat
@@ -164,17 +168,17 @@ export default {
     </div>
 
     <div>
-    <hr>
-          <!-- @refreshSelected="refreshSelected" -->
-    <ChatGame
-          :selectedRoom="this.selectedRoom"
-          :usersForRoom="this.usersForRoom"
-          :userRolesInRoom="this.userRolesInRoom"
-          :socket="this.socket"
-          :user="user"
-          :userRooms="this.userRooms"
-          :userRoomsRoles="this.userRoomsRoles"
-    />
+      <hr />
+      <!-- @refreshSelected="refreshSelected" -->
+      <ChatGame
+        :selectedRoom="this.selectedRoom"
+        :usersForRoom="this.usersForRoom"
+        :userRolesInRoom="this.userRolesInRoom"
+        :socket="this.socket"
+        :user="user"
+        :userRooms="this.userRooms"
+        :userRoomsRoles="this.userRoomsRoles"
+      />
     </div>
   </div>
 </template>

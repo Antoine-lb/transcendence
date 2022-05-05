@@ -96,7 +96,7 @@ export default {
           <p class="player-name">{{ winner.username }}</p>
         </a>
       </div>
-      <span style="font-size: 35px">10 - {{ score - 10 }}</span>
+      <span style="font-size: 35px">5 - {{ score }}</span>
       <div class="player-profile">
         <a class="username" :href="'/user/' + loserId">
           <div

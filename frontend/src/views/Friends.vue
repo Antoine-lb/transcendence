@@ -194,6 +194,7 @@ export default {
           :pendingFriendList="pendingFriendList"
           :blockedFriendList="blockedFriendList"
           :showAddFriendError="showAddFriendError"
+          :socket="userStore.socket"
           @blockFriend="blockFriend"
           @unblockFriend="unblockFriend"
           @acceptPendingRequest="acceptPendingRequest"
