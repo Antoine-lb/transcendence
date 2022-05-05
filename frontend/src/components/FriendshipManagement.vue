@@ -31,6 +31,7 @@ export default {
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
+      status: 0,
     };
   },
   props: {
@@ -45,6 +46,7 @@ export default {
   },
   created() {
     this.fetchAllData();
+    this.socket.on("status", stat => this.status = stat);
   },
   methods: {
     fetchAllData: function () {
@@ -215,7 +217,7 @@ export default {
         return ("You have blocked " + this.user.username + ".");
       else
         return ("You and " + this.user.username + " are not friends.");
-    }
+    },
   },
 };
 </script>
@@ -227,7 +229,7 @@ export default {
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
-      <p class="txt" v-if="isFriend()">{{ user.username }} is {{ user.isOnline ? "online" : "offline" }}</p>
+      <p class="txt" v-if="isFriend()">{{ user.username }} is {{ this.status }}</p>
       <p class="txt">{{ getFriendshipStatus() }}</p>
       <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
       <button v-if="isFriend()" class="pwd-btn on-colors" @click="removeFriend(this.user.id)"> REMOVE {{ this.user.username }} FROM FRIENDS</button> 

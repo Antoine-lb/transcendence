@@ -127,10 +127,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     
     // [CREATE] game state and wait other player if(nobody is in queue)
     if (!((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) % 2)) {
-      (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
+      (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++);
 
       // init the game state 
-      this.state[roomName] = this.GameService.initGame(true)
+      this.state[roomName] = this.GameService.initGame(true);
       this.state[roomName].userID = socket.data.user.id;
 
       // set the creator to player 1
@@ -140,22 +140,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.join(roomName);
       // init the front for player 1
       socket.emit('init', 1);
-    // set the creator to player mode
-      socket.data.status = "play"
+      // set the creator to player mode
+      socket.data.status = "play";
     }
     // [JOIN] the game if somebody is already in queue
     else {
-      
       if (this.state[roomName].userID == socket.data.user.id) {
         // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
         return;
       }
-      let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
-
-      for (const playerId of playersSockets) {
-        this.userService.updateUserStatus(parseInt(playerId), 2);     
-      }
-
+      this.server.to(roomName).emit('status', 2);
+      
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
       this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
@@ -181,13 +176,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('spec')
   handleSpecGame(socket: Socket, roomName: string) {
 
-    let roomSize = 0;
-
+    let   roomSize = 0;
     const room = this.server.sockets.adapter.rooms.get(roomName)
 
     if (room)
       roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
-
     if (roomSize === 0) {
       socket.emit('unknownCode');
       return;
@@ -195,9 +188,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('tooManyPlayers');
       return;
     }
-
     this.clientRooms[socket.id] = roomName;
-
     // set the creator to spectator mode
     socket.data.status = "spec"
     // join the room socket
