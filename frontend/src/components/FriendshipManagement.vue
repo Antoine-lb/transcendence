@@ -45,8 +45,7 @@ export default {
   },
   methods: {
     changeStatus(status, userId) {
-      console.log(userId)
-      // if (userId == this.user.id)
+      if (userId == this.user.id)
         this.status = status;
     },
     askForStatus() {
@@ -159,18 +158,15 @@ export default {
       this.loading = false;
     },
     addFriend: async function () {
-      console.log(">>>>>> addFriend");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/friends/add/${this.user.username}`
         );
         if (response.status == 200) {
-          console.log(">>>>>> addFriends OK");
           this.fetchAllData();
         }
       } catch (error) {
-        console.log(">>>>>> addFriends ERROR");
         console.error(error);
       }
       this.loading = false;
