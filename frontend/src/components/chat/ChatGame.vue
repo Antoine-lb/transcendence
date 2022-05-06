@@ -54,6 +54,7 @@ export default {
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
+      liveGame : {},
     };
   },
   created () {
@@ -88,6 +89,7 @@ export default {
         }
       // else the socket will automatically try to reconnect
       });
+      this.socket.on("pushLiveGame", (liveGame) => {this.liveGame = liveGame});
 
       this.socket.on("samePlayer", (arg1, callback) => {
         console.log(arg1);
@@ -128,8 +130,8 @@ export default {
       this.socket.emit('joinGame', code);
     },
 
-    handleSpecGame() {
-      const code = this.gameCodeSpec.value;
+    handleSpecGame(code) {
+      // const code = this.gameCodeSpec.value;
       this.socket.emit('spec', code);
       this.init();
     },
@@ -314,6 +316,13 @@ export default {
       <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <h1>Multiplayer Pong Game</h1>
       </div>
+      <ul id="liveGame" >  <!-- :if="this.gameStatus === 'opponentLeft'" -->
+        <li v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
+          <!-- {{ this.liveGame }} <br> -->
+          <!-- {{ game }} <br> -->
+          <span >{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
+        </li>
+      </ul>
       <div class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <canvas ref="canvas"></canvas>
