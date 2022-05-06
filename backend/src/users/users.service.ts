@@ -91,10 +91,12 @@ export class UsersService {
     }
   
   async updateUserStatus(playerId: number, status: number) {
-
-      await this.usersRepository.update(playerId, {
+    console.log(status + ' -> ' + playerId);
+       await this.usersRepository.update(playerId, {
         isOnline: status
       });
+     return (this.findById(playerId))
+    
   }
   
   async updateUserScore(players: UserEntity[], winnerId: number) {

@@ -44,8 +44,10 @@ export default {
     this.socket.on("status", this.changeStatus);
   },
   methods: {
-    changeStatus(status) {
-      this.status = status;
+    changeStatus(status, userId) {
+      console.log(userId)
+      // if (userId == this.user.id)
+        this.status = status;
     },
     askForStatus() {
       this.socket.emit("getStatus", this.user.id);
