@@ -40,6 +40,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   state = {};
   clientRooms = {};
+  liveGame = {};
   stackIndexBasicPong = 2;
   stackIndexPowerUPPong = 500;
 
@@ -69,6 +70,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
     this.clientRooms[socket.id] = roomName;
+    // Store the username to render OnLiveGame player
+    this.liveGame[roomName] = {player1 : socket.data.user.username};
     socket.emit('gameCode', roomName);
 
     this.state[roomName] = this.GameService.initGame(false);
@@ -77,6 +80,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.emit('init', 1);
     this.state[this.clientRooms[socket.id]].gameState = "play"
     socket.data.status = "play"
+    console.log("username : " + socket.data.user.username);
   }
 
   @SubscribeMessage('joinGame')
@@ -103,9 +107,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // init the front for player 2
     socket.emit('init', 2);
     socket.data.status = "play"
-    // maj des onLiveGame vers les autres clients
-    socket.emit('pushLiveGame', this.clientRooms)
     // start the game when both player are connected
+    
+    // Store the username to render OnLiveGame player
+    this.liveGame[roomName].player2 = socket.data.user.username;
+    // maj des onLiveGame vers les autres clients
+    socket.emit('pushLiveGame', this.liveGame)
+    console.log("username : " + socket.data.user.username);
+    console.log("this.liveGame[roomName] : ", this.liveGame[roomName]);
     // console.log(">>>>>> about to start game in joinGame");
     this.startGameInterval(roomName, false);
   }
@@ -127,6 +136,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // set the creator to player 1
       socket.data.number = 1;
       this.clientRooms[socket.id] = roomName;
+      // Store the username to render OnLiveGame player
+      this.liveGame[roomName] = {player1 : socket.data.user.username};
       // join the room socket
       socket.join(roomName);
       // init the front for player 1
@@ -146,6 +157,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // set the creator to player 1
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
+      // Store the username to render OnLiveGame player
+      this.liveGame[roomName].player2 = socket.data.user.username;
       // join the room socket
       socket.join(roomName);
       // init the front for player 2
@@ -155,7 +168,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
-      socket.emit('pushLiveGame', this.clientRooms)
+      socket.emit('pushLiveGame', this.liveGame)
       // start the game when both player are connected
       setTimeout(() => {
         this.startGameInterval(roomName, playWithPowerUP)
@@ -267,7 +280,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   pushLiveGame(socket: Socket) {
-    socket.emit('pushLiveGame', this.clientRooms)
+    socket.emit('pushLiveGame', this.liveGame)
   }
 
   // C'est celui qui marche
@@ -372,6 +385,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Modif xp & match history for the players
     this.userService.updateUserScore(players, winnerId);// <-- C'est ça qui cause les CORS à la fin du jeu
 
+    delete this.liveGame[roomName];
     delete this.state[roomName];
   }
 } 
