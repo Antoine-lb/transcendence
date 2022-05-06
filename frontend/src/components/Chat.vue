@@ -112,6 +112,7 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
     });
+    this.socket.emit("getAllInformation", this.user);
   },
 };
 </script>
