@@ -9,6 +9,9 @@ import { StateEntity } from './model/state.entity';
 import { MatchHistoryService } from './service/matchHistory/matchHistory.service';
 import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
 import { ConnectedUserEntity } from 'src/chat/model/connected.user.entity';
+import { FriendsService } from 'src/friends/friends.service';
+import { FriendRequestEntity } from 'src/entities/friends.entity';
+import { UserEntity } from 'src/entities/users.entity';
 
 const FRAME_RATE = 50;
 const GRID_SIZE = 20;
@@ -28,9 +31,11 @@ const canvas = { width: 750, height: 585 };
     AuthModule,
     TypeOrmModule.forFeature([
       GamePlayedEntity,
-      ConnectedUserEntity
+      ConnectedUserEntity,
+      FriendRequestEntity,
+      UserEntity
     ]),
   ],
-  providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService]
+  providers: [GameGateway, GameService, MatchHistoryService, ConnectedUserService, FriendsService]
 })
 export class GameModule { }

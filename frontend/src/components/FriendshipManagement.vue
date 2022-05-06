@@ -28,7 +28,7 @@ export default {
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
-      status: 0,
+      status: 0
     };
   },
   props: {
@@ -40,16 +40,22 @@ export default {
   },
   created() {
     this.fetchAllData();
-    this.socket.on("status", (stat) => (this.status = stat));
+    this.askForStatus();
+    this.socket.on("status", this.changeStatus);
   },
   methods: {
+    changeStatus(status) {
+      this.status = status;
+    },
+    askForStatus() {
+      this.socket.emit("getStatus", this.user.id);
+    },
     fetchAllData: function () {
       this.fetchFriends();
       this.fetchPendingFriends();
       this.fetchBlockedFriends();
     },
     fetchFriends: async function () {
-      console.log(">>>>>> fetchFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -64,7 +70,6 @@ export default {
       this.loading = false;
     },
     fetchPendingFriends: async function () {
-      console.log(">>>>>> fetchPendingFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
