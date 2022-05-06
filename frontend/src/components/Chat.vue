@@ -120,6 +120,7 @@ export default {
     <div class="chat-container">
       <div class="chat-side">
         <ChatMyRooms
+          v-if="userRooms && userRooms.length"
           @updateSelected="updateSelected"
           :socket="this.socket"
           :selectedRoom="this.selectedRoom"
@@ -128,6 +129,7 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatAvailableRooms
+          v-if="userRooms && userRooms.length"
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
