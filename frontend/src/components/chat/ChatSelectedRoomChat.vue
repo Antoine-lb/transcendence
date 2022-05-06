@@ -54,12 +54,14 @@ export default {
       return this.userRoomsRoles[this.selectedRoom.id];
     },
     sendMessage() {
+      // console.log(">>>>>> sendMessage");
       if (this.validateInput()) {
         const message = {
           user: this.user,
           text: this.text,
           room: this.selectedRoom,
         };
+        // console.log("message : ", message);
         this.socket.emit("addMessage", {
           message: message,
           role: this.getRole(),
@@ -130,6 +132,7 @@ export default {
           class="form-control"
           v-model="text"
           placeholder="Enter message..."
+          v-on:keyup.enter="sendMessage(this.selectedRoom)"
         ></textarea>
         <br />
         <button
