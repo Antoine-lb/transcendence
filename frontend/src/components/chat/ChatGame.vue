@@ -49,8 +49,9 @@ export default {
       score: {},
       gameStatus: String("idle"),
       ctx: null,
-      msg: String(""),
-      gameActive: Boolean(false),
+      msg: String(''),
+      gameActive : Boolean(false),
+      liveGame : {},
     };
   },
   created() {
@@ -87,6 +88,7 @@ export default {
         }
         // else the socket will automatically try to reconnect
       });
+      this.socket.on("pushLiveGame", (liveGame) => {this.liveGame = liveGame});
 
       this.socket.on("samePlayer", (arg1, callback) => {
         console.log(arg1);
@@ -99,7 +101,8 @@ export default {
       this.socket.on("acceptInvit", async (roomCode) => {
         console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
-        this.socket.emit("joinGame", roomCode);
+        this.socket.emit('joinGame', roomCode);
+        this.gameStatus = "playing"
       });
 
       this.socket.on("declineGameInvit", () => {
@@ -110,14 +113,13 @@ export default {
 
     invitationRecu(adversaire, code) {
       console.log(`Ds invitation Reçu (ChatGame) room : ${code}`);
-      if (
-        confirm(
-          adversaire.username + ", vous défie au pong : lancer la partie ?"
-        )
-      ) {
-        this.socket.emit("newGame", code);
-        this.socket.emit("acceptInvit", adversaire, code);
-      } else this.socket.emit("declineGameInvit", adversaire);
+      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
+        this.socket.emit('newGame', code);
+        this.socket.emit('acceptInvit', adversaire, code);
+        this.gameStatus = "playing"
+      }
+      else
+        this.socket.emit('declineGameInvit', adversaire);
     },
 
     createNewGame() {
@@ -129,9 +131,9 @@ export default {
       this.socket.emit("joinGame", code);
     },
 
-    handleSpecGame() {
-      const code = this.gameCodeSpec.value;
-      this.socket.emit("spec", code);
+    handleSpecGame(code) {
+      // const code = this.gameCodeSpec.value;
+      this.socket.emit('spec', code);
       this.init();
     },
 
@@ -290,7 +292,7 @@ export default {
     },
 
     handleDisconnection() {
-      this.gameStatus = "opponentLeft";
+      // this.gameStatus = "opponentLeft"
       this.$notify({
         title: "Important message",
         text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
@@ -326,6 +328,9 @@ export default {
       <div class="">
         <!-- <h1>Multiplayer Pong Game</h1> -->
       </div>
+      <li style="list-style: none;" v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
+        <span  v-if="this.gameStatus !== 'playing'">{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
+      </li>
       <div class="h-100">
         <div class="" style="display: flex">
           <canvas ref="canvas" class="game-canvas"></canvas>
