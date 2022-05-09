@@ -54,6 +54,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       else {
         socket.data.user = user;
 
+      
         const  tmp: UserEntity = await this.userService.updateUserStatus(user.id, 1);
 
         const users = await this.friendService.getFriends(socket.data.user);
@@ -341,8 +342,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('getStatus')
   async senddStatus(socket: Socket, userId: number) {
-    const user: UserEntity =  await this.userService.findById(userId);
-    socket.emit("status", user.isOnline)
+    const user: UserEntity = await this.userService.findById(userId);
+    
+    socket.emit("status", user.isOnline, user.id)
   }
 
   @SubscribeMessage('msg')

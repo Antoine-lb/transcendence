@@ -91,7 +91,6 @@ export class UsersService {
     }
   
   async updateUserStatus(playerId: number, status: number) {
-    console.log(status + ' -> ' + playerId);
        await this.usersRepository.update(playerId, {
         isOnline: status
       });
