@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRoomEntity, UserRoomRole } from 'src/chat/model/user-room.entity';
 import { UserRoomI } from 'src/chat/model/user-room.interface';
@@ -93,6 +93,12 @@ export class UserRoomService {
     }
 
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
+        const checkModifier = await this.userService.findById(modifier.id);
+        if (!checkModifier)
+          throw new NotFoundException('User not found')
+        const checkUser = await this.userService.findById(modifier.id);
+          if (!checkUser)
+            throw new NotFoundException('User not found')
         var roles = await this.getAllRolesForRoom(room);
         // si un owner quitte la room
         if (user.id == modifier.id && roles[user.id] == UserRoomRole.OWNER && newRole == UserRoomRole.AVAILABLE)

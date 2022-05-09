@@ -384,7 +384,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName);
         this.emitGameOver(roomName, winner, -1);
         clearInterval(this.state[roomName].intervalId);
-        // TODO : save the score
       }
     }, 1000 / FRAME_RATE);
   }
