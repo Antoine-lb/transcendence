@@ -169,8 +169,6 @@ export default {
     </div>
 
     <div>
-      <hr />
-      <!-- @refreshSelected="refreshSelected" -->
       <ChatGame
         :selectedRoom="this.selectedRoom"
         :usersForRoom="this.usersForRoom"
