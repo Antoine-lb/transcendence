@@ -289,7 +289,7 @@ export default {
       // this.gameStatus = "opponentLeft"
       this.$notify({
         title: "Important message",
-        text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
+        text: "The opponent disconnected\nGame won by forfeit",
         duration: 6000,
       });
       // alert("Your Opponent disconnected, you can wait till he come back or claim victory");
