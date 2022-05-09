@@ -17,14 +17,11 @@ export default {
   },
   methods: {
     isLogged() {
-      if (this.userStore.isFullyLogged)
-        return true;
-      else if (this.userStore.isHalfLogged)
-        this.$router.push('/log2fa');
-      else
-        return false;
-    }
-  }
+      if (this.userStore.isFullyLogged) return true;
+      else if (this.userStore.isHalfLogged) this.$router.push("/log2fa");
+      else return false;
+    },
+  },
 };
 </script>
 
@@ -49,6 +46,7 @@ export default {
         <TheWelcome />
       </div>
     </div>
+    <Log />
   </main>
 </template>
 
