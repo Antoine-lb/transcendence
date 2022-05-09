@@ -1,6 +1,4 @@
 <script lang="ts">
-import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
 import ChatCreateRoom from "./chat/ChatCreateRoom.vue";
 import ChatMyRooms from "./chat/ChatMyRooms.vue";
 import ChatGame from "./chat/ChatGame.vue";
@@ -57,10 +55,10 @@ export default {
       blockedFriends: [],
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
-  },
+  // setup() {
+  //   const userStore = useUserStore();
+  //   return { userStore };
+  // },
   props: {
     user: Object,
     socket: Object,
@@ -73,7 +71,7 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
-    ChatCreatePrivateRoom
+    ChatCreatePrivateRoom,
   },
   methods: {
     createRoom(room: newRoomInterface) {
@@ -137,7 +135,7 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatCreateRoom @onSubmit="createRoom" />
-        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
         <ChatSelectedRoomChat
