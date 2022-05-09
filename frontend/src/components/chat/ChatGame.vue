@@ -139,7 +139,7 @@ export default {
       this.ctx = this.canvas.getContext("2d");
       this.canvas.width = 750;
       this.canvas.height = 590;
-      this.ctx.fillStyle = "#231f20";
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
       document.addEventListener("keydown", this.keydown);
@@ -323,28 +323,12 @@ export default {
 <template>
   <section class="vh-100">
     <div class="container h-100">
-      <div
-        class="
-          d-flex
-          flex-column
-          align-items-center
-          justify-content-center
-          h-100
-        "
-      >
-        <h1>Multiplayer Pong Game</h1>
+      <div class="">
+        <!-- <h1>Multiplayer Pong Game</h1> -->
       </div>
       <div class="h-100">
-        <div
-          class="
-            d-flex
-            flex-column
-            align-items-center
-            justify-content-center
-            h-100
-          "
-        >
-          <canvas ref="canvas"></canvas>
+        <div class="" style="display: flex">
+          <canvas ref="canvas" class="game-canvas"></canvas>
 
           <button
             v-if="this.gameStatus !== 'idle'"
@@ -372,4 +356,9 @@ export default {
 </template>
 
 <style scoped>
+.game-canvas {
+  margin: auto;
+  width: 400px;
+  border-radius: 10px;
+}
 </style>
