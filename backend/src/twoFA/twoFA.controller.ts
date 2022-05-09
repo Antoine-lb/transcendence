@@ -58,7 +58,6 @@ export class TwoFAController {
     if (!isCodeValid) {
       throw new ImATeapotException('Wrong authentication 2fa turn-on code');
     }
-    // console.log("CODE IS VALID - TURNING ON 2FA ON USER");
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
   }
@@ -84,14 +83,12 @@ export class TwoFAController {
       twoFACode, request.user
     );
     if (!isCodeValid) {
-      // console.log('>>> authenticate code non valide')
       throw new ImATeapotException('Wrong authentication 2fa code');
     }
     // cree cookie qui contient le token
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
     // renvoie le cookie qui contient le token dans la reponse
     request.res.setHeader('Set-Cookie', [accessTokenCookie]);
-    // console.log("CODE IS VALID - AUTHENTICATION OK - returning user w/ new token with full access");
  
     return request.user;
   }

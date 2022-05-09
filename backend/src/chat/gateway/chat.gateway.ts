@@ -53,8 +53,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    }
 
   async handleConnection(socket: Socket, payload: string) {
-    // console.log(`hello from chat`);
-
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
       const user = await this.userService.findById(decodedToken.id);
@@ -68,7 +66,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         // Save connection to database 
         await this.connectedUserService.create({ socketID: socket.id, user });
         // Only emit rooms to the specific connected client
-        // console.log(">>>>>> handleConnection");
         this.server.to(socket.id).emit('rooms', myRooms)
         this.server.to(socket.id).emit('getRoomsForUser', myRooms)
       }
@@ -79,7 +76,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   async emitRoomsForConnectedUsers(room: RoomI) {
-    // console.log(">>>>>> emitRoomsForConnectedUsers");
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
@@ -92,7 +88,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   async emitRoomsForOneUser(socket: Socket, user: UserDto) {
-    // console.log(">>>>>> emitRoomsForOneUser");
     const rooms = await this.userRoomService.getAllRoomsForUser(user);
     await this.server.to(socket.id).emit('rooms', rooms);
     await this.server.to(socket.id).emit('getRoomsForUser', rooms);
@@ -164,7 +159,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
-    // console.log(">>>>>> onSelectRoom");
     if (room.protected == true) {
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
@@ -310,7 +304,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('sendInvit')
     async sendInvit(socket: Socket, [user_defié , user_defiant]) {
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
-      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
     }
     

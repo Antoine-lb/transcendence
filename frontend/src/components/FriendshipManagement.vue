@@ -8,7 +8,7 @@ export interface UserI {
   isOnline: number;
 }
 
-function fetchWithHeaders(url) {
+function fetchWithHeaders(url: string) {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -28,7 +28,7 @@ export default {
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
-      status: 0,
+      onlineStatus: 0,
     };
   },
   props: {
@@ -40,16 +40,22 @@ export default {
   },
   created() {
     this.fetchAllData();
-    this.socket.on("status", (stat) => (this.status = stat));
+    this.askForStatus();
+    this.socket.on("status", this.changeStatus);
   },
   methods: {
+    changeStatus(status, userId) {
+      if (userId == this.user.id) this.onlineStatus = status;
+    },
+    askForStatus() {
+      this.socket.emit("getStatus", this.user.id);
+    },
     fetchAllData: function () {
       this.fetchFriends();
       this.fetchPendingFriends();
       this.fetchBlockedFriends();
     },
     fetchFriends: async function () {
-      console.log(">>>>>> fetchFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -64,7 +70,6 @@ export default {
       this.loading = false;
     },
     fetchPendingFriends: async function () {
-      console.log(">>>>>> fetchPendingFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -152,18 +157,15 @@ export default {
       this.loading = false;
     },
     addFriend: async function () {
-      console.log(">>>>>> addFriend");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/friends/add/${this.user.username}`
         );
         if (response.status == 200) {
-          console.log(">>>>>> addFriends OK");
           this.fetchAllData();
         }
       } catch (error) {
-        console.log(">>>>>> addFriends ERROR");
         console.error(error);
       }
       this.loading = false;
@@ -201,8 +203,7 @@ export default {
       return false;
     },
     getFriendshipStatus() {
-      if (this.isFriend())
-        return "You and " + this.user.username + " are friends.";
+      if (this.isFriend()) return "";
       if (this.isPendingSent())
         return "You have sent a friend request to " + this.user.username + ".";
       if (this.isPendingReceived())
@@ -222,12 +223,19 @@ export default {
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
-    <p class="txt" v-if="isFriend()">
-      {{ user.username }} is {{ this.status }}
+    <p
+      class="txt"
+      style="font-size: x-large; text-transform: capitalize"
+      v-if="isFriend()"
+    >
+      <!-- {{ user.username }} is {{ this.onlineStatus }} -->
+      <span v-if="isFriend() == 0">{{ user.username }} is offline 🔘​ </span>
+      <span v-if="isFriend() == 1">{{ user.username }} is online 🟢​ ​</span>
+      <span v-if="isFriend() == 2">{{ user.username }} is playing 👾 </span>
     </p>
     <p class="txt">{{ getFriendshipStatus() }}</p>
     <button
-      v-if="!isFriend() && !isPendingSent() && !isPendingReceived()"
+      v-if="!isFriend() && !isPendingSent() && !isPendingReceived() && !isBlocked()"
       class="pwd-btn on-colors"
       @click="addFriend()"
     >
@@ -239,20 +247,6 @@ export default {
       @click="removeFriend(this.user.id)"
     >
       REMOVE {{ this.user.username }} FROM FRIENDS
-    </button>
-    <button
-      v-if="!isBlocked()"
-      class="pwd-btn on-colors"
-      @click="blockFriend(this.user.id)"
-    >
-      BLOCK {{ this.user.username }}
-    </button>
-    <button
-      v-if="isBlocked()"
-      class="pwd-btn on-colors"
-      @click="unblockFriend(this.user.id)"
-    >
-      UNBLOCK {{ this.user.username }}
     </button>
     <button
       v-if="isPendingReceived()"

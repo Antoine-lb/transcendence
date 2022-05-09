@@ -1,7 +1,7 @@
 <script lang="ts">
 import SingleGameHistory from "./SingleGameHistory.vue";
 
-function fetchWithHeaders(url) {
+function fetchWithHeaders(url: string) {
   return fetch(url, {
     method: "GET",
     headers: {
