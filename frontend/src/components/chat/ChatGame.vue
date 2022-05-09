@@ -49,9 +49,9 @@ export default {
       score: {},
       gameStatus: String("idle"),
       ctx: null,
-      msg: String(''),
-      gameActive : Boolean(false),
-      liveGame : {},
+      msg: String(""),
+      gameActive: Boolean(false),
+      liveGame: {},
     };
   },
   created() {
@@ -88,7 +88,9 @@ export default {
         }
         // else the socket will automatically try to reconnect
       });
-      this.socket.on("pushLiveGame", (liveGame) => {this.liveGame = liveGame});
+      this.socket.on("pushLiveGame", (liveGame) => {
+        this.liveGame = liveGame;
+      });
 
       this.socket.on("samePlayer", (arg1, callback) => {
         console.log(arg1);
@@ -101,8 +103,8 @@ export default {
       this.socket.on("acceptInvit", async (roomCode) => {
         console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
-        this.socket.emit('joinGame', roomCode);
-        this.gameStatus = "playing"
+        this.socket.emit("joinGame", roomCode);
+        this.gameStatus = "playing";
       });
 
       this.socket.on("declineGameInvit", () => {
@@ -113,13 +115,15 @@ export default {
 
     invitationRecu(adversaire, code) {
       console.log(`Ds invitation Reçu (ChatGame) room : ${code}`);
-      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
-        this.socket.emit('newGame', code);
-        this.socket.emit('acceptInvit', adversaire, code);
-        this.gameStatus = "playing"
-      }
-      else
-        this.socket.emit('declineGameInvit', adversaire);
+      if (
+        confirm(
+          adversaire.username + ", vous défie au pong : lancer la partie ?"
+        )
+      ) {
+        this.socket.emit("newGame", code);
+        this.socket.emit("acceptInvit", adversaire, code);
+        this.gameStatus = "playing";
+      } else this.socket.emit("declineGameInvit", adversaire);
     },
 
     createNewGame() {
@@ -133,7 +137,7 @@ export default {
 
     handleSpecGame(code) {
       // const code = this.gameCodeSpec.value;
-      this.socket.emit('spec', code);
+      this.socket.emit("spec", code);
       this.init();
     },
 
@@ -315,14 +319,22 @@ export default {
 <template>
   <section class="">
     <div class="container h-100">
-      <div class="">
-        <!-- <h1>Multiplayer Pong Game</h1> -->
+      <div style="margin-bottom: 30px">
+        <div
+          v-for="(game, index) in this.liveGame"
+          :key="game.liveGame"
+          v-on:click="handleSpecGame(index)"
+          :title="index"
+          class="list"
+        >
+          <span v-if="this.gameStatus !== 'playing'">
+            👾 Join <strong>{{ game.player1 }}</strong> and
+            <strong>{{ game.player2 }}</strong> game
+          </span>
+        </div>
       </div>
-      <li style="list-style: none;" v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
-        <span  v-if="this.gameStatus !== 'playing'">{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
-      </li>
       <div class="h-100">
-        <div class="" style="display: flex">
+        <div class="" style="display: flex; flex-direction: column">
           <canvas ref="canvas" class="game-canvas"></canvas>
 
           <button
@@ -332,7 +344,7 @@ export default {
             ref="pauseButton"
             v-on:click="handlePause"
           >
-            pause {{ this.gameStatus }}
+            ⏸ Pause {{ this.gameStatus }}
           </button>
 
           <button
@@ -353,10 +365,41 @@ export default {
 <style scoped>
 .game-canvas {
   margin: auto;
-  width: 400px;
+  width: 100%;
   border-radius: 10px;
   box-shadow: 0 0 6px rgba(120, 61, 204, 0.92), 0 0 30px rgba(94, 14, 206, 0.34),
     0 0 12px rgba(211, 193, 236, 0.52), 0 0 21px rgba(211, 193, 236, 0.92),
     0 0 34px rgba(211, 193, 236, 0.78), 0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+}
+
+.btn {
+  background-color: #703ab8;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: large;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 13px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* margin-left: 10px; */
+  margin-top: 20px;
+}
+
+.live-game {
+  padding: 10px;
+}
+
+.list {
+  text-decoration: underline;
+  font-size: large;
+  /* text-transform: capitalize; */
+}
+
+strong {
+  /* font-size: 40px; */
+  text-transform: capitalize;
+  font-weight: 600;
 }
 </style>
