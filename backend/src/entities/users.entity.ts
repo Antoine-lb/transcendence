@@ -42,8 +42,8 @@ export class UserEntity {
   @Column({ default: null })
   public secret: string;
 
-  @Column({ default: false })
-  isOnline: boolean;
+  @Column({ default: 0 })
+  isOnline: number;
 
   @Column({ default: 0, nullable: false})
   played: number;

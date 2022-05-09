@@ -88,13 +88,12 @@ export class AuthController{
             const user = await this.userService.findByName(req.user['username']);
             if (!user)
                 throw new UnauthorizedException('User does not exists');
-            // console.log("req.user['isNew'] : ", req.user['isNew']);
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
             await res.cookie('access_token', accessToken, {httpOnly: true});
             await this.userService.updateParams(user.id, {
-                isOnline: true
+                isOnline: 1
             });
             if (auth === true) {
 
@@ -115,7 +114,6 @@ export class AuthController{
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
-            console.log('___ /auth/status')
             try {
                 if (req.cookies.access_token) {
                     let payload: any = await this.authService.verifyToken(req.cookies.access_token);
@@ -139,7 +137,7 @@ export class AuthController{
             if (!user)
                 throw new UnauthorizedException('User does not exists');
             await this.userService.updateParams(logged_user.id, {
-                isOnline: false
+                isOnline: 0
             });
             resp.clearCookie('access_token');
             resp.clearCookie('access_token_2fa');

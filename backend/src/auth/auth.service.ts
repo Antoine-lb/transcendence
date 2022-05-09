@@ -48,7 +48,6 @@ export class AuthService {
 
   // ajoute un arg a get token to know whether it's a 2fa token
   public getCookieWithToken(id: number, isTwoFAAuthenticated = false) {
-		// console.log('___ getCookieWithToken()')
     const payload: TokenPayload = { id, isTwoFAAuthenticated };
     const token = this.jwtService.sign(payload, {
       secret: 'REPLACE_THIS_SECRET',

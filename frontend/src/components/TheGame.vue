@@ -46,7 +46,6 @@ export default {
   },
   created() {
     this.socketSetter();
-    console.log(`created`);
   },
   mounted(){
     console.log(`mounted`);
