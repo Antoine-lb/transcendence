@@ -3,7 +3,7 @@ import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
-import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
+import { ParseIntPipe, NotFoundException, BadRequestException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
@@ -79,7 +79,6 @@ export class UserController {
     @Post('/me/upload-avatar') // 'file' = valeur de la variable a envoyer dans le POST
     @UseInterceptors(FileInterceptor('file', uploadOptions))
     async uploadImage(@UploadedFile() file, @Request() req): Promise<any> {
-      console.log("uploaded file : ", file);
       const user: UserEntity = req.user;
       if (!user)
         throw new NotFoundException('User not found')
@@ -87,10 +86,8 @@ export class UserController {
       {
         throw new UnsupportedMediaTypeException('Upload: file not valid')
       }
-      // console.log("...deleting and saving to database")
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join('/public/uploads/' + file.filename)
-      console.log("filepath (upload): ", filepath)
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
  
@@ -100,7 +97,6 @@ export class UserController {
       const user= this.userService.findById(req.user.id);
       if (!user)
         throw new NotFoundException('User not found')
-      // console.log('(/me/avatar) filepath : ', req.user.avatar)
       if (await this.userService.fileExists(req.user.avatar) == false)
         throw new NotFoundException('Cannot display avatar - File does not exists')
       return res.sendFile(req.user.avatar);
@@ -110,9 +106,11 @@ export class UserController {
     @Post('/me/update-username')
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
-      // console.log('/me/update-username')
       if (!username)
         throw new NotFoundException('Username not received')
+      var check = await this.userService.checkUsernameChars(username)
+      if (check == false)
+        throw new BadRequestException('Allowed characters : alphanummeric and underscore')
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found 1')
@@ -149,14 +147,11 @@ export class UserController {
         throw new NotFoundException('User not found')
       var defaultfile = await join('/public/avatar_default.png')
       var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
-      console.log("defaultpath : ", defaultpath)
-      console.log("defaultfile : ", defaultfile)
       if (await this.userService.fileExists(defaultpath) == false)
         throw new NotFoundException('Cannot set default avatar - File does not exists')
       // update le user avec l'avatar
       await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
       await res.send({ user: req.user });
-      // console.log(res)
       return res
       // ou redirige pour eviter une pending request
       // res.redirect('/api/users/me');

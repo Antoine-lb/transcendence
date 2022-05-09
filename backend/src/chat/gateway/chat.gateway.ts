@@ -53,8 +53,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
    }
 
   async handleConnection(socket: Socket, payload: string) {
-    // console.log(`hello from chat`);
-
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
       const user = await this.userService.findById(decodedToken.id);
@@ -68,7 +66,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         // Save connection to database 
         await this.connectedUserService.create({ socketID: socket.id, user });
         // Only emit rooms to the specific connected client
-        // console.log(">>>>>> handleConnection");
         this.server.to(socket.id).emit('rooms', myRooms)
         this.server.to(socket.id).emit('getRoomsForUser', myRooms)
       }
@@ -79,7 +76,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   async emitRoomsForConnectedUsers(room: RoomI) {
-    // console.log(">>>>>> emitRoomsForConnectedUsers");
     const users = await this.userRoomService.getUsersForRoom(room);
     for (const user of users) {
       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
@@ -92,7 +88,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   async emitRoomsForOneUser(socket: Socket, user: UserDto) {
-    // console.log(">>>>>> emitRoomsForOneUser");
     const rooms = await this.userRoomService.getAllRoomsForUser(user);
     await this.server.to(socket.id).emit('rooms', rooms);
     await this.server.to(socket.id).emit('getRoomsForUser', rooms);
@@ -131,7 +126,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
-    // TODO : Check validity of all users before create the room
     const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
     await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
     await this.emitRoomsForConnectedUsers(newRoom);
@@ -146,16 +140,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('quitRoom')
   async onQuitRoom(socket: Socket, { room, user }) {
-    // TODO : Check validity of all users before create the room
-    await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
-    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
-    await this.emitRoomsForConnectedUsers(room);
-    await this.emitRolesForConnectedUsers(room);
+    // TODO : Check validity of all users before quit the room
+    try {
+      await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
+      await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+      await this.emitRoomsForConnectedUsers(room);
+      await this.emitRolesForConnectedUsers(room);
+    }
+    catch {
+      await this.server.to(socket.id).emit('errorQuitRoom');
+    }
+
   }
 
   @SubscribeMessage('enterRoom')
   async onEnterRoom(socket: Socket, { room, user }) {
-    // TODO : Check validity of all users before create the room
+    // TODO : Check validity of all users before enter the room
     await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
     await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
     await this.emitRoomsForConnectedUsers(room);
@@ -164,9 +164,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
-    // console.log(">>>>>> onSelectRoom");
     if (room.protected == true) {
-      console.log(">>>>>> room is protected");
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
@@ -230,6 +228,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  @SubscribeMessage('getAllInformation')
+  async onGetAllInformation(socket: Socket, user: UserDto) {
+     return await this.emitRoomsForOneUser(socket, user);
+  }
+
   @SubscribeMessage('getRoles')
   async onGetRoles(socket: Socket, room: RoomI) {
 
@@ -282,6 +285,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
     // Send New Message to all joineds Users (online on the room)
+    // console.log("joinedUsers : ", joinedUsers);
     for (const user of joinedUsers) {
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
@@ -305,7 +309,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('sendInvit')
     async sendInvit(socket: Socket, [user_defié , user_defiant]) {
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
-      // console.log(`mySocket : ${socket.id}, opponentSocket :  ${opponentSocket[0].socketID}`);
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
     }
     

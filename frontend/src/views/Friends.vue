@@ -157,7 +157,7 @@ export default {
     addFriend: async function (username) {
       this.loading = true;
       if (this.userStore.user.username === username) {
-        this.showAddFriendError = "Cannot add your-self";
+        this.showAddFriendError = "Cannot add yourself";
         this.loading = false;
         return;
       }

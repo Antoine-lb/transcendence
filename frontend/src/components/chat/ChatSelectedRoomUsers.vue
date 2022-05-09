@@ -17,7 +17,7 @@ export interface UserInterface {
   avatar: string;
   isTwoFA: boolean;
   secret?: string;
-  isOnline: boolean;
+  isOnline: number;
 }
 
 export enum UserRoomRole {
@@ -56,6 +56,7 @@ export default {
     socket: Object,
     userRolesInRoom: Object,
     usersForRoom: Object,
+    errorQuitRoom: String,
   },
   components: {},
   methods: {
@@ -112,26 +113,28 @@ export default {
     sendInvit(user) {
       console.log(`sendInvit`, user);
       this.socket.emit("sendInvit", user, this.user);
-      // this.socket.emit("testGame");
     },
     quitRoom() {
-      console.log("this.usersForRoom", this.usersForRoom);
-      console.log("this.usersForRoom", this.usersForRoom.length);
       this.socket.emit("quitRoom", {
         room: this.selectedRoom,
         user: this.user,
       });
-      location.reload();
+      // location.reload();
     },
   },
-  async created() {},
+  async created() {
+    this.socket.on("errorQuitRoom", () => {
+      this.$emit("updateError", "You can't leave room if you are owner and the last person in it");
+    });
+  },
 };
 </script>
 
 
 <template>
   <div>
-    <div v-if="this.selectedRoom?.name" class="box">
+    <div v-if="this.selectedRoom?.name && getRole(this.user) != 'banned'" class="box">
+      <div v-if="errorQuitRoom && errorQuitRoom.length" class="bold-red"> {{ errorQuitRoom }} </div>
       <h1>Users in {{ this.selectedRoom?.name }}</h1>
       <div v-for="role in roles" class="users-list" :key="role">
         <div v-if="role != 'banned' || isAdmin(this.user)">
@@ -163,7 +166,7 @@ export default {
                 </span>
                 <span v-if="role != 'owner'">
                   <button
-                    v-if="isAdmin(this.user)"
+                    v-if="isOwner(this.user) || (isAdmin(this.user) && !isAdmin(user))"
                     class="new-room-button"
                     @click="banUser(this.selectedRoom, user)"
                   >

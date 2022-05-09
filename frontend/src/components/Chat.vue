@@ -1,6 +1,4 @@
 <script lang="ts">
-import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
 import ChatCreateRoom from "./chat/ChatCreateRoom.vue";
 import ChatMyRooms from "./chat/ChatMyRooms.vue";
 import ChatGame from "./chat/ChatGame.vue";
@@ -33,7 +31,7 @@ export interface UserInterface {
   avatar: string;
   isTwoFA: boolean;
   secret?: string;
-  isOnline: boolean;
+  isOnline: number;
 }
 
 export enum UserRoomRole {
@@ -55,12 +53,13 @@ export default {
       userRolesInRoom: [], // all roles in current room
       usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
       blockedFriends: [],
+      errorQuitRoom: "",
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
-  },
+  // setup() {
+  //   const userStore = useUserStore();
+  //   return { userStore };
+  // },
   props: {
     user: Object,
     socket: Object,
@@ -73,21 +72,27 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
-    ChatCreatePrivateRoom
+    ChatCreatePrivateRoom,
   },
   methods: {
     createRoom(room: newRoomInterface) {
       this.socket.emit("createRoom", room);
+      this.errorQuitRoom = "";
     },
     updateSelected(room: RoomI) {
+      this.errorQuitRoom = "";
       if (this.selectedRoom && room.id == this.selectedRoom.id)
         this.selectedRoom = {};
       else this.selectedRoom = room;
     },
     refreshSelected(room: RoomI) {
+      this.errorQuitRoom = "";
       this.socket.emit("getRoles", room);
       this.selectedRoom = room;
     },
+    updateError(error) {
+      this.errorQuitRoom = error;
+    }
   },
   async created() {
     // this.socket = io("http://127.0.0.1:3000", {
@@ -112,6 +117,7 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
     });
+    this.socket.emit("getAllInformation", this.user);
   },
 };
 </script>
@@ -120,6 +126,7 @@ export default {
     <div class="chat-container">
       <div class="chat-side">
         <ChatMyRooms
+          v-if="userRooms && userRooms.length"
           @updateSelected="updateSelected"
           :socket="this.socket"
           :selectedRoom="this.selectedRoom"
@@ -128,15 +135,25 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatAvailableRooms
+          v-if="userRooms && userRooms.length"
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatCreateRoom @onSubmit="createRoom" />
-        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
+        <ChatGame
+          :selectedRoom="this.selectedRoom"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
         <ChatSelectedRoomChat
           :selectedRoom="this.selectedRoom"
           :blockedFriends="this.blockedFriends"
@@ -153,6 +170,8 @@ export default {
           :user="user"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
+          :errorQuitRoom="this.errorQuitRoom"
+          @updateError="updateError"
         />
         <ChatSelectedRoomParams
           @refreshSelected="refreshSelected"
@@ -165,20 +184,6 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
       </div>
-    </div>
-
-    <div>
-      <hr />
-      <!-- @refreshSelected="refreshSelected" -->
-      <ChatGame
-        :selectedRoom="this.selectedRoom"
-        :usersForRoom="this.usersForRoom"
-        :userRolesInRoom="this.userRolesInRoom"
-        :socket="this.socket"
-        :user="user"
-        :userRooms="this.userRooms"
-        :userRoomsRoles="this.userRoomsRoles"
-      />
     </div>
   </div>
 </template>

@@ -1,6 +1,5 @@
 <script lang="ts">
 import { ref, onMounted } from "vue";
-import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -46,15 +45,14 @@ export default {
   },
   created() {
     this.socketSetter();
-    console.log(`created`);
   },
-  mounted(){
+  mounted() {
     console.log(`mounted`);
-    this.reset()
+    this.reset();
   },
   unmounted() {
     this.socket.removeAllListeners();
-    console.log('unmounted');
+    console.log("unmounted");
   },
 
   methods: {
@@ -93,7 +91,7 @@ export default {
       });
     },
 
-    joinQueue(playWithPowerUP : boolean) {
+    joinQueue(playWithPowerUP: boolean) {
       this.socket.emit("joinQueue", playWithPowerUP);
       this.gameState = "play";
     },
@@ -104,19 +102,21 @@ export default {
 
     invitationRecu(adversaire, code) {
       console.log(`Ds invitation Reçu room : ${code}`);
-      if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
-        this.socket.emit('newGame', code);
-        this.socket.emit('acceptInvit', adversaire, code);
+      if (
+        confirm(
+          adversaire.username + ", vous défie au pong : lancer la partie ?"
+        )
+      ) {
+        this.socket.emit("newGame", code);
+        this.socket.emit("acceptInvit", adversaire, code);
         this.$router.push("Chat");
-      }
-      else
-        this.socket.emit('declineGameInvit', adversaire);
+      } else this.socket.emit("declineGameInvit", adversaire);
     },
-    
-    acceptInvit (roomCode) {
-        console.log(">>>>>> acceptInvitGame (game) roomCode : ", roomCode);
-        // await this.startGameAnimation()
-        this.socket.emit('joinGame', roomCode);
+
+    acceptInvit(roomCode) {
+      console.log(">>>>>> acceptInvitGame (game) roomCode : ", roomCode);
+      // await this.startGameAnimation()
+      this.socket.emit("joinGame", roomCode);
     },
 
     handleJoinGame() {
@@ -242,7 +242,7 @@ export default {
 
     handleInit(number) {
       console.log(`handleInit`);
-      
+
       this.playerNumber = number;
       this.init();
     },
@@ -319,21 +319,21 @@ export default {
     reset() {
       this.gameStatus = "idle";
       this.playerNumber = null;
-      this.gameCodeInput.value = "";
-      this.gameCodeSpec.value = "";
+      if (this.gameCodeInput) this.gameCodeInput.value = "";
+      if (this.gameCodeSpec) this.gameCodeSpec.value = "";
       this.initialScreen.style.display = "block";
       this.gameScreen.style.display = "none";
       this.msgBox.innerText = "";
     },
     liveGame() {
-      this.socket.emit('getLiveGame', (response) => {
-      console.log(response)  
-      })
+      this.socket.emit("getLiveGame", (response) => {
+        console.log(response);
+      });
     },
     pushLiveGame(liveGame) {
-      console.log('ds pushLiveGame');
+      console.log("ds pushLiveGame");
       console.log(liveGame);
-    }
+    },
   },
 };
 </script>
@@ -351,62 +351,14 @@ export default {
             h-100
           "
         >
-          <h1>Multiplayer Pong Game</h1>
-          <h1>
-            myRoom is :
-            {{ this.socket != null ? this.socket.id : "Undefined yet" }}
-          </h1>
           <div>
-            <button type="submit" class="btn btn-success" @click="liveGame">
-              liveGame
-            </button>
-            <button type="submit" class="btn btn-success" @click="joinQueue(false)">
+            <button type="submit" class="pwd-btn" @click="joinQueue(false)">
               Play Basic Pong
             </button>
-            <button type="submit" class="btn btn-success" @click="joinQueue(true)">
+            <button type="submit" class="pwd-btn" @click="joinQueue(true)">
               Play PowerUP Pong!!!
             </button>
           </div>
-          <div>OR</div>
-          <div>
-            <button
-              type="submit"
-              class="btn btn-success"
-              @click="createNewGame"
-            >
-              Create Game code
-            </button>
-          </div>
-
-          <div class="form-group">
-            <input
-              type="text"
-              placeholder="Enter Game Code"
-              ref="gameCodeInput"
-            />
-          </div>
-          <button
-            type="submit"
-            class="btn btn-success"
-            v-on:click="handleJoinGame"
-          >
-            Join Game
-          </button>
-
-          <div class="form-groupp">
-            <input
-              type="text"
-              placeholder="Enter Game Codee"
-              ref="gameCodeSpec"
-            />
-          </div>
-          <button
-            type="submit"
-            class="btn btn-success"
-            v-on:click="handleSpecGame"
-          >
-            Spec Game
-          </button>
         </div>
       </div>
 
@@ -449,7 +401,7 @@ export default {
             v-if="!this.gameActive"
             v-on:click="reset"
           >
-           ← Go back ←
+            ← Go back ←
           </button>
         </div>
         <div class="chat">
@@ -494,12 +446,27 @@ textarea {
   margin: 10px;
 }
 .message-box {
-  overflow: hidden; 
+  overflow: hidden;
   border: 3px solid #703ab8;
   border-radius: 13px;
   width: 100%;
   height: 300%;
   padding: 10px;
   margin: 10px;
+}
+
+.pwd-btn {
+  background-color: white;
+  border: none;
+  color: #703ab8;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 3px;
+  padding: 6px 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-top: 10px;
+  margin: 10px;
+  border: 2px solid #703ab8;
 }
 </style>

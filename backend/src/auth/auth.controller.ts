@@ -27,10 +27,19 @@ export class AuthController{
         @Get('/login')
         async login(@Res() res: Response, @Req() req: Request) {
             if (req.cookies && req.cookies['access_token']) {
-                if (this.authService.verifyToken(req.cookies['access_token']))
-                    res.status(302).redirect('http://127.0.0.1:8080')
-                else
-                    res.status(302).redirect('/api/auth/callback')
+                try {
+                    if (this.authService.verifyToken(req.cookies['access_token']))
+                        res.status(302).redirect('http://127.0.0.1:8080')
+                    else
+                        res.status(302).redirect('/api/auth/callback')
+                }
+                catch {
+                    // console.log("catch token 1")
+                    res.clearCookie('access_token');
+                    res.clearCookie('access_token_2fa'); 
+                    return res.status(302).redirect('http://127.0.0.1:8080')
+                }
+
             }
             else res.status(302).redirect('/api/auth/callback')
         }
@@ -44,13 +53,22 @@ export class AuthController{
             var is_2fa_logged = false;
             if (req.cookies)
             {
-                if (req.cookies['access_token'])
-                    if (await this.authService.verifyToken(req.cookies['access_token']))
-                        is_logged = true;
-                if (req.cookies['access_token_2fa']) // TO DO : properly verify token
+                try
                 {
-                    if (await this.authService.verifyToken(req.cookies['access_token_2fa']))
-                        is_2fa_logged = true;
+                    if (req.cookies['access_token'])
+                        if (await this.authService.verifyToken(req.cookies['access_token']))
+                            is_logged = true;
+                    if (req.cookies['access_token_2fa']) // TO DO : properly verify token
+                    {
+                        if (await this.authService.verifyToken(req.cookies['access_token_2fa']))
+                            is_2fa_logged = true;
+                    }
+                }
+                catch {
+                    // console.log("catch token 2")
+                    res.clearCookie('access_token');
+                    res.clearCookie('access_token_2fa'); 
+                    return res.status(302).redirect('http://127.0.0.1:8080')
                 }
             }
             return await res.status(200).send({logged : is_logged, logged_2fa: is_2fa_logged });
@@ -65,16 +83,17 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
+            if (!req.user || !req.user['username'])
+                return res.redirect('http://127.0.0.1:8080/');
             const user = await this.userService.findByName(req.user['username']);
             if (!user)
                 throw new UnauthorizedException('User does not exists');
-            // console.log("req.user['isNew'] : ", req.user['isNew']);
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
             await res.cookie('access_token', accessToken, {httpOnly: true});
             await this.userService.updateParams(user.id, {
-                isOnline: true
+                isOnline: 1
             });
             if (auth === true) {
 
@@ -95,7 +114,6 @@ export class AuthController{
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
-            console.log('___ /auth/status')
             try {
                 if (req.cookies.access_token) {
                     let payload: any = await this.authService.verifyToken(req.cookies.access_token);
@@ -103,7 +121,12 @@ export class AuthController{
                     isTwoFaAuthenticated = req.user.two_factor_auth ? payload.is_2fa_valid : true;
                     isAuthenticated = true;
                 }
-            } catch (e) {}
+            } catch (e) {
+                // console.log("catch token 3")
+                resp.clearCookie('access_token');
+                resp.clearCookie('access_token_2fa'); 
+                return resp.status(302).redirect('http://127.0.0.1:8080')
+            }
             resp.send({ isTwoFaAuthenticated, isAuthenticated, user: req.user });
         }
 
@@ -114,7 +137,7 @@ export class AuthController{
             if (!user)
                 throw new UnauthorizedException('User does not exists');
             await this.userService.updateParams(logged_user.id, {
-                isOnline: false
+                isOnline: 0
             });
             resp.clearCookie('access_token');
             resp.clearCookie('access_token_2fa');

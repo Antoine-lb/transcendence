@@ -1,6 +1,5 @@
 <script lang="ts">
-import { ref, onMounted } from 'vue'
-import { useUserStore } from "../../stores/userStore";
+import { ref, onMounted } from "vue";
 
 export interface RoomI {
   created_date: string;
@@ -16,25 +15,23 @@ export interface RoomI {
 
 export default {
   name: "ChatGame",
-   setup() {
-      const userStore = useUserStore();
-      const gameCodeInput = ref(null)
-      const gameCodeSpec = ref(null)
+  setup() {
+    const gameCodeInput = ref(null);
+    const gameCodeSpec = ref(null);
 
-      const msgBox = ref(null)
-      const canvas = ref(null)
-      onMounted(() => {
-        // the DOM element will be assigned to the ref after initial render
-      })
+    const msgBox = ref(null);
+    const canvas = ref(null);
+    onMounted(() => {
+      // the DOM element will be assigned to the ref after initial render
+    });
 
-      return {
-        gameCodeInput,
-        gameCodeSpec,
-        msgBox,
-        canvas,
-        userStore,
-      }
-    },
+    return {
+      gameCodeInput,
+      gameCodeSpec,
+      msgBox,
+      canvas,
+    };
+  },
   props: {
     user: Object, // = this.user
     userRooms: Object,
@@ -49,15 +46,15 @@ export default {
   data() {
     return {
       title: "Game Room",
-      score : {},
-      gameStatus : String("idle"),
+      score: {},
+      gameStatus: String("idle"),
       ctx: null,
       msg: String(''),
       gameActive : Boolean(false),
       liveGame : {},
     };
   },
-  created () {
+  created() {
     this.socketSetter();
   },
   mounted() {
@@ -69,7 +66,9 @@ export default {
 
   methods: {
     socketSetter() {
-      this.socket.on("connect", () => {this.gameStatus = "idle"})
+      this.socket.on("connect", () => {
+        this.gameStatus = "idle";
+      });
       this.socket.on("init", this.handleInit);
       this.socket.on("invit", this.invitationRecu);
       // this.socket.on("joinGame", this.handleJoinGame);
@@ -87,7 +86,7 @@ export default {
           // console.log("the disconnection was initiated by the server, you need to reconnect manually")
           // this.socket.connect();
         }
-      // else the socket will automatically try to reconnect
+        // else the socket will automatically try to reconnect
       });
       this.socket.on("pushLiveGame", (liveGame) => {this.liveGame = liveGame});
 
@@ -129,7 +128,7 @@ export default {
 
     handleJoinGame() {
       const code = this.gameCodeInput.value;
-      this.socket.emit('joinGame', code);
+      this.socket.emit("joinGame", code);
     },
 
     handleSpecGame(code) {
@@ -142,7 +141,7 @@ export default {
       this.ctx = this.canvas.getContext("2d");
       this.canvas.width = 750;
       this.canvas.height = 590;
-      this.ctx.fillStyle = "#231f20";
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
       document.addEventListener("keydown", this.keydown);
@@ -151,35 +150,32 @@ export default {
     },
 
     keydown(e) {
-      if (!this.socket.connected)
-        return;
+      if (!this.socket.connected) return;
       this.socket.emit("keydown", e.keyCode);
-      if (e.key == 'd')
-        this.socket.disconnect();
-      if (e.key == 'f')
-        this.socket.connect();
     },
 
     keyup(e) {
-      if (!this.socket.connected)
-        return;
+      if (!this.socket.connected) return;
       this.socket.emit("keyup", e.keyCode);
     },
 
-    async startGameAnimation()
-    {
+    async startGameAnimation() {
       for (let cntDown = 5; cntDown > 0; --cntDown)
         for (let index = 0; index < 100; ++index) {
           this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-          this.ctx.font = (index).toString() + "px Calibri,Geneva,Arial";
+          this.ctx.font = index.toString() + "px Calibri,Geneva,Arial";
           this.ctx.strokeStyle = "rgb(0,0,0)";
-          this.ctx.strokeText(String(cntDown), this.canvas.width / 3 - index / 3, this.canvas.height / 3 + index / 3);
+          this.ctx.strokeText(
+            String(cntDown),
+            this.canvas.width / 3 - index / 3,
+            this.canvas.height / 3 + index / 3
+          );
           await this.sleep(10);
         }
     },
 
     sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+      return new Promise((resolve) => setTimeout(resolve, ms));
     },
 
     paintGame(state) {
@@ -187,27 +183,28 @@ export default {
       // clear canvas
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // draw paddles
-      this.ctx.fillStyle = "black";
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(grid, state.players[0].y, 15, state.players[0].paddleH);
-      this.ctx.fillRect(this.canvas.width - 2 * grid,state.players[1].y, 15, state.players[1].paddleH);
+      this.ctx.fillRect(
+        this.canvas.width - 2 * grid,
+        state.players[1].y,
+        15,
+        state.players[1].paddleH
+      );
 
       // draw walls
-      this.ctx.fillStyle = "lightgrey";
+      this.ctx.fillStyle = "#e4d8f5";
       this.ctx.fillRect(0, 0, this.canvas.width, grid);
-      this.ctx.fillRect( 0, this.canvas.height - grid, this.canvas.width, this.canvas.height);
+      this.ctx.fillRect(
+        0,
+        this.canvas.height - grid,
+        this.canvas.width,
+        this.canvas.height
+      );
 
       // draw dotted line down the middle
-      for (
-        let i = grid;
-        i < this.canvas.height - grid;
-        i += grid * 2
-      ) {
-        this.ctx.fillRect(
-          this.canvas.width / 2 - grid / 2,
-          i,
-          grid,
-          grid
-        );
+      for (let i = grid; i < this.canvas.height - grid; i += grid * 2) {
+        this.ctx.fillRect(this.canvas.width / 2 - grid / 2, i, grid, grid);
       }
       // draw ball
       this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
@@ -223,12 +220,21 @@ export default {
       // draw scrore
       this.ctx.font = "20pt Calibri,Geneva,Arial";
       this.ctx.strokeStyle = "rgb(0,0,0)";
-      this.ctx.strokeText(String(this.score.p1), this.canvas.width / 2 - 40, 40);
-      this.ctx.strokeText(String(this.score.p2), this.canvas.width / 2 + 25, 40);
+      this.ctx.strokeText(
+        String(this.score.p1),
+        this.canvas.width / 2 - 40,
+        40
+      );
+      this.ctx.strokeText(
+        String(this.score.p2),
+        this.canvas.width / 2 + 25,
+        40
+      );
     },
 
-    receiveMsg(msg) { // Sig : "broadcastMsg"
-      this.msgBox.innerText += '\n' + msg;
+    receiveMsg(msg) {
+      // Sig : "broadcastMsg"
+      this.msgBox.innerText += "\n" + msg;
       this.msgBox.scrollTop = this.msgBox.scrollHeight;
     },
 
@@ -244,7 +250,8 @@ export default {
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
       console.log("this.gameStatus : ", this.gameStatus);
-      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")// c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
+      if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
+        // c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
     },
 
@@ -259,18 +266,18 @@ export default {
       this.gameActive = false;
       if (data.winner === this.playerNumber) {
         this.$notify({
-          position : "center",
+          position: "center",
           title: "Congratulations !!",
           text: "You Won :)",
-          duration : 6000
-      });
+          duration: 6000,
+        });
       } else {
         this.$notify({
-          position : "center",
+          position: "center",
           title: "Try Again !!",
           text: "You Loose :(",
-          duration : 6000
-      });
+          duration: 6000,
+        });
       }
     },
 
@@ -289,14 +296,17 @@ export default {
       this.$notify({
         title: "Important message",
         text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
-        duration : 6000
+        duration: 6000,
       });
       // alert("Your Opponent disconnected, you can wait till he come back or claim victory");
     },
 
     handlePause(msg) {
-      console.log(`%c your opponent paused ${msg}`, 'background: #222; color: #bada55')
-      this.socket.emit('pause');
+      console.log(
+        `%c your opponent paused ${msg}`,
+        "background: #222; color: #bada55"
+      );
+      this.socket.emit("pause");
     },
 
     handleNotification(msg) {
@@ -308,27 +318,23 @@ export default {
       this.gameCodeInput.value = "";
       this.gameCodeSpec.value = "";
     },
-
-      isplaying() {
-        return (this.gameStatus = 'playing');
-    },
   },
 };
 </script>
 
 <template>
-  <section class="vh-100">
+  <section class="">
     <div class="container h-100">
-      <div class="d-flex flex-column align-items-center justify-content-center h-100">
-          <h1>Multiplayer Pong Game</h1>
+      <div class="">
+        <!-- <h1>Multiplayer Pong Game</h1> -->
       </div>
       <li style="list-style: none;" v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
         <span  v-if="this.gameStatus !== 'playing'">{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
       </li>
       <div class="h-100">
-        <div class="d-flex flex-column align-items-center justify-content-center h-100">
-          <canvas ref="canvas"></canvas>
-          
+        <div class="" style="display: flex">
+          <canvas ref="canvas" class="game-canvas"></canvas>
+
           <button
             v-if="this.gameStatus !== 'idle'"
             type="submit"
@@ -336,7 +342,7 @@ export default {
             ref="pauseButton"
             v-on:click="handlePause"
           >
-          pause {{this.gameStatus}}
+            pause {{ this.gameStatus }}
           </button>
 
           <button
@@ -346,7 +352,7 @@ export default {
             ref="notifyButton"
             v-on:click="claimVictory"
           >
-          claimVictory
+            claimVictory
           </button>
         </div>
       </div>
@@ -355,4 +361,12 @@ export default {
 </template>
 
 <style scoped>
+.game-canvas {
+  margin: auto;
+  width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(120, 61, 204, 0.92), 0 0 30px rgba(94, 14, 206, 0.34),
+    0 0 12px rgba(211, 193, 236, 0.52), 0 0 21px rgba(211, 193, 236, 0.92),
+    0 0 34px rgba(211, 193, 236, 0.78), 0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+}
 </style>
