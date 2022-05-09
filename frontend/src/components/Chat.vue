@@ -138,6 +138,15 @@ export default {
         <ChatCreatePrivateRoom @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
+        <ChatGame
+          :selectedRoom="this.selectedRoom"
+          :usersForRoom="this.usersForRoom"
+          :userRolesInRoom="this.userRolesInRoom"
+          :socket="this.socket"
+          :user="user"
+          :userRooms="this.userRooms"
+          :userRoomsRoles="this.userRoomsRoles"
+        />
         <ChatSelectedRoomChat
           :selectedRoom="this.selectedRoom"
           :blockedFriends="this.blockedFriends"
@@ -166,18 +175,6 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
       </div>
-    </div>
-
-    <div>
-      <ChatGame
-        :selectedRoom="this.selectedRoom"
-        :usersForRoom="this.usersForRoom"
-        :userRolesInRoom="this.userRolesInRoom"
-        :socket="this.socket"
-        :user="user"
-        :userRooms="this.userRooms"
-        :userRoomsRoles="this.userRoomsRoles"
-      />
     </div>
   </div>
 </template>
