@@ -329,18 +329,17 @@ export default {
 <template>
   <section class="">
     <div class="container h-100">
-      <div class="">
-        <!-- <h1>Multiplayer Pong Game</h1> -->
-      </div>
-      <div style="margin-bottom: 20px">
+      <div style="margin-bottom: 30px">
         <div
           v-for="(game, index) in this.liveGame"
           :key="game.liveGame"
           v-on:click="handleSpecGame(index)"
           :title="index"
+          class="list"
         >
-          <span v-if="this.gameStatus !== 'playing'"
-            >{{ game.player1 }} VS {{ game.player2 }}
+          <span v-if="this.gameStatus !== 'playing'">
+            👾 Join <strong>{{ game.player1 }}</strong> and
+            <strong>{{ game.player2 }}</strong> game
           </span>
         </div>
       </div>
@@ -355,7 +354,7 @@ export default {
             ref="pauseButton"
             v-on:click="handlePause"
           >
-            pause {{ this.gameStatus }}
+            ⏸ Pause {{ this.gameStatus }}
           </button>
 
           <button
@@ -400,5 +399,17 @@ export default {
 
 .live-game {
   padding: 10px;
+}
+
+.list {
+  text-decoration: underline;
+  font-size: large;
+  /* text-transform: capitalize; */
+}
+
+strong {
+  /* font-size: 40px; */
+  text-transform: capitalize;
+  font-weight: 600;
 }
 </style>
