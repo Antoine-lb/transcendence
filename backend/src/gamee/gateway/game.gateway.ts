@@ -211,26 +211,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      // --------------------- Status -----------------------------
-      const clients = this.server.sockets.adapter.rooms.get(roomName);
-      //to just change the status to all members of a room and emit to all there friends
-      for (const clientId of clients) {
-          
-        // this is the socket of each client in the room.
-        const clientSocket = this.server.sockets.sockets.get(clientId);
-                  
-        this.userService.updateUserStatus(clientSocket.data.user.id, 2);
-          
-        const users = await this.friendService.getFriends(clientSocket.data.user);
-        for (const user of users) {
-          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-          for (const connection of connections) {
-            this.server.to(connection.socketID).emit('status', 2, clientSocket.data.user.id);
-          }
-        }
-      }
-      // -----------------------------------------------------------
-      
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
       this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
@@ -240,6 +220,33 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.join(roomName);
       // init the front for player 2
       socket.emit('init', 2);
+
+      // --------------------- Status -----------------------------
+      const clients = this.server.sockets.adapter.rooms.get(roomName);
+      
+
+      //to just change the status to all members of a room and emit to all there friends
+      for (const clientId of clients) {
+                  
+        // this is the socket of each client in the room.
+        const clientSocket = this.server.sockets.sockets.get(clientId);
+                            
+        this.userService.updateUserStatus(clientSocket.data.user.id, 2);
+    
+                    
+        const users = await this.friendService.getFriends(clientSocket.data.user);
+          
+        for (const user of users) {
+          
+          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+          for (const connection of connections) {
+            console.log(clientSocket.data.user);
+            this.server.to(connection.socketID).emit('status', 2, clientSocket.data.user.id);
+          }
+        }
+      }
+      // -----------------------------------------------------------
+
       // Animation to warn players the game is starting
       this.server.to(roomName).emit('startGameAnimation')
     // set the creator to player mode
@@ -408,7 +415,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // this is the socket of each client in the room.
       const clientSocket = this.server.sockets.sockets.get(clientId);
                         
-      this.userService.updateUserStatus(clientSocket.data.user.id, 2);
+      this.userService.updateUserStatus(clientSocket.data.user.id, 1);
                 
       const users = await this.friendService.getFriends(clientSocket.data.user);
       
@@ -416,7 +423,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       
         const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
         for (const connection of connections) {
-        this.server.to(connection.socketID).emit('status', 2, clientSocket.data.user.id);
+        this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
         }
       }
     }
