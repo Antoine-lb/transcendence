@@ -85,7 +85,6 @@ export default {
       this.loading = false;
     },
     fetchBlockedFriends: async function () {
-      console.log(">>>>>> fetchBlockedFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -229,9 +228,9 @@ export default {
       v-if="isFriend()"
     >
       <!-- {{ user.username }} is {{ this.onlineStatus }} -->
-      <span v-if="isFriend() == 0">{{ user.username }} is offline 🔘​ </span>
-      <span v-if="isFriend() == 1">{{ user.username }} is online 🟢​ ​</span>
-      <span v-if="isFriend() == 2">{{ user.username }} is playing 👾 </span>
+      <span v-if="this.onlineStatus == 0">{{ user.username }} is offline 🔘​ </span>
+      <span v-if="this.onlineStatus == 1">{{ user.username }} is online 🟢​ ​</span>
+      <span v-if="this.onlineStatus == 2">{{ user.username }} is playing 👾 </span>
     </p>
     <p class="txt">{{ getFriendshipStatus() }}</p>
     <button
