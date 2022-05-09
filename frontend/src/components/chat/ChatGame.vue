@@ -103,6 +103,7 @@ export default {
         console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
+        this.gameStatus = "playing"
       });
 
       this.socket.on("declineGameInvit", () => {
@@ -116,6 +117,7 @@ export default {
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
         this.socket.emit('acceptInvit', adversaire, code);
+        this.gameStatus = "playing"
       }
       else
         this.socket.emit('declineGameInvit', adversaire);
@@ -283,7 +285,7 @@ export default {
     },
 
     handleDisconnection() {
-      this.gameStatus = "opponentLeft"
+      // this.gameStatus = "opponentLeft"
       this.$notify({
         title: "Important message",
         text: "Your opponent disconnected\nYou can wait till he come back or claim victory",
@@ -306,6 +308,10 @@ export default {
       this.gameCodeInput.value = "";
       this.gameCodeSpec.value = "";
     },
+
+      isplaying() {
+        return (this.gameStatus == 'playing');
+    },
   },
 };
 </script>
@@ -316,13 +322,18 @@ export default {
       <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <h1>Multiplayer Pong Game</h1>
       </div>
-      <ul id="liveGame" >  <!-- :if="this.gameStatus === 'opponentLeft'" -->
-        <li v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
-          <!-- {{ this.liveGame }} <br> -->
-          <!-- {{ game }} <br> -->
-          <span >{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
-        </li>
-      </ul>
+      !== : {{ this.gameStatus !== 'playing'}}
+      != : {{ isplaying() }}
+      <div v-if="isplaying == false">
+         <ul id="liveGame" >
+           <li v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
+             <!-- {{ this.liveGame }} <br> -->
+             <!-- {{ game }} <br> -->
+             {{ this.gameStatus !== 'playing'}}
+             <span >{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
+           </li>
+         </ul>
+      </div>
       <div class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <canvas ref="canvas"></canvas>
