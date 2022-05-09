@@ -166,7 +166,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onSelectRoom(socket: Socket, { room, password }) {
     // console.log(">>>>>> onSelectRoom");
     if (room.protected == true) {
-      console.log(">>>>>> room is protected");
        if (!password) {
          socket.emit('WrongPassword', new UnauthorizedException());
          return;
@@ -281,14 +280,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
  
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, { message, role }) {
-    console.log(">>>>>> addMessage");
     if (role == UserRoomRole.MUTED)
       return;
     const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
     const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
     const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
     // Send New Message to all joineds Users (online on the room)
-    console.log("joinedUsers : ", joinedUsers);
+    // console.log("joinedUsers : ", joinedUsers);
     for (const user of joinedUsers) {
       await this.server.to(user.socketID).emit('messageAdded', createdMessage);
     }
