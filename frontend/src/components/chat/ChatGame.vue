@@ -310,7 +310,7 @@ export default {
     },
 
       isplaying() {
-        return (this.gameStatus == 'playing');
+        return (this.gameStatus = 'playing');
     },
   },
 };
@@ -322,18 +322,16 @@ export default {
       <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <h1>Multiplayer Pong Game</h1>
       </div>
-      !== : {{ this.gameStatus !== 'playing'}}
-      != : {{ isplaying() }}
-      <div v-if="isplaying == false">
-         <ul id="liveGame" >
-           <li v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
+      <!-- <div v-if="this.gameStatus != 'playing'"> -->
+         <!-- <ul v-if="this.gameStatus != 'playing'" id="liveGame" > -->
+           <li style="list-style: none;" v-for="(game, index) in this.liveGame" :key="game.liveGame" v-on:click="handleSpecGame(index)">
              <!-- {{ this.liveGame }} <br> -->
              <!-- {{ game }} <br> -->
-             {{ this.gameStatus !== 'playing'}}
-             <span >{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
+             <!-- {{ this.gameStatus !== 'playing'}} -->
+             <span  v-if="this.gameStatus !== 'playing'">{{ game.player1 }} _-VS-_ {{ game.player2 }} key : {{ index }} </span>
            </li>
-         </ul>
-      </div>
+         <!-- </ul> -->
+      <!-- </div> -->
       <div class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
           <canvas ref="canvas"></canvas>
