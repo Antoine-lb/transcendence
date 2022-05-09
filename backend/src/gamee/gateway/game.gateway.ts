@@ -416,7 +416,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
-    this.server.sockets.in(room).emit('gameOver', winner === 0 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
+    this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
  
     // --------------------- Status -----------------------------
     const clients = this.server.sockets.adapter.rooms.get(roomName);
