@@ -8,7 +8,7 @@ export interface UserI {
   isOnline: number;
 }
 
-function fetchWithHeaders(url) {
+function fetchWithHeaders(url: string) {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -28,7 +28,7 @@ export default {
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
-      status: 0
+      onlineStatus: 0,
     };
   },
   props: {
@@ -45,8 +45,7 @@ export default {
   },
   methods: {
     changeStatus(status, userId) {
-      if (userId == this.user.id)
-        this.status = status;
+      if (userId == this.user.id) this.onlineStatus = status;
     },
     askForStatus() {
       this.socket.emit("getStatus", this.user.id);
@@ -204,8 +203,7 @@ export default {
       return false;
     },
     getFriendshipStatus() {
-      if (this.isFriend())
-        return "You and " + this.user.username + " are friends.";
+      if (this.isFriend()) return "";
       if (this.isPendingSent())
         return "You have sent a friend request to " + this.user.username + ".";
       if (this.isPendingReceived())
@@ -225,8 +223,15 @@ export default {
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
-    <p class="txt" v-if="isFriend()">
-      {{ user.username }} is {{ this.status }}
+    <p
+      class="txt"
+      style="font-size: x-large; text-transform: capitalize"
+      v-if="isFriend()"
+    >
+      <!-- {{ user.username }} is {{ this.onlineStatus }} -->
+      <span v-if="isFriend() == 0">{{ user.username }} is offline 🔘​ </span>
+      <span v-if="isFriend() == 1">{{ user.username }} is online 🟢​ ​</span>
+      <span v-if="isFriend() == 2">{{ user.username }} is playing 👾 </span>
     </p>
     <p class="txt">{{ getFriendshipStatus() }}</p>
     <button
