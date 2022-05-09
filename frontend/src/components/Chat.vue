@@ -1,6 +1,4 @@
 <script lang="ts">
-import { io } from "socket.io-client";
-import { useUserStore } from "../stores/userStore";
 import ChatCreateRoom from "./chat/ChatCreateRoom.vue";
 import ChatMyRooms from "./chat/ChatMyRooms.vue";
 import ChatGame from "./chat/ChatGame.vue";
@@ -57,10 +55,10 @@ export default {
       blockedFriends: [],
     };
   },
-  setup() {
-    const userStore = useUserStore();
-    return { userStore };
-  },
+  // setup() {
+  //   const userStore = useUserStore();
+  //   return { userStore };
+  // },
   props: {
     user: Object,
     socket: Object,
@@ -73,7 +71,7 @@ export default {
     ChatSelectedRoomChat,
     ChatSelectedRoomParams,
     ChatSelectedRoomUsers,
-    ChatCreatePrivateRoom
+    ChatCreatePrivateRoom,
   },
   methods: {
     createRoom(room: newRoomInterface) {
@@ -112,6 +110,7 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
     });
+    this.socket.emit("getAllInformation", this.user);
   },
 };
 </script>
@@ -120,6 +119,7 @@ export default {
     <div class="chat-container">
       <div class="chat-side">
         <ChatMyRooms
+          v-if="userRooms && userRooms.length"
           @updateSelected="updateSelected"
           :socket="this.socket"
           :selectedRoom="this.selectedRoom"
@@ -128,13 +128,14 @@ export default {
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatAvailableRooms
+          v-if="userRooms && userRooms.length"
           :user="user"
           :socket="this.socket"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
         <ChatCreateRoom @onSubmit="createRoom" />
-        <ChatCreatePrivateRoom  @onSubmit="createRoom" />
+        <ChatCreatePrivateRoom @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
         <ChatSelectedRoomChat

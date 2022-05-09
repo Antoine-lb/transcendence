@@ -235,7 +235,7 @@ export default {
     </p>
     <p class="txt">{{ getFriendshipStatus() }}</p>
     <button
-      v-if="!isFriend() && !isPendingSent() && !isPendingReceived()"
+      v-if="!isFriend() && !isPendingSent() && !isPendingReceived() && !isBlocked()"
       class="pwd-btn on-colors"
       @click="addFriend()"
     >
@@ -247,20 +247,6 @@ export default {
       @click="removeFriend(this.user.id)"
     >
       REMOVE {{ this.user.username }} FROM FRIENDS
-    </button>
-    <button
-      v-if="!isBlocked()"
-      class="pwd-btn on-colors"
-      @click="blockFriend(this.user.id)"
-    >
-      BLOCK {{ this.user.username }}
-    </button>
-    <button
-      v-if="isBlocked()"
-      class="pwd-btn on-colors"
-      @click="unblockFriend(this.user.id)"
-    >
-      UNBLOCK {{ this.user.username }}
     </button>
     <button
       v-if="isPendingReceived()"

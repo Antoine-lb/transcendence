@@ -46,7 +46,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(socket: Socket, payload: string) {
     try {
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
-
       const user = await this.userService.findById(decodedToken.id);
 
       if (!user)

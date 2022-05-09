@@ -51,6 +51,10 @@ export default {
         })
         .catch(err => {
           console.log("err : ", err)
+          this.errors = [];
+          var statusCode = err.message.split(' ').slice(-1);
+          if (statusCode == 400)
+            this.errors.push('Allowed characters : alphanumerical and underscore.');
         });
         return true;
       }

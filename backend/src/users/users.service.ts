@@ -158,7 +158,7 @@ export class UsersService {
     }
 
     async turnOffTwoFA(id: number) {
-      console.log("userService.turnOffTwoFA")
+      // console.log("userService.turnOffTwoFA")
       return await this.usersRepository.update(id, {
         secret: null,
         isTwoFA: false
@@ -211,6 +211,13 @@ export class UsersService {
     }
 
     // ############################################ username functions ############################################ 
+
+    async checkUsernameChars(str) {
+      var allowed = /^[a-zA-Z0-9_]*$/; // letters, numbers and underscore
+      if (await str.match(allowed))
+        return true
+      return false
+    }
 
     async usernameExists(username: string) {
       const is_user = await this.findByName(username)

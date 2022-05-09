@@ -3,7 +3,7 @@ import { UserEntity } from '../entities/users.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Controller, Get, Req, UseGuards, Post, Param, Delete, Res, UseInterceptors,
   ClassSerializerInterceptor, UploadedFile, Request, HttpCode } from '@nestjs/common';
-import { ParseIntPipe, NotFoundException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
+import { ParseIntPipe, NotFoundException, BadRequestException, UnsupportedMediaTypeException, PayloadTooLargeException} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt.guard';
 import { Jwt2FAGuard } from 'src/auth/jwt2FA.guard';
@@ -108,6 +108,9 @@ export class UserController {
       const username = req.body.username 
       if (!username)
         throw new NotFoundException('Username not received')
+      var check = await this.userService.checkUsernameChars(username)
+      if (check == false)
+        throw new BadRequestException('Allowed characters : alphanummeric and underscore')
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found 1')
