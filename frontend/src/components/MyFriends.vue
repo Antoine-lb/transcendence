@@ -153,7 +153,7 @@ export default {
       </div>
 
       <h1>Ajouter un ami</h1>
-      <p v-if="showAddFriendError" style="color: red; margin-bottom: 10px">
+      <p v-if="showAddFriendError" class="bold-red" style="margin-bottom: 10px">
         {{ showAddFriendError }}
       </p>
       <form @submit.prevent="addFriend">
@@ -201,6 +201,13 @@ export default {
   font-weight: bold;
   color: #703ab8;
 }
+
+
+.bold-red {
+  color: darkred;
+  font-weight: bold;
+}
+
 
 .button {
   background-color: #703ab8;
