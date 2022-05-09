@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
@@ -26,6 +26,9 @@ export class RoomService {
 
     async createRoom(room: RoomI, creator: UserDto): Promise<RoomI> {
         // add creator to users
+        const user = await this.usersService.findById(creator.id);
+        if (!user)
+          throw new NotFoundException('User not found')
         room.users.push(creator);
         // if (Public room)
         if (room.status == true) {
