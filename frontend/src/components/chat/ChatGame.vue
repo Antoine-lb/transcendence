@@ -262,23 +262,13 @@ export default {
       document.removeEventListener("keydown", this.keydown);
       document.removeEventListener("keyup", this.keydown);
 
-      data = JSON.parse(data);
       this.gameActive = false;
-      if (data.winner === this.playerNumber) {
-        this.$notify({
+      this.$notify({
           position: "center",
-          title: "Congratulations !!",
-          text: "You Won :)",
+          title: "The Game has reach its end..",
+          text: data + " has Won !!",
           duration: 6000,
         });
-      } else {
-        this.$notify({
-          position: "center",
-          title: "Try Again !!",
-          text: "You Loose :(",
-          duration: 6000,
-        });
-      }
     },
 
     handleUnknownCode() {
