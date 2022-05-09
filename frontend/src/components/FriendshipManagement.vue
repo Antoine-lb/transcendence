@@ -1,16 +1,14 @@
 <script lang="ts">
-import { useUserStore } from "../stores/userStore";
-
 export interface UserI {
-    id: number;
-    username: string;
-    avatar: string;
-    isTwoFA: boolean;
-    secret?: string;
-    isOnline: boolean;
+  id: number;
+  username: string;
+  avatar: string;
+  isTwoFA: boolean;
+  secret?: string;
+  isOnline: number;
 }
 
-function fetchWithHeaders(url) {
+function fetchWithHeaders(url: string) {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -25,35 +23,39 @@ function fetchWithHeaders(url) {
 export default {
   data() {
     return {
-      userStore: useUserStore(),
       loading: false,
       friendList: [],
       pendingFriendList: [],
       blockedFriendList: [],
       addFriendUsername: "",
+      onlineStatus: 0,
     };
   },
   props: {
     user: {
       type: Object as () => UserI,
-    }, 
-  },
-  setup() {
-    const userStore = useUserStore();
-    userStore.requestLogState();
-    return { userStore };
+    },
+    socket: Object,
+    userStore: Object,
   },
   created() {
     this.fetchAllData();
+    this.askForStatus();
+    this.socket.on("status", this.changeStatus);
   },
   methods: {
+    changeStatus(status, userId) {
+      if (userId == this.user.id) this.onlineStatus = status;
+    },
+    askForStatus() {
+      this.socket.emit("getStatus", this.user.id);
+    },
     fetchAllData: function () {
       this.fetchFriends();
       this.fetchPendingFriends();
       this.fetchBlockedFriends();
     },
     fetchFriends: async function () {
-      console.log(">>>>>> fetchFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -68,7 +70,6 @@ export default {
       this.loading = false;
     },
     fetchPendingFriends: async function () {
-      console.log(">>>>>> fetchPendingFriends");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
@@ -156,90 +157,125 @@ export default {
       this.loading = false;
     },
     addFriend: async function () {
-      console.log(">>>>>> addFriend");
       this.loading = true;
       try {
         const response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/friends/add/${this.user.username}`
         );
         if (response.status == 200) {
-          console.log(">>>>>> addFriends OK");
           this.fetchAllData();
         }
       } catch (error) {
-        console.log(">>>>>> addFriends ERROR");
         console.error(error);
       }
       this.loading = false;
     },
     isFriend() {
-      for (var f of this.friendList)
-      {
-        if (f.id == this.user.id)
-          return true;
+      for (var f of this.friendList) {
+        if (f.id == this.user.id) return true;
       }
       return false;
     },
     isPendingSent() {
-      for (var f of this.pendingFriendList)
-      {
-        if (f.f_creatorId == this.userStore.user.id && f.f_receiverId == this.user.id)
+      for (var f of this.pendingFriendList) {
+        if (
+          f.f_creatorId == this.userStore.user.id &&
+          f.f_receiverId == this.user.id
+        )
           return true;
       }
       return false;
     },
     isPendingReceived() {
-      for (var f of this.pendingFriendList)
-      {
-        if (f.f_creatorId == this.user.id && f.f_receiverId == this.userStore.user.id)
+      for (var f of this.pendingFriendList) {
+        if (
+          f.f_creatorId == this.user.id &&
+          f.f_receiverId == this.userStore.user.id
+        )
           return true;
       }
       return false;
     },
     isBlocked() {
-      for (var f of this.blockedFriendList)
-      {
-        if (f.id == this.user.id)
-          return true;
+      for (var f of this.blockedFriendList) {
+        if (f.id == this.user.id) return true;
       }
       return false;
     },
     getFriendshipStatus() {
-      if (this.isFriend())
-        return ("You and " + this.user.username + " are friends.");
+      if (this.isFriend()) return "";
       if (this.isPendingSent())
-        return ("You have sent a friend request to " + this.user.username + ".");
+        return "You have sent a friend request to " + this.user.username + ".";
       if (this.isPendingReceived())
-        return (this.user.username + " sent you a friend request.");
+        return this.user.username + " sent you a friend request.";
       if (this.isBlocked())
-        return ("You have blocked " + this.user.username + ".");
-      else
-        return ("You and " + this.user.username + " are not friends.");
-    }
+        return "You have blocked " + this.user.username + ".";
+      else return "You and " + this.user.username + " are not friends.";
+    },
   },
 };
 </script>
 
 <template>
   <div>
-      <!-- <p> loading => {{ this.loading }} </p>
+    <!-- <p> loading => {{ this.loading }} </p>
       <p> friendList => {{ this.friendList }} </p>
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>
       <p> blockedFriendList => {{ this.blockedFriendList }} </p>
       <p> addFriendUsername => {{ this.addFriendUsername }} </p> -->
-      <p class="txt" v-if="isFriend()">{{ user.username }} is {{ user.isOnline ? "online" : "offline" }}</p>
-      <p class="txt">{{ getFriendshipStatus() }}</p>
-      <button v-if="!isFriend() && !isPendingSent() && !isPendingReceived()" class="pwd-btn on-colors" @click="addFriend()"> ADD {{ this.user.username }} AS FRIENDS </button> 
-      <button v-if="isFriend()" class="pwd-btn on-colors" @click="removeFriend(this.user.id)"> REMOVE {{ this.user.username }} FROM FRIENDS</button> 
-      <button v-if="!isBlocked()" class="pwd-btn on-colors" @click="blockFriend(this.user.id)"> BLOCK {{ this.user.username }} </button> 
-      <button v-if="isBlocked()" class="pwd-btn on-colors" @click="unblockFriend(this.user.id)"> UNBLOCK {{ this.user.username }} </button> 
-      <button v-if="isPendingReceived()" class="pwd-btn on-colors" @click="acceptPendingRequest(this.user.id)"> ACCEPT PENDING REQUEST </button> 
-      <div v-if="isPendingSent()" class="no-btn"> ...WAITING FOR {{this.user.username}} APPROVAL... </div> 
+    <p
+      class="txt"
+      style="font-size: x-large; text-transform: capitalize"
+      v-if="isFriend()"
+    >
+      <!-- {{ user.username }} is {{ this.onlineStatus }} -->
+      <span v-if="isFriend() == 0">{{ user.username }} is offline 🔘​ </span>
+      <span v-if="isFriend() == 1">{{ user.username }} is online 🟢​ ​</span>
+      <span v-if="isFriend() == 2">{{ user.username }} is playing 👾 </span>
+    </p>
+    <p class="txt">{{ getFriendshipStatus() }}</p>
+    <button
+      v-if="!isFriend() && !isPendingSent() && !isPendingReceived()"
+      class="pwd-btn on-colors"
+      @click="addFriend()"
+    >
+      ADD {{ this.user.username }} AS FRIENDS
+    </button>
+    <button
+      v-if="isFriend()"
+      class="pwd-btn on-colors"
+      @click="removeFriend(this.user.id)"
+    >
+      REMOVE {{ this.user.username }} FROM FRIENDS
+    </button>
+    <button
+      v-if="!isBlocked()"
+      class="pwd-btn on-colors"
+      @click="blockFriend(this.user.id)"
+    >
+      BLOCK {{ this.user.username }}
+    </button>
+    <button
+      v-if="isBlocked()"
+      class="pwd-btn on-colors"
+      @click="unblockFriend(this.user.id)"
+    >
+      UNBLOCK {{ this.user.username }}
+    </button>
+    <button
+      v-if="isPendingReceived()"
+      class="pwd-btn on-colors"
+      @click="acceptPendingRequest(this.user.id)"
+    >
+      ACCEPT PENDING REQUEST
+    </button>
+    <div v-if="isPendingSent()" class="no-btn">
+      ...WAITING FOR {{ this.user.username }} APPROVAL...
+    </div>
   </div>
 </template>
 
 <style scoped>
-
 .pwd-btn {
   background-color: white;
   border: none;
@@ -281,5 +317,4 @@ export default {
 .txt {
   /* text-transform: capitalize; */
 }
-
 </style>
