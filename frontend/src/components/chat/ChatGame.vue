@@ -139,7 +139,7 @@ export default {
       this.ctx = this.canvas.getContext("2d");
       this.canvas.width = 750;
       this.canvas.height = 590;
-      this.ctx.fillStyle = "#231f20";
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
       document.addEventListener("keydown", this.keydown);
@@ -181,7 +181,7 @@ export default {
       // clear canvas
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       // draw paddles
-      this.ctx.fillStyle = "black";
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(grid, state.players[0].y, 15, state.players[0].paddleH);
       this.ctx.fillRect(
         this.canvas.width - 2 * grid,
@@ -191,7 +191,7 @@ export default {
       );
 
       // draw walls
-      this.ctx.fillStyle = "lightgrey";
+      this.ctx.fillStyle = "#e4d8f5";
       this.ctx.fillRect(0, 0, this.canvas.width, grid);
       this.ctx.fillRect(
         0,
@@ -321,30 +321,14 @@ export default {
 </script>
 
 <template>
-  <section class="vh-100">
+  <section class="">
     <div class="container h-100">
-      <div
-        class="
-          d-flex
-          flex-column
-          align-items-center
-          justify-content-center
-          h-100
-        "
-      >
-        <h1>Multiplayer Pong Game</h1>
+      <div class="">
+        <!-- <h1>Multiplayer Pong Game</h1> -->
       </div>
       <div class="h-100">
-        <div
-          class="
-            d-flex
-            flex-column
-            align-items-center
-            justify-content-center
-            h-100
-          "
-        >
-          <canvas ref="canvas"></canvas>
+        <div class="" style="display: flex">
+          <canvas ref="canvas" class="game-canvas"></canvas>
 
           <button
             v-if="this.gameStatus !== 'idle'"
@@ -372,4 +356,12 @@ export default {
 </template>
 
 <style scoped>
+.game-canvas {
+  margin: auto;
+  width: 400px;
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(120, 61, 204, 0.92), 0 0 30px rgba(94, 14, 206, 0.34),
+    0 0 12px rgba(211, 193, 236, 0.52), 0 0 21px rgba(211, 193, 236, 0.92),
+    0 0 34px rgba(211, 193, 236, 0.78), 0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+}
 </style>

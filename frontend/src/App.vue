@@ -1,30 +1,30 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import HelloWorld from "@/components/HelloWorld.vue";
 import Log from "@/components/Log.vue";
 </script>
 
 <template>
-  <header>
-    <img
-      alt="Invader Logo"
-      class="logo puff-in-center jello-horizontal"
-      src="@/assets/logo.png"
-      width="125"
-    />
-    <div class="wrapper">
-      <nav class="bg-pan-left">
-        <RouterLink to="/">Accueil</RouterLink>
-        <RouterLink to="/chat">Chat</RouterLink>
-        <RouterLink to="/friends">Amis</RouterLink>
-        <RouterLink to="/game">Jeux</RouterLink>
-        <RouterLink to="/settings">Réglages</RouterLink>
-      </nav>
-    </div>
-  </header>
-  <notifications />
-  <RouterView />
-  <Log />
+  <div>
+    <header>
+      <img
+        alt="Invader Logo"
+        class="logo puff-in-center jello-horizontal"
+        src="@/assets/logo.png"
+        width="125"
+      />
+      <div class="wrapper">
+        <nav class="bg-pan-left">
+          <RouterLink to="/">Accueil</RouterLink>
+          <RouterLink to="/chat">Chat</RouterLink>
+          <RouterLink to="/friends">Amis</RouterLink>
+          <RouterLink to="/game">Jeux</RouterLink>
+          <RouterLink to="/settings">Réglages</RouterLink>
+        </nav>
+      </div>
+    </header>
+    <notifications />
+    <RouterView />
+  </div>
 </template>
 
 <style>
