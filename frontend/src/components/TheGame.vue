@@ -1,6 +1,5 @@
 <script lang="ts">
 import { ref, onMounted } from "vue";
-import { io } from "socket.io-client";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -320,8 +319,8 @@ export default {
     reset() {
       this.gameStatus = "idle";
       this.playerNumber = null;
-      this.gameCodeInput.value = "";
-      this.gameCodeSpec.value = "";
+      if (this.gameCodeInput) this.gameCodeInput.value = "";
+      if (this.gameCodeSpec) this.gameCodeSpec.value = "";
       this.initialScreen.style.display = "block";
       this.gameScreen.style.display = "none";
       this.msgBox.innerText = "";
