@@ -68,7 +68,6 @@ export class AuthController{
             const user = await this.userService.findByName(req.user['username']);
             if (!user)
                 throw new UnauthorizedException('User does not exists');
-            // console.log("req.user['isNew'] : ", req.user['isNew']);
             let auth: boolean = user.isTwoFA == true ? true: false;
             const accessToken: string = this.jwtService.sign({ id: user.id, auth });
             
@@ -95,7 +94,6 @@ export class AuthController{
         @Header('Content-Type', 'application/json')
         async status(@Req() req: any, @Res() resp: Response) {
             let isAuthenticated: boolean, isTwoFaAuthenticated: boolean = false;
-            console.log('___ /auth/status')
             try {
                 if (req.cookies.access_token) {
                     let payload: any = await this.authService.verifyToken(req.cookies.access_token);

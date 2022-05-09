@@ -35,11 +35,9 @@ export class UsersService {
 
     async addUser(user: UserDto) : Promise<UserEntity> {
       // chech if default avatar exists
-      // console.log("___add/create user")
       var defaultfile = await join('/public/avatar_default.png')
       var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
       const fs = require("fs");
-      // console.log("default path : ", defaultpath)
       if (!fs.existsSync(defaultpath)) {
         throw new NotFoundException('Cannot create user - Default avatar does not exists')
       }
@@ -170,7 +168,6 @@ export class UsersService {
     // ############################################ file functions ############################################ 
 
     async fileExists(filepath: string) { 
-      // console.log('check if file exists : ', filepath)
       const fs = require("fs");
       if (await !fs.existsSync(filepath)) {
         return false;
@@ -208,7 +205,6 @@ export class UsersService {
         prefix + filename + '.png',
       ]
       for (const file of files) {
-        // console.log(file, " vs. ", (prefix + filebase))
         if ( await this.fileExists(file) == true && (file != (prefix + filebase)))
           var ret = await this.deleteFile(file)
       }
