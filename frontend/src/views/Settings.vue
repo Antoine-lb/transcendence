@@ -36,6 +36,8 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
+        <PrivateProfile 
+        :socket="userStore.socket"/>
         <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
@@ -47,8 +49,6 @@ export default {
           :id="userStore.user.id"
           :socket="userStore.socket"
         />
-        <PrivateProfile 
-        :socket="userStore.socket"/>
       </div>
       <div v-else class="form-group">
         <p>Vous devez être connecté pour modifier votre profil</p>
