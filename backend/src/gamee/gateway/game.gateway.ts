@@ -293,11 +293,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
       this.server.emit('pushLiveGame', this.liveGame)
-      // start the game when both player are connected
-      setTimeout(() => {
-        this.startGameInterval(roomName, playWithPowerUP)
-      }, 7000);
     }
+  }
+
+  // start the game when both player are connected and animation is finished
+  @SubscribeMessage('startGame')
+  startGame(socket: Socket) {
+    const roomName = this.clientRooms[socket.id];
+    this.startGameInterval(roomName, this.liveGame[roomName])
   }
 
   @SubscribeMessage('spec')

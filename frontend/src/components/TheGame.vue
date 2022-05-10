@@ -172,6 +172,8 @@ export default {
           await this.sleep(10);
         }
       this.gameStatus = "play"
+      if (this.playerNumber == 1)
+        this.socket.emit("startGame")
     },
 
     sleep(ms) {
@@ -357,6 +359,7 @@ export default {
     pushLiveGame(liveGame) {
       console.log("ds pushLiveGame");
       console.log(liveGame);
+      this.gameStatus = "play"
     },
   },
 };
