@@ -376,7 +376,7 @@ export default {
             myRoom is :
             {{ this.socket != null ? this.socket.id : "Undefined yet" }}
           </h1>
-          <canvas ref="canvas"></canvas>
+          <canvas ref="canvas" class="game-canvas"></canvas>
           <button
             type="submit"
             class="btn btn-success"
@@ -468,5 +468,14 @@ textarea {
   margin-top: 10px;
   margin: 10px;
   border: 2px solid #703ab8;
+}
+
+.game-canvas {
+  margin: auto;
+  width: 100%;
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(120, 61, 204, 0.92), 0 0 30px rgba(94, 14, 206, 0.34),
+    0 0 12px rgba(211, 193, 236, 0.52), 0 0 21px rgba(211, 193, 236, 0.92),
+    0 0 34px rgba(211, 193, 236, 0.78), 0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
 }
 </style>
