@@ -52,9 +52,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (!user)
         return this.disconnect(socket);
       else {
-        socket.data.user = user;
 
-        const  tmp: UserEntity = await this.userService.updateUserStatus(user.id, 1);
+        const tmp: UserEntity = await this.userService.updateUserStatus(user.id, 1);
+        
+        socket.data.user = tmp;
+
 
         const users = await this.friendService.getFriends(socket.data.user);
         for (const user of users) {
@@ -434,7 +436,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       
         const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
         for (const connection of connections) {
-        this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
+          this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
         }
       }
     }
@@ -457,6 +459,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientSocket.data.status = "connected";
 
 
+      delete this.clientRooms[playerId];
       if (winner == clientSocket.data.number)
         winnerId = clientSocket.data.user.id;
       else
