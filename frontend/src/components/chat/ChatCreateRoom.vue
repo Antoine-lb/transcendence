@@ -59,20 +59,16 @@ export default {
     newUser() {
       let valid = true;
       this.newRoomUserShowError = false;
-      // Cannot add yourself
+      // verifie si ce n'est pas moi-meme
       if (this.newRoomUser == this.user.username)
       {
-        valid = false;
         this.newRoomUserShowError = true;
         this.newRoomError = "Cannot add yourself.";
-        return
+        valid = false;
       }
-      console.log("this.allUsers : ", this.allUsers);
-      console.log("this.newRoomUsers : ", this.newRoomUsers);
-      // verifie s'il n'existe pas
+      // verifie s'il n'existe pas deja dans la liste
       this.newRoomUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log("already in list")
           this.newRoomError = "User already in the list.";
           this.newRoomUserShowError = true;
           valid = false;
@@ -84,16 +80,12 @@ export default {
       valid = false
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log(
-            "add user { id: element.id }",
-            { id: element.id },
-            element.username
-          );
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;
         }
       });
+      // sinon, "username not found"
       if (!valid) {
         this.newRoomUserShowError = true;
         this.newRoomError = "Username not found"

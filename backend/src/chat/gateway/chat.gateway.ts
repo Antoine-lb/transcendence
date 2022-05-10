@@ -226,6 +226,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
   }
 
+  //////////////////////////////////////// ROOM RENAMING //////////////////////////////////////////////////////////////////
+
+  @SubscribeMessage('renameRoom')
+  async onRenameRoom(socket: Socket, { room, modifier, newName }) {
+    await this.roomService.renameRoom(room, modifier, newName);
+    await this.emitRoomsForConnectedUsers(room);
+    return await this.server.to(socket.id).emit('renamingRoomSuccess', room);
+  }
+
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   @SubscribeMessage('getAllInformation')
