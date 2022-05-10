@@ -141,7 +141,10 @@ export default {
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
         />
-        <ChatCreateRoom @onSubmit="createRoom" />
+        <ChatCreateRoom
+          @onSubmit="createRoom"
+          :user="user"
+        />
         <ChatCreatePrivateRoom @onSubmit="createRoom" />
       </div>
       <div class="main-chat">
@@ -196,7 +199,7 @@ export default {
 }
 
 .chat-side {
-  width: 40%;
+  width: 50%;
   /* background-color: rgba(120, 61, 204, 0.2); */
   /* backdrop-filter: blur(5px); */
   /* border-radius: 50px; */

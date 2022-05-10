@@ -28,6 +28,7 @@ export default {
       userStore: useUserStore(),
       newRoomName: null,
       newRoomUser: null,
+      newRoomError: null,
       newRoomUserShowError: false,
       newRoomUsers: [],
       allUsers: [],
@@ -38,6 +39,7 @@ export default {
   },
   props: {
     onSubmit: Function,
+    user: Object,
   },
   async created() {
     this.loading = true;
@@ -55,8 +57,31 @@ export default {
   },
   methods: {
     newUser() {
-      let valid = false;
+      let valid = true;
       this.newRoomUserShowError = false;
+      // Cannot add yourself
+      if (this.newRoomUser == this.user.username)
+      {
+        valid = false;
+        this.newRoomUserShowError = true;
+        this.newRoomError = "Cannot add yourself.";
+        return
+      }
+      console.log("this.allUsers : ", this.allUsers);
+      console.log("this.newRoomUsers : ", this.newRoomUsers);
+      // verifie s'il n'existe pas
+      this.newRoomUsers.map((element) => {
+        if (element.username === this.newRoomUser) {
+          console.log("already in list")
+          this.newRoomError = "User already in the list.";
+          this.newRoomUserShowError = true;
+          valid = false;
+        }
+      });
+      if (valid == false)
+        return;
+      // ajoute newRoomUser to newRoomUsers
+      valid = false
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
           console.log(
@@ -71,6 +96,7 @@ export default {
       });
       if (!valid) {
         this.newRoomUserShowError = true;
+        this.newRoomError = "Username not found"
       }
     },
     removeUser(user) {
@@ -85,6 +111,18 @@ export default {
         }
       });
     },
+    resetVars() {
+      this.userStore = "";
+      this.newRoomName = null;
+      this.newRoomUser = null;
+      this.newRoomError = null;
+      this.newRoomUserShowError = false;
+      this.newRoomUsers = [];
+      this.allUsers = [];
+      this.isPublic = true;
+      this.newRoomPassword = null;
+      this.passwordFieldType = "password";
+    },
     createRooms() {
       let room: newRoomInterface = {
         name: this.newRoomName ? this.newRoomName : "No Name",
@@ -98,6 +136,7 @@ export default {
           : null,
       };
       this.$emit("onSubmit", room);
+      this.resetVars();
     },
     toggleStatus() {
       this.isPublic = !this.isPublic;
@@ -145,7 +184,7 @@ export default {
           </button>
         </li>
         <p v-if="newRoomUserShowError" class="error-paragraf">
-          Username not found
+          {{ this.newRoomError }}
         </p>
       </div>
 
@@ -195,7 +234,7 @@ input {
   /* background-color: white; */
   border: none;
   font-weight: bold;
-  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

@@ -186,9 +186,10 @@ export default {
         <div v-if="!userStore.user.isTwoFA">
           <p><button class="pwd-btn" type="submit" @click="generateQrCode()">Enable 2-factor authentication</button></p>
           <div v-if="this.img">
+            <p style="margin-top: 10px;"> Download Google Authenticator and scan this QR code :</p>
             <img :src="img" />
             <p>
-              Please enter 2fa code below :
+              Please enter 2fa code below to enable 2FA :
               <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
               <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>
