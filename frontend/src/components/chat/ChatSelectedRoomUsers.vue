@@ -119,7 +119,7 @@ export default {
         room: this.selectedRoom,
         user: this.user,
       });
-      // location.reload();
+      location.reload();
     },
   },
   async created() {
