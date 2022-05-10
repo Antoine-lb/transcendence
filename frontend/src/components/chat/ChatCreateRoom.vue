@@ -167,6 +167,8 @@ export default {
       <div v-else>
         <br />
         This room will be private (only you and added users can see it).
+        <br />
+        <span class="bold-red"> You won't be able to add users after creation. </span>
       </div>
       <button class="submit-new-room new-room-button" @click="createRooms">
         Create {{ newRoomName }}
@@ -211,6 +213,12 @@ input {
   margin-top: 10px;
   margin-bottom: 10px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+
+.bold-red {
+  color: darkred;
+  font-weight: bold;
 }
 
 .submit-new-room {

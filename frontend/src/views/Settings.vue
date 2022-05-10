@@ -36,7 +36,7 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
-        <PublicProfile
+        <!-- <PublicProfile
           :username="userStore.user.username"
           :avatarUrl="userStore.avatarUrl"
           :played="userStore.user.played"
@@ -46,7 +46,7 @@ export default {
           :lvl="userStore.user.lvl"
           :id="userStore.user.id"
           :socket="userStore.socket"
-        />
+        /> -->
         <PrivateProfile 
         :socket="userStore.socket"/>
       </div>
