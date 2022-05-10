@@ -83,8 +83,14 @@ export class AuthController{
         @UseGuards(Guard42)
         @Get('/callback')
         async initUser(@Res({passthrough: true}) res: Response, @Req() req: Request) {
-            if (!req.user || !req.user['username'])
+            if (!req.user || !req.user['username']){
+                res.clearCookie('access_token');
+                res.clearCookie('access_token_2fa');
+                console.log('coucou')
                 return res.redirect('http://127.0.0.1:8080/');
+            }
+
+
             const user = await this.userService.findByName(req.user['username']);
             if (!user)
                 throw new UnauthorizedException('User does not exists');

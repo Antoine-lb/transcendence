@@ -13,9 +13,8 @@ export default {
     const gameScreen = ref(null);
     const msgBox = ref(null);
     const canvas = ref(null);
-    onMounted(() => {
-      // the DOM element will be assigned to the ref after initial render
-    });
+
+
 
     return {
       initialScreen,
@@ -27,6 +26,8 @@ export default {
       userStore,
     };
   },
+
+
   props: {
     user: Object,
     socket: Object,
@@ -48,11 +49,12 @@ export default {
   },
   mounted() {
     console.log(`mounted`);
+    this.socket.emit('check_on_game');
     this.reset();
   },
   unmounted() {
+    this.socket.emit('test');
     this.socket.removeAllListeners();
-    console.log("unmounted");
   },
 
   methods: {
