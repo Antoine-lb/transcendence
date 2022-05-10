@@ -322,7 +322,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(this.state[this.clientRooms[socket.id]].intervalId);
       this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
-        text: "Game Paused by player",
+        text: "Game Paused.",
         duration: 6000
       });
     }
