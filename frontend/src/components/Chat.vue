@@ -117,6 +117,9 @@ export default {
     this.socket.on("getBlockedFriends", (users) => {
       this.blockedFriends = users;
     });
+    this.socket.on("error", (error) => {
+      this.$notify("An error has occured : " + error.message + ".")
+    });
     this.socket.emit("getAllInformation", this.user);
   },
 };

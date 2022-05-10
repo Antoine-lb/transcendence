@@ -6,7 +6,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
  } from '@nestjs/websockets';
-import { Logger, UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UsersService } from 'src/users/users.service';
@@ -147,7 +147,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.emitRoomsForConnectedUsers(room);
       await this.emitRolesForConnectedUsers(room);
     }
-    catch {
+    catch (e) {
+      socket.emit('error', e);
       await this.server.to(socket.id).emit('errorQuitRoom');
     }
 
@@ -207,32 +208,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('deletePassword')
   async onDeletePassword(socket: Socket, { room, modifier }) {
-    await this.roomService.deletePassword(room, modifier);
-    await this.emitRoomsForConnectedUsers(room);
-    return await this.server.to(socket.id).emit('deletingPasswordSuccess', room);
+    try {
+      await this.roomService.deletePassword(room, modifier);
+      await this.emitRoomsForConnectedUsers(room);
+      return await this.server.to(socket.id).emit('deletingPasswordSuccess', room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('modifyPassword')
   async onModifyPassword(socket: Socket, { room, modifier, password }) {
-    await this.roomService.modifyPassword(room, modifier, password);
-    await this.emitRoomsForConnectedUsers(room);
-    return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
+    try {
+      await this.roomService.modifyPassword(room, modifier, password);
+      await this.emitRoomsForConnectedUsers(room);
+      return await this.server.to(socket.id).emit('modifyingPasswordSuccess', room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('addPassword')
   async onAddPassword(socket: Socket, { room, modifier, password }) {
-    await this.roomService.addPassword(room, modifier, password);
-    await this.emitRoomsForConnectedUsers(room);
-    return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
+    try {
+      await this.roomService.addPassword(room, modifier, password);
+      await this.emitRoomsForConnectedUsers(room);
+      return await this.server.to(socket.id).emit('addingPasswordSuccess', room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   //////////////////////////////////////// ROOM RENAMING //////////////////////////////////////////////////////////////////
 
   @SubscribeMessage('renameRoom')
   async onRenameRoom(socket: Socket, { room, modifier, newName }) {
-    await this.roomService.renameRoom(room, modifier, newName);
-    await this.emitRoomsForConnectedUsers(room);
-    return await this.server.to(socket.id).emit('renamingRoomSuccess', room);
+    try {
+      await this.roomService.renameRoom(room, modifier, newName);
+      await this.emitRoomsForConnectedUsers(room);
+      return await this.server.to(socket.id).emit('renamingRoomSuccess', room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
