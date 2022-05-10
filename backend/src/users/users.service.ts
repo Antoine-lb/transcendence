@@ -114,7 +114,7 @@ export class UsersService {
           }
           else if (player.lvl != 10)
             await this.usersRepository.update(player.id, {
-              xp: player.xp + valueXP,
+              xp: Math.floor(player.xp + valueXP),
               victory: player.victory + 1,
               played: player.played + 1,
             });
@@ -130,7 +130,7 @@ export class UsersService {
           });
         else if (player.lvl != 10)
           await this.usersRepository.update(player.id, {
-            xp: player.xp + valueXP / 2,
+            xp: Math.floor(player.xp + valueXP / 2),
             defeats: player.defeats + 1,
             played: player.played + 1,
           });

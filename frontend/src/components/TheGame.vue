@@ -171,6 +171,7 @@ export default {
           );
           await this.sleep(10);
         }
+      this.gameStatus = "play"
     },
 
     sleep(ms) {
@@ -178,6 +179,8 @@ export default {
     },
 
     paintGame(state) {
+      if (!this.canvas)
+        return ;
       const grid = 15;
       // clear canvas
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -260,10 +263,11 @@ export default {
         requestAnimationFrame(() => this.paintGame(gameState));
     },
 
-    handleGameOver(data) {
+/*     handleGameOver(data) {
       if (!this.gameActive) {
         return;
       }
+      this.gameStatus == "ended"
       document.removeEventListener("keydown", this.keydown);
       document.removeEventListener("keyup", this.keydown);
 
@@ -284,6 +288,23 @@ export default {
           duration: 6000,
         });
       }
+    }, */
+
+    handleGameOver(data) {
+      if (!this.gameActive) {
+        return;
+      }
+      this.gameStatus == "ended"
+      document.removeEventListener("keydown", this.keydown);
+      document.removeEventListener("keyup", this.keydown);
+
+      this.gameActive = false;
+      this.$notify({
+          position: "center",
+          title: "The Game has reach its end..",
+          text: data + " has Won !!",
+          duration: 6000,
+        });
     },
 
     handleUnknownCode() {
@@ -312,6 +333,7 @@ export default {
         "background: #222; color: #bada55"
       );
       this.socket.emit("pause");
+      this.gameStatus = this.gameStatus == "paused" ? 'play' : 'paused'
     },
 
     handleNotification(msg) {
@@ -319,7 +341,7 @@ export default {
     },
 
     reset() {
-      this.gameStatus = "idle";
+      this.gameStatus = (this.gameStatus == "play" || this.gameStatus == "paused" ? this.gameStatus : "idle");
       this.playerNumber = null;
       if (this.gameCodeInput) this.gameCodeInput.value = "";
       if (this.gameCodeSpec) this.gameCodeSpec.value = "";
@@ -375,17 +397,19 @@ export default {
           "
         >
           <h1>
+            {{ this.gameStatus }}
             myRoom is :
             {{ this.socket != null ? this.socket.id : "Undefined yet" }}
           </h1>
           <canvas ref="canvas"></canvas>
           <button
+            v-if="this.gameStatus == 'play' ||  this.gameStatus == 'paused'"
             type="submit"
             class="btn btn-success"
             ref="pauseButton"
             v-on:click="handlePause()"
           >
-            pause
+            {{ this.gameStatus ==  'play' ? 'pause' : 'continue'}} 
           </button>
           <button
             type="submit"
