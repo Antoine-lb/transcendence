@@ -37,9 +37,15 @@ export default {
   methods: {
     notifyError(err) {
       if (err?.response?.data?.message)
-        this.$notify("An error has occured : " + err.response.data.message + ".")
+        this.$notify({
+          title: "An error has occured : " + err.response.data.message + ".",
+          type: "error"
+        })
       else
-        this.$notify("An error has occured. Please try again later.")
+        this.$notify({
+          title: "An error has occured. Please try again later.",
+          type: "error"
+        })
     },
     goToAccount() {
       this.$router.go('/account');
@@ -58,9 +64,11 @@ export default {
       {
         if (!this.checkUsernameChars(this.name))
         {
-          this.errors = [];
-          this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
-          return;
+          this.$notify({
+              title: 'Allowed characters : alphanumerical, hyphen ( - ) and underscore ( _ ).',
+              type: "error"
+          });
+          return
         }
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
@@ -79,7 +87,10 @@ export default {
       }
       this.errors = [];
       if (!this.name) {
-        this.errors.push('Name required.');
+        this.$notify({
+          title: "Please submit a new username.",
+          type: "warn",
+        })
       }
       // e.preventDefault();
     },
@@ -87,13 +98,26 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
+      console.log("this.file : ", this.file);
+      if (!this.file)
+      {
+        this.$notify({
+          title: "Please submit a file",
+          type: "warn"
+        })
+        return;
+      }
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
-          this.$notify("Avatar uploaded !")
+          this.$notify({
+            title: "Avatar uploaded !",
+            type: "success"
+          })
           this.$refs.fileInput.type = 'text'
           this.$refs.fileInput.type = 'file'
+          this.errors = [];
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -108,6 +132,22 @@ export default {
           this.errors.push('Payload too large.');
         else
           this.notifyError(err);
+      });
+    },
+    resetAvatar(){
+      const token = this.userStore.user.access_token
+      axios.get( "http://127.0.0.1:3000/api/users/me/delete-avatar", { withCredentials: true, headers: { 'access_token' : token }} )
+      .then(async res => {
+          this.$notify({
+            title: "Avatar reset !",
+            type: "success"
+          })
+          this.$refs.fileInput.type = 'text'
+          this.$refs.fileInput.type = 'file'
+          this.errors = [];
+      })
+      .catch(err => {
+        this.notifyError(err);
       });
     },
     hexToBase64(str : string) {
@@ -168,7 +208,6 @@ export default {
       else
         this.socket.emit('declineGameInvit', adversaire);
     },
-    
     acceptInvit (roomCode) {
         console.log(">>>>>> acceptInvitGame (pb profile) roomCode : ", roomCode);
         // await this.startGameAnimation()
@@ -198,7 +237,9 @@ export default {
         <p> Update your avatar :
           <input type="file" ref="fileInput" @change="handleFileUpload( $event )"/>
         </p>
-        <p><button class="pwd-btn" v-on:click="submitFile()">Submit</button></p>
+        <button class="pwd-btn" style="margin-right: 5px" v-on:click="submitFile()">Submit</button>
+        <!-- Reset avatar -->
+        <button class="pwd-btn" style="margin-right: 5px" v-on:click="resetAvatar()">Reset your avatar to default</button>
       </div>
       <!-- Enable/Disable 2FA -->
       <div class="text space">

@@ -89,16 +89,16 @@ export class UserController {
       return await this.userService.updateParams(user.id, { avatar: filepath })
     }
  
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
-    @Get('/me/avatar')
-    async findProfileImage(@Res() res, @Request() req): Promise<any> {
-      const user= this.userService.findById(req.user.id);
-      if (!user)
-        throw new NotFoundException('Please try again later')
-      if (await this.userService.fileExists(req.user.avatar) == false)
-        throw new NotFoundException('Cannot display avatar - File does not exists')
-      return res.sendFile(req.user.avatar);
-    }
+    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    // @Get('/me/avatar')
+    // async findProfileImage(@Res() res, @Request() req): Promise<any> {
+    //   const user= this.userService.findById(req.user.id);
+    //   if (!user)
+    //     throw new NotFoundException('Please try again later')
+    //   if (await this.userService.fileExists(req.user.avatar) == false)
+    //     throw new NotFoundException('Cannot display avatar - File does not exists')
+    //   return res.sendFile(req.user.avatar);
+    // }
 
     @UseGuards(JwtAuthGuard, Jwt2FAGuard)
     @Post('/me/update-username')
@@ -124,30 +124,31 @@ export class UserController {
       return res
     }
 
-    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
-    // @Get('/me/delete-avatar')
-    // async deleteAvatar(@Res() res, @Request() req): Promise<any> {
-    //   const user = this.userService.findById(req.user.id);
-    //   if (!user)
-    //     throw new NotFoundException('Please try again later')
-    //   // delete l'avatar
-    //   const avatar_path: string = join(process.cwd(), req.user.avatar)
-    //   if (await this.userService.fileExists(avatar_path) == false)
-    //     throw new NotFoundException('Cannot delete avatar - File ' + avatar_path + ' does not exists')
-    //   if (await this.userService.deleteFile(avatar_path) == false)
-    //     throw new NotFoundException('failed to delete')
-    //   // prepare un nouvel avatar par defaut
-    //   const userEnt: UserEntity = req.user;
-    //   if (!userEnt)
-    //     throw new NotFoundException('Please try again later')
-    //   var defaultfile = await join('/public/avatar_default.png')
-    //   var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
-    //   if (await this.userService.fileExists(defaultpath) == false)
-    //     throw new NotFoundException('Cannot set default avatar - File does not exists')
-    //   // update le user avec l'avatar
-    //   await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
-    //   await res.send({ user: req.user });
-    //   return res
-    // }
+    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    @Get('/me/delete-avatar')
+    async deleteAvatar(@Res() res, @Request() req): Promise<any> {
+      const user = this.userService.findById(req.user.id);
+      if (!user)
+        throw new NotFoundException('Please try again later')
+      // delete l'avatar
+      const avatar_path: string = join(process.cwd(), req.user.avatar)
+      if (await this.userService.fileExists(avatar_path) == false)
+      {
+        if (await this.userService.deleteFile(avatar_path) == false)
+          throw new NotFoundException('Please try again later')
+      }
+      // prepare un nouvel avatar par defaut
+      const userEnt: UserEntity = req.user;
+      if (!userEnt)
+        throw new NotFoundException('Please try again later')
+      var defaultfile = await join('/public/avatar_default.png')
+      var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
+      if (await this.userService.fileExists(defaultpath) == false)
+        throw new NotFoundException('Cannot set default avatar - File does not exists')
+      // update le user avec l'avatar
+      await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
+      await res.send({ user: req.user });
+      return res
+    }
 
   }

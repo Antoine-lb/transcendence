@@ -182,8 +182,7 @@ export class UsersService {
       const fs = await require("fs");
       await fs.unlink(filepath, (err) => {
         if (err) {
-        console.error('failed to delete file:', err);
-        return false;
+          return false;
         }
       })
       return true
