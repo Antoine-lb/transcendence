@@ -119,16 +119,25 @@ export default {
       this.$emit("refreshSelected", room);
     });
     this.socket.on("addingPasswordSuccess", (room: RoomI) => {
-      this.$notify("Password added !");
+      this.$notify({
+        title: "Password added !",
+        type: "success"
+      });
       this.showAddPassword = false;
       this.$emit("refreshSelected", room);
     });
     this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
-      this.$notify("Password deleted !");
+      this.$notify({
+        title: "Password deleted !",
+        type: "success"
+      });
       this.$emit("refreshSelected", room);
     });
     this.socket.on("renamingRoomSuccess", (room: RoomI) => {
-      this.$notify("Room renamed !");
+      this.$notify({
+        title: "Room renamed !",
+        type: "success"
+      });
       this.newName = "",
       this.$emit("refreshSelected", room);
     });
