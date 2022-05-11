@@ -110,7 +110,6 @@ export default {
       this.$router.push("/user/" + user.id);
     },
     sendInvit(user) {
-      console.log(`sendInvit`, user);
       this.socket.emit("sendInvit", user, this.user);
     },
     quitRoom() {

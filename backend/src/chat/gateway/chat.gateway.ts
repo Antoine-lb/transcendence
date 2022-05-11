@@ -388,13 +388,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('sendInvit')
     async sendInvit(socket: Socket, [user_defié , user_defiant]) {
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+        return;
+      }
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
     }
     
     @SubscribeMessage('acceptInvit')
     async acceptInvit(socket: Socket, [adversaire, roomCode]) {
-      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+        return;
+      }
+      
+      if (socket.data.status == "play") {
+        this.server.to(opponentSocket[0].socketID).emit('already_playing');
+        return;
+      }
+ 
       this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
     }
   
@@ -402,6 +416,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async declineGameInvit(socket: Socket, adversaire : UserDto) {
       // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+        return;
+      }
       this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
     }
  }

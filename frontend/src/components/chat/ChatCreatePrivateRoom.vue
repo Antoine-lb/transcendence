@@ -55,7 +55,6 @@ export default {
   },
   methods: {
     newUser() {
-      console.log(this.userStore.user.username)
       let valid = false;
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
@@ -76,8 +75,6 @@ export default {
       }
     },
     createRooms() {
-      console.log(this.newRoomUsers[0].username)
-
       if (this.newRoomUsers[0].username !== this.userStore.user.username)
       {
         let room: newRoomInterface = {

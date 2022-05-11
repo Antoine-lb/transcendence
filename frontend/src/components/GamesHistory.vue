@@ -69,12 +69,14 @@ export default {
     <div v-if="!loading">
       <h2 class="custom-title" v-if="history.length">Match History</h2>
       <div v-for="game in history" :key="game.id">
-        <SingleGameHistory
-          :winnerId="game.winnerId"
-          :loserId="game.loserId"
-          :gameId="game.id"
-          :score="game.score"
-        />
+        <div v-if="game.winnerId">
+          <SingleGameHistory
+            :winnerId="game.winnerId"
+            :loserId="game.loserId"
+            :gameId="game.id"
+            :score="game.score"
+          />
+        </div>
       </div>
     </div>
   </div>
