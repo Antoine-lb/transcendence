@@ -226,7 +226,7 @@ export default {
       <!-- Update username -->
       <div class="text space">
         <p> Update your username :
-          <input v-model="name" type="text" name="username" v-on:keyup.enter="checkFormUsername" :placeholder=userStore.user.username>
+          <input v-model="name" type="text" maxlength="24" name="username" v-on:keyup.enter="checkFormUsername" :placeholder=userStore.user.username>
         </p>
         <p><button class="pwd-btn" type="submit" @click="checkFormUsername()" >Submit</button></p>
       </div>

@@ -53,7 +53,6 @@ export default {
       userRolesInRoom: [], // all roles in current room
       usersForRoom: [], // all users for current room (even AVAILABLE BANNED or FORBIDDEN)
       blockedFriends: [],
-      errorQuitRoom: "",
     };
   },
   // setup() {
@@ -95,22 +94,16 @@ export default {
     },
     createRoom(room: newRoomInterface) {
       this.socket.emit("createRoom", room);
-      this.errorQuitRoom = "";
     },
     updateSelected(room: RoomI) {
-      this.errorQuitRoom = "";
       if (this.selectedRoom && room.id == this.selectedRoom.id)
         this.selectedRoom = {};
       else this.selectedRoom = room;
     },
     refreshSelected(room: RoomI) {
-      this.errorQuitRoom = "";
       this.socket.emit("getRoles", room);
       this.selectedRoom = room;
     },
-    updateError(error) {
-      this.errorQuitRoom = error;
-    }
   },
   async created() {
     // this.socket = io("http://127.0.0.1:3000", {
@@ -200,8 +193,9 @@ export default {
           :user="user"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
-          :errorQuitRoom="this.errorQuitRoom"
-          @updateError="updateError"
+          @notifyWarn="notifyWarn"
+          @notifyError="notifyError"
+          @notifySuccess="notifySuccess"
         />
         <ChatSelectedRoomParams
           @refreshSelected="refreshSelected"

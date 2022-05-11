@@ -56,7 +56,6 @@ export default {
     socket: Object,
     userRolesInRoom: Object,
     usersForRoom: Object,
-    errorQuitRoom: String,
   },
   components: {},
   methods: {
@@ -119,12 +118,17 @@ export default {
         room: this.selectedRoom,
         user: this.user,
       });
-      location.reload();
+      // this.socket.emit("leaveRoom", this.selectedRoom);
     },
   },
   async created() {
     this.socket.on("errorQuitRoom", () => {
-      this.$emit("updateError", "You can't leave room if you are owner and the last person in it");
+      this.$emit("notifyWarn", "You can't leave room if you are the last person in it.")
+    });
+    this.socket.on("successQuitRoom", () => {
+      var roomName = this.selectedRoom.name;
+      this.socket.emit("leaveRoom", this.selectedRoom);
+      this.$emit("notifySuccess", "You have left " + roomName + " !")
     });
   },
 };
@@ -134,7 +138,6 @@ export default {
 <template>
   <div>
     <div v-if="this.selectedRoom?.name && getRole(this.user) != 'banned'" class="box">
-      <div v-if="errorQuitRoom && errorQuitRoom.length" class="bold-red"> {{ errorQuitRoom }} </div>
       <h1>Users in {{ this.selectedRoom?.name }}</h1>
       <div v-for="role in roles" class="users-list" :key="role">
         <div v-if="role != 'banned' || isAdmin(this.user)">

@@ -155,10 +155,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
       await this.emitRoomsForConnectedUsers(room);
       await this.emitRolesForConnectedUsers(room);
+      this.server.to(socket.id).emit('successQuitRoom');
     }
     catch (e) {
-      socket.emit('error', e);
-      await this.server.to(socket.id).emit('errorQuitRoom');
+      if (e?.response?.statusCode == 418)
+         this.server.to(socket.id).emit('errorQuitRoom');
+      else
+        socket.emit('error', e);
     }
 
   }

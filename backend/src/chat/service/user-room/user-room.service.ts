@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException, ImATeapotException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRoomEntity, UserRoomRole } from 'src/chat/model/user-room.entity';
 import { UserRoomI } from 'src/chat/model/user-room.interface';
@@ -48,7 +48,7 @@ export class UserRoomService {
             currentRole == UserRoomRole.BANNED ||
             ((currentRole == UserRoomRole.LAMBDA || currentRole == UserRoomRole.MUTED) && newRole != UserRoomRole.AVAILABLE) ||
             (currentRole == UserRoomRole.AVAILABLE && newRole != UserRoomRole.LAMBDA) ||
-            (currentRole == UserRoomRole.ADMIN && newRole != UserRoomRole.LAMBDA)
+            (currentRole == UserRoomRole.ADMIN && (newRole != UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE))
         )
             return false;
         return true;
@@ -110,7 +110,7 @@ export class UserRoomService {
         {
             var newOwner: UserDto = await this.findNewOwner(room, modifier);
             if (newOwner === null)
-                throw new UnauthorizedException("Can't leave room if you are owner and the last person in it");
+                throw new ImATeapotException("Can't leave room if you are the last person in it");
             await this.userRoomRepository.update({ user: newOwner, room: room }, { role: UserRoomRole.OWNER } );
             return await this.userRoomRepository.update({ user: modifier, room: room }, { role: newRole } );
         }
