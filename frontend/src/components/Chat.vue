@@ -75,6 +75,24 @@ export default {
     ChatCreatePrivateRoom,
   },
   methods: {
+    notifyError(msg) {
+      this.$notify({
+        title: msg,
+        type: "error"
+      })
+    },
+    notifyWarn(msg) {
+      this.$notify({
+        title: msg,
+        type: "warn"
+      })
+    },
+    notifySuccess(msg) {
+      this.$notify({
+        title: msg,
+        type: "success"
+      })
+    },
     createRoom(room: newRoomInterface) {
       this.socket.emit("createRoom", room);
       this.errorQuitRoom = "";
@@ -170,6 +188,9 @@ export default {
           :user="user"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
+          @notifyWarn="notifyWarn"
+          @notifyError="notifyError"
+          @notifySuccess="notifySuccess"
         />
         <ChatSelectedRoomUsers
           :selectedRoom="this.selectedRoom"

@@ -54,6 +54,12 @@ export default {
       return this.userRoomsRoles[this.selectedRoom.id];
     },
     sendMessage() {
+      if (this.text == "\n") // TO CHECK IF OTHER EMPTY MESSAGES
+      {
+        this.$emit("notifyWarn", "Empty message.");
+        this.text = "";
+        return
+      }
       if (this.validateInput()) {
         const message = {
           user: this.user,
@@ -78,9 +84,9 @@ export default {
     },
   },
   async created() {
-    this.socket.on("updateSelected", (room) => {
-      this.$emit("updateSelected", room);
-    });
+    // this.socket.on("updateSelected", (room) => {
+    //   this.$emit("updateSelected", room);
+    // });
     this.socket.on("messageAdded", (message) => {
       this.messages.items.push(message);
     });
