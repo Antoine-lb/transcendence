@@ -399,12 +399,17 @@ export default {
             h-100
           "
         >
-          <h1>
-            {{ this.gameStatus }}
-            myRoom is :
-            {{ this.socket != null ? this.socket.id : "Undefined yet" }}
-          </h1>
-          <canvas ref="canvas" class="game-canvas"></canvas>
+          <div v-if="this.gameStatus == 'idle'" class="name-title">
+            Wating for another player...
+          </div>
+
+          <canvas
+            ref="canvas"
+            class="game-canvas"
+            v-bind:class="{
+              'display-none': this.gameStatus == 'idle',
+            }"
+          ></canvas>
           <button
             v-if="this.gameStatus == 'play' || this.gameStatus == 'paused'"
             type="submit"
@@ -506,5 +511,24 @@ textarea {
   margin-top: 10px;
   margin: 10px;
   border: 2px solid #703ab8;
+}
+
+.display-none {
+  height: 0px;
+}
+
+.name-title {
+  font-size: 50px;
+  margin-bottom: 130px;
+  text-transform: capitalize;
+  text-align: center;
+  color: #703ab8;
+  font-family: "Send Flowers", cursive;
+  margin-bottom: -50px;
+  z-index: 30;
+  text-shadow: 0 0 6px rgba(120, 61, 204, 0.92),
+    0 0 30px rgba(94, 14, 206, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+    0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+    0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
 }
 </style>
