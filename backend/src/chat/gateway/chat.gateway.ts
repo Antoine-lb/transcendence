@@ -311,15 +311,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
       if (!opponentSocket[0]) {
         socket.emit('is_disconnected');
-      return;
-    }
+        return;
+      }
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
     }
     
     @SubscribeMessage('acceptInvit')
     async acceptInvit(socket: Socket, [adversaire, roomCode]) {
-      // console.log(">>>>>> acceptInvit "/* roomCode : ",  roomCode, "adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+        return;
+      }
       this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
     }
   
@@ -327,6 +330,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     async declineGameInvit(socket: Socket, adversaire : UserDto) {
       // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+        return;
+      }
       this.server.to(opponentSocket[0].socketID).emit('declineGameInvit');
     }
  }
