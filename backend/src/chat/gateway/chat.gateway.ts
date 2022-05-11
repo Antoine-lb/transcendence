@@ -296,7 +296,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await this.emitRoomsForConnectedUsers(room); // JUST ADDED
     }
     catch {
-      socket.emit('Error', new UnauthorizedException());
+      socket.emit('error', new UnauthorizedException());
     }
   }
 
@@ -330,7 +330,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   private disconnect(socket: Socket) {
-    socket.emit('Error', new UnauthorizedException());
+    socket.emit('Error', new UnauthorizedException()); // With or without capital E
     socket.disconnect();
   }
       
