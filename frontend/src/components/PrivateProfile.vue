@@ -17,7 +17,6 @@ export default {
       code: null,
       file: '',
       img: '',
-      errors: [],
     };
   },
   props: {
@@ -35,7 +34,7 @@ export default {
     Log
   },
   methods: {
-    notifyError(err) {
+    notifyErrorResponse(err) {
       if (err?.response?.data?.message)
         this.$notify({
           title: "An error has occured : " + err.response.data.message + ".",
@@ -46,6 +45,24 @@ export default {
           title: "An error has occured. Please try again later.",
           type: "error"
         })
+    },
+    notifyError(msg) {
+      this.$notify({
+        title: msg,
+        type: "error"
+      })
+    },
+    notifyWarn(msg) {
+      this.$notify({
+        title: msg,
+        type: "warn"
+      })
+    },
+    notifySuccess(msg) {
+      this.$notify({
+        title: msg,
+        type: "success"
+      })
     },
     goToAccount() {
       this.$router.go('/account');
@@ -76,21 +93,16 @@ export default {
           this.goToAccount();
         })
         .catch(err => {
-          this.errors = [];
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
-            this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
+            this.notifyError("Allowed characters : alphanumerical, hyphen ( - ) and underscore ( _ ).")
           else
-            this.notifyError(err);
+            this.notifyErrorResponse(err);
         });
         return true;
       }
-      this.errors = [];
       if (!this.name) {
-        this.$notify({
-          title: "Please submit a new username.",
-          type: "warn",
-        })
+          this.notifyWarn("Please submit a new username.")
       }
       // e.preventDefault();
     },
@@ -101,23 +113,16 @@ export default {
       console.log("this.file : ", this.file);
       if (!this.file)
       {
-        this.$notify({
-          title: "Please submit a file",
-          type: "warn"
-        })
+        this.notifyWarn("Please submit a file.")
         return;
       }
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
-          this.$notify({
-            title: "Avatar uploaded !",
-            type: "success"
-          })
+          this.notifySuccess("Avatar uploaded !")
           this.$refs.fileInput.type = 'text'
           this.$refs.fileInput.type = 'file'
-          this.errors = [];
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -125,29 +130,24 @@ export default {
           statusCode = parseInt(statusCode);
         else
           statusCode = 500;
-        this.errors = [];
         if (statusCode == 415)
-          this.errors.push('Unsupported mime type.');
+          this.notifyError("Unsupported mime type.")
         else if (statusCode == 413)
-          this.errors.push('Payload too large.');
+          this.notifyError("Payload too large.")
         else
-          this.notifyError(err);
+          this.notifyErrorResponse(err);
       });
     },
     resetAvatar(){
       const token = this.userStore.user.access_token
       axios.get( "http://127.0.0.1:3000/api/users/me/delete-avatar", { withCredentials: true, headers: { 'access_token' : token }} )
       .then(async res => {
-          this.$notify({
-            title: "Avatar reset !",
-            type: "success"
-          })
+          this.notifySuccess("Avatar reset !")
           this.$refs.fileInput.type = 'text'
           this.$refs.fileInput.type = 'file'
-          this.errors = [];
       })
       .catch(err => {
-        this.notifyError(err);
+        this.notifyErrorResponse(err);
       });
     },
     hexToBase64(str : string) {
@@ -165,40 +165,43 @@ export default {
           this.img = res.data.img_src;
       })
       .catch(err => {
-        console.log("generate error : ", err)
+        this.notifyErrorResponse(err);
       });
-      return true;      
     },
     turnOn2fa() {
-     if (this.code)
+      if (this.code)
       {
+        if (this.code.length != 6)
+        {
+          this.notifyError("Wrong code.")
+          this.code = null
+          return
+        }
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/2fa/turn-on", { twoFACode : this.code }, { withCredentials: true, headers: { 'access_token' : token, 'access_token_2fa' : token } } )
         .then(async res => {
           this.pushToLog2fa();
         })
         .catch(err => {
-          console.log("turn-on error : ", err)
+          this.notifyError("Wrong code.")
+          this.code = null
         });
-        return true;
       }
-      this.errors = [];
       if (!this.code) {
-        this.errors.push('Code required.');
+        this.notifyWarn("Code required.")
       }
     },
     turnOff2fa() {
-        const token = this.userStore.user.access_token
-        axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
-        .then(async res => {
-          this.goToAccount();
-        })
-        .catch(err => {
-          console.log("turn-off error : ", err)
-        });
-        return true;
+      const token = this.userStore.user.access_token
+      axios.post("http://127.0.0.1:3000/api/2fa/turn-off", { user : this.userStore.user }, { withCredentials: true, headers: { 'access_token' : token }} )
+      .then(async res => {
+        this.goToAccount();
+      })
+      .catch(err => {
+        this.notifyErrorResponse(err);
+      });
     },
-        invitationRecu(adversaire, code) {
+    invitationRecu(adversaire, code) {
       console.log(`Ds invitation Reçu room : ${code}`);
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
@@ -220,11 +223,6 @@ export default {
 <template>
   <div>
     <div class="box">
-      <!-- If errors at submit -->
-      <p class="error" v-if="errors.length">
-        Please correct the following error(s):
-        <ul> <li v-for="error in errors"> {{ error }}</li> </ul>
-      </p>
       <!-- Update username -->
       <div class="text space">
         <p> Update your username :
@@ -252,7 +250,7 @@ export default {
             <img :src="img" />
             <p>
               Please enter 2fa code below to enable 2FA :
-              <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
+              <input v-model="code" type="text" maxlength="6" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
               <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>
           </div>

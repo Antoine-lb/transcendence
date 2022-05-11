@@ -55,9 +55,8 @@ export class TwoFAController {
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
-    if (!isCodeValid) {
+    if (!isCodeValid)
       throw new ImATeapotException('Wrong authentication 2fa turn-on code');
-    }
     // turn on 2fa on user
     await this.usersService.turnOnTwoFA(request.user.id);
   }
@@ -67,7 +66,7 @@ export class TwoFAController {
   @UseGuards(JwtAuthGuard)
   async turnOffTwoFA(
     @Req() request: RequestWithUser) {
-    await this.usersService.turnOffTwoFA(request.user.id);
+      await this.usersService.turnOffTwoFA(request.user.id);
   }
 
   // EST APPELEE A CHAQUE LOGIN si 2fa est active (isTwoFA = true)
@@ -82,14 +81,12 @@ export class TwoFAController {
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
     );
-    if (!isCodeValid) {
+    if (!isCodeValid)
       throw new ImATeapotException('Wrong authentication 2fa code');
-    }
     // cree cookie qui contient le token
     const accessTokenCookie = this.authService.getCookieWithToken(request.user.id, true);
     // renvoie le cookie qui contient le token dans la reponse
     request.res.setHeader('Set-Cookie', [accessTokenCookie]);
- 
     return request.user;
   }
 }
