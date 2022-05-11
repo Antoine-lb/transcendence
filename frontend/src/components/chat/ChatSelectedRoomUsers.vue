@@ -118,7 +118,7 @@ export default {
         room: this.selectedRoom,
         user: this.user,
       });
-      // location.reload();
+      location.reload();
     },
   },
   async created() {
@@ -191,6 +191,8 @@ export default {
       <button class="quit-room-button" @click="quitRoom()" title="Quit Room">
         👋 quit room
       </button>
+      <div class="bold-red"> You can't leave room if you are the last person in it </div>
+
       <!-- <code>
         <pre>{{ this.usersForRoom }}</pre>
       </code> -->
@@ -218,6 +220,7 @@ input[type="submit"]:hover {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin-top: 10px;
   margin: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
 }
 
 .on-colors {

@@ -161,6 +161,7 @@ input[type="submit"]:hover {
 }
 
 .box {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
   /* background-color: white; */
   border: none;
   font-weight: bold;

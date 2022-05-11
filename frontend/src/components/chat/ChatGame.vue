@@ -316,6 +316,7 @@ export default {
   <section class="">
     <div class="container h-100">
       <div style="margin-bottom: 30px">
+        <h1>Invite your mates to play pong below</h1>
         <div
           v-for="(game, index) in this.liveGame"
           :key="game.liveGame"

@@ -61,6 +61,7 @@ export default {
           </ul>
         </p>
         <div v-if="userStore.user.isTwoFA">
+            <p style="margin-top: 10px;"> Your account has enabled 2FA. Please enter code below to login : </p>
             <p>
               Please enter 2fa code below :
               <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="log2fa" placeholder="_ _ _ _ _ _">

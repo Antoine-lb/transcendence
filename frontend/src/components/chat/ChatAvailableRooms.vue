@@ -112,6 +112,7 @@ input[type="submit"]:hover {
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
   margin-top: 10px;
   margin: 10px;
 }

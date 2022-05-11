@@ -38,15 +38,11 @@ export default {
   data() {
     return {
       showPasswordToJoin: 0,
-      wrongPassword: false, // error
       roles: {
         OWNER: "owner",
         ADMIN: "admin",
         LAMBDA: "lambda",
         MUTED: "muted",
-        // BANNED: "banned",
-        // AVAILABLE: "available",
-        // FORBIDDEN: "forbidden",
       },
     };
   },
@@ -111,7 +107,7 @@ export default {
       this.$emit("updateSelected", room);
     });
     this.socket.on("WrongPassword", () => {
-      this.wrongPassword = true;
+      this.$notify("Wrong password !");
     });
   },
 };
@@ -119,7 +115,6 @@ export default {
 <template>
   <div class="box">
     <h1>My rooms</h1>
-    <p v-if="wrongPassword" class="error-paragraf">Password not matching</p>
     <div class="list-group">
       <ul>
         <div v-for="role in roles" class="users-list" :key="role">
@@ -179,6 +174,7 @@ input[type="submit"]:hover {
 .box {
   border: none;
   /* font-weight: bold; */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

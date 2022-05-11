@@ -35,15 +35,41 @@ export default {
     Log
   },
   methods: {
+    notifyError(err) {
+      if (err?.response?.data?.message)
+        this.$notify({
+          title: "An error has occured : " + err.response.data.message + ".",
+          type: "error"
+        })
+      else
+        this.$notify({
+          title: "An error has occured. Please try again later.",
+          type: "error"
+        })
+    },
     goToAccount() {
       this.$router.go('/account');
     },
     pushToLog2fa() {
       this.$router.push('/log2fa');
     },
+    checkUsernameChars(str) {
+      var allowed = /^[a-zA-Z0-9-_]*$/; // letters, numbers, hyphen and underscore
+      if (str.match(allowed))
+        return true
+      return false
+    },
     checkFormUsername: function (e) {
       if (this.name)
       {
+        if (!this.checkUsernameChars(this.name))
+        {
+          this.$notify({
+              title: 'Allowed characters : alphanumerical, hyphen ( - ) and underscore ( _ ).',
+              type: "error"
+          });
+          return
+        }
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
@@ -53,13 +79,18 @@ export default {
           this.errors = [];
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
-            this.errors.push('Allowed characters : alphanumerical and underscore.');
+            this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
+          else
+            this.notifyError(err);
         });
         return true;
       }
       this.errors = [];
       if (!this.name) {
-        this.errors.push('Name required.');
+        this.$notify({
+          title: "Please submit a new username.",
+          type: "warn",
+        })
       }
       // e.preventDefault();
     },
@@ -67,11 +98,26 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
+      console.log("this.file : ", this.file);
+      if (!this.file)
+      {
+        this.$notify({
+          title: "Please submit a file",
+          type: "warn"
+        })
+        return;
+      }
       let formData = new FormData();
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
-          this.goToAccount();
+          this.$notify({
+            title: "Avatar uploaded !",
+            type: "success"
+          })
+          this.$refs.fileInput.type = 'text'
+          this.$refs.fileInput.type = 'file'
+          this.errors = [];
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -83,9 +129,25 @@ export default {
         if (statusCode == 415)
           this.errors.push('Unsupported mime type.');
         else if (statusCode == 413)
-        {
           this.errors.push('Payload too large.');
-        }
+        else
+          this.notifyError(err);
+      });
+    },
+    resetAvatar(){
+      const token = this.userStore.user.access_token
+      axios.get( "http://127.0.0.1:3000/api/users/me/delete-avatar", { withCredentials: true, headers: { 'access_token' : token }} )
+      .then(async res => {
+          this.$notify({
+            title: "Avatar reset !",
+            type: "success"
+          })
+          this.$refs.fileInput.type = 'text'
+          this.$refs.fileInput.type = 'file'
+          this.errors = [];
+      })
+      .catch(err => {
+        this.notifyError(err);
       });
     },
     hexToBase64(str : string) {
@@ -145,7 +207,6 @@ export default {
       else
         this.socket.emit('declineGameInvit', adversaire);
     },
-    
     acceptInvit (roomCode) {
         console.log(">>>>>> acceptInvitGame (pb profile) roomCode : ", roomCode);
         // await this.startGameAnimation()
@@ -173,9 +234,11 @@ export default {
       <!-- Update avatar -->
       <div class="text space">
         <p> Update your avatar :
-          <input type="file" @change="handleFileUpload( $event )"/>
+          <input type="file" ref="fileInput" @change="handleFileUpload( $event )"/>
         </p>
-        <p><button class="pwd-btn" v-on:click="submitFile()">Submit</button></p>
+        <button class="pwd-btn" style="margin-right: 5px" v-on:click="submitFile()">Submit</button>
+        <!-- Reset avatar -->
+        <button class="pwd-btn" style="margin-right: 5px" v-on:click="resetAvatar()">Reset your avatar to default</button>
       </div>
       <!-- Enable/Disable 2FA -->
       <div class="text space">
@@ -184,9 +247,10 @@ export default {
         <div v-if="!userStore.user.isTwoFA">
           <p><button class="pwd-btn" type="submit" @click="generateQrCode()">Enable 2-factor authentication</button></p>
           <div v-if="this.img">
+            <p style="margin-top: 10px;"> Download Google Authenticator and scan this QR code :</p>
             <img :src="img" />
             <p>
-              Please enter 2fa code below :
+              Please enter 2fa code below to enable 2FA :
               <input v-model="code" type="text" name="twoFACode" v-on:keyup.enter="turnOn2fa" placeholder="_ _ _ _ _ _">
               <p><button class="pwd-btn" type="submit" @click="turnOn2fa()" >Submit</button></p>
             </p>

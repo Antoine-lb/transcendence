@@ -98,7 +98,7 @@ export default {
 
 <template>
   <div class="box">
-    <h1>Create new Private Room</h1>
+    <h1>Direct Messages</h1>
     <div>
         <div>
           <input type="text" v-model="newRoomUser" v-on:keyup.enter="newUser" placeholder="User Login" />
@@ -126,10 +126,10 @@ input {
 }
 
 .box {
-  /* background-color: white; */
+  /* background-color: rgba(0, 0, 0, 0.02); */
   border: none;
   font-weight: bold;
-  /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   padding: 15px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

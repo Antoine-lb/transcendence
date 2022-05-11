@@ -39,12 +39,10 @@ export default {
     return {
       // Modification
       showModifyPassword: false,
-      modifyingPasswordSuccess: false, // validation
       // Addition
       showAddPassword: false,
-      addingPasswordSuccess: false, // validation
-      // Deletion
-      deletingPasswordSuccess: false, // validation
+      // room renaming
+      newName : "",
     };
   },
   props: {
@@ -106,20 +104,32 @@ export default {
         password: inputPassword,
       });
     },
+    renameRoom() {
+      this.socket.emit("renameRoom", {
+        room: this.selectedRoom,
+        modifier: this.user,
+        newName: this.newName
+      });
+    },
   },
   async created() {
     this.socket.on("modifyingPasswordSuccess", (room: RoomI) => {
-      this.modifyingPasswordSuccess = true;
+      this.$notify("Password modified !");
       this.showModifyPassword = false;
       this.$emit("refreshSelected", room);
     });
     this.socket.on("addingPasswordSuccess", (room: RoomI) => {
-      this.addingPasswordSuccess = true;
+      this.$notify("Password added !");
       this.showAddPassword = false;
       this.$emit("refreshSelected", room);
     });
     this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
-      this.deletingPasswordSuccess = true;
+      this.$notify("Password deleted !");
+      this.$emit("refreshSelected", room);
+    });
+    this.socket.on("renamingRoomSuccess", (room: RoomI) => {
+      this.$notify("Room renamed !");
+      this.newName = "",
       this.$emit("refreshSelected", room);
     });
   },
@@ -127,7 +137,7 @@ export default {
 </script>
 <template>
   <div style="margin: 20px">
-    <div v-if="this.selectedRoom?.name && isOwner(this.user) && (isPublic() || isProtected())" class="box">
+    <div v-if="this.selectedRoom?.name && isOwner(this.user)" class="box">
       <h1 >Settings for {{ this.selectedRoom?.name }} </h1>
       <div v-if="isPublic()">
         <p>You are the owner of this public room.
@@ -136,9 +146,6 @@ export default {
             <p v-if="showAddPassword">
               <PasswordBtn @onSubmit="addingPasswordSubmit" :room="this.selectedRoom" :msg="'ADD PASSWORD'"/>
             </p>
-            <p v-if="this.addingPasswordSuccess" class="validation-paragraf">
-              Password added
-            </p>
           </p>
         </p>
       </div>
@@ -146,18 +153,17 @@ export default {
         <p>You are the owner of this protected room.
           <p>
             <button class="new-room-button" @click="deletePassword(this.selectedRoom, this.user)">Delete Password</button>
-            <p v-if="this.deletingPasswordSuccess" class="validation-paragraf">
-              Password deleted
-            </p>
             <button class="new-room-button" @click="this.showModifyPassword = !this.showModifyPassword">Modify Password</button>
             <div v-if="showModifyPassword">
               <PasswordBtn @onSubmit="modifyingPasswordSubmit" :room="this.selectedRoom" :msg="'MODIFY PASSWORD'"/>
             </div>
-            <p v-if="this.modifyingPasswordSuccess" class="validation-paragraf">
-              Password updated
-            </p>
           </p>
         </p>
+      </div>
+      <div>
+        <p>You can rename this room.</p>
+        <input type="text" v-model="newName" v-on:keyup.enter="renameRoom" :placeholder="this.selectedRoom.name" />
+        <button class="add-user" @click="renameRoom">Rename room</button>
       </div>
     </div>
     </div>
@@ -170,6 +176,15 @@ main {
   /* margin: auto; */
 }
 
+input {
+  color: #703ab8;
+  border: 3px solid #703ab8;
+  padding: 10px;
+  border-radius: 13px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
 input[type="submit"]:hover {
   background-color: white;
   color: #703ab8;
@@ -179,6 +194,7 @@ input[type="submit"]:hover {
   /* background-color: white; */
   border: none;
   font-weight: bold;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.23);
   /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
   border-radius: 3px;
   /* padding: 15px; */
