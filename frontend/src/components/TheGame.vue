@@ -117,7 +117,7 @@ export default {
     },
 
     handleJoinGame() {
-      const code = this.gameCodeInput.value;
+      const code = this.gameCodeInput?.value;
       this.socket.emit("joinGame", code);
     },
 
