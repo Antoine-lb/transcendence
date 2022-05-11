@@ -453,6 +453,7 @@ export default {
 </template>
 
 <style scoped>
+
 .game-canvas {
   margin: auto;
   width: 100%;
@@ -481,6 +482,7 @@ textarea {
   padding: 10px;
   margin: 10px;
 }
+
 .message-box {
   overflow: hidden;
   border: 3px solid #703ab8;
@@ -540,6 +542,8 @@ textarea {
   margin: auto;
   margin-top: 20px;
   display: block;
+}
+
 .game-canvas {
   margin: auto;
   width: 100%;
