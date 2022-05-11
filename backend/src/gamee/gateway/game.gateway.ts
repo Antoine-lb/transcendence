@@ -46,6 +46,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(socket: Socket, payload: string) {
     try {
+
+    console.log('connect')
+
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
       const user = await this.userService.findById(decodedToken.id);
 
@@ -72,6 +75,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(socket: Socket) {
+    console.log('disconnect')
     const roomName = this.clientRooms[socket.id];
 
     let roomSize = 0;
@@ -144,7 +148,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('newGame')
-  async handleNewGame(socket: Socket, roomCode : string) {
+  async handleNewGame(socket: Socket, roomCode: string) {
+    if (socket.data.status == "play") {
+      socket.emit('already_playing')
+      return;
+    }
     // create random ID for the new room
     let roomName = roomCode ? roomCode : this.GameService.makeid(5);
     // emit the new game ID to other player;
@@ -175,6 +183,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     else if (roomSize > 1) {
       socket.emit('tooManyPlayers');
+      return;
+    }
+      
+    else if (socket.data.status == "play") {
+      socket.emit('already_playing')
       return;
     }
 
@@ -366,7 +379,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('keydown')
   async handleKeyDown(socket: Socket, keyCode: string) {
 
-    let keyCodeInt: number;
+    let keyCodeInt: number
     const roomName: string = this.clientRooms[socket.id];
 
     if (!roomName || socket.data.status != "play")

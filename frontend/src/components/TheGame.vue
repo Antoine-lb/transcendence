@@ -169,7 +169,7 @@ export default {
             this.canvas.width / 3 - index / 3,
             this.canvas.height / 3 + index / 3
           );
-          await this.sleep(10);
+          // await this.sleep(10);
         }
       this.gameStatus = "play"
       if (this.playerNumber == 1)
