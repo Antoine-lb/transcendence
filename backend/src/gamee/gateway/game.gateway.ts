@@ -46,9 +46,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(socket: Socket, payload: string) {
     try {
-
-    console.log('connect')
-
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
       const user = await this.userService.findById(decodedToken.id);
 
@@ -75,7 +72,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(socket: Socket) {
-    console.log('disconnect')
     const roomName = this.clientRooms[socket.id];
 
     let roomSize = 0;

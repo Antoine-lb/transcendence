@@ -309,6 +309,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @SubscribeMessage('sendInvit')
     async sendInvit(socket: Socket, [user_defié , user_defiant]) {
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
+      if (!opponentSocket[0]) {
+        socket.emit('is_disconnected');
+      return;
+    }
       await this.server.to(opponentSocket[0].socketID).emit('invit', user_defiant, Math.random().toString().substring(2,7)); //<- hash de 5 chiffres random
     }
     
