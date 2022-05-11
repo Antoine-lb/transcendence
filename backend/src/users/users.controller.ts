@@ -65,7 +65,7 @@ export class UserController {
     async getUserProfileId(@Param('id', new ParseIntPipe()) id: number) {
       const user = await this.userService.findById(id);
       if (!user)
-        throw new NotFoundException('User not found')
+        throw new NotFoundException('Please try again later')
       return user;
   }
 
@@ -81,11 +81,9 @@ export class UserController {
     async uploadImage(@UploadedFile() file, @Request() req): Promise<any> {
       const user: UserEntity = req.user;
       if (!user)
-        throw new NotFoundException('User not found')
+        throw new NotFoundException('Please try again later')
       if (!file)
-      {
         throw new UnsupportedMediaTypeException('Upload: file not valid')
-      }
       await this.userService.deleteSimilarFiles(file.filename)
       var filepath = await join('/public/uploads/' + file.filename)
       return await this.userService.updateParams(user.id, { avatar: filepath })
@@ -96,7 +94,7 @@ export class UserController {
     async findProfileImage(@Res() res, @Request() req): Promise<any> {
       const user= this.userService.findById(req.user.id);
       if (!user)
-        throw new NotFoundException('User not found')
+        throw new NotFoundException('Please try again later')
       if (await this.userService.fileExists(req.user.avatar) == false)
         throw new NotFoundException('Cannot display avatar - File does not exists')
       return res.sendFile(req.user.avatar);
@@ -107,56 +105,49 @@ export class UserController {
     async updateUsername(@Res() res: Response, @Request() req): Promise<any> {
       const username = req.body.username 
       if (!username)
-        throw new NotFoundException('Username not received')
+        throw new NotFoundException('Please try again later')
       var check = await this.userService.checkUsernameChars(username)
       if (check == false)
         throw new BadRequestException('Allowed characters : alphanumerical, hyphen and underscore')
       const userEnt: UserEntity = req.user;
       if (!userEnt)
-        throw new NotFoundException('User not found 1')
+        throw new NotFoundException('Please try again later')
       const userEntfind = this.userService.findById(req.user.id);
       if (!userEntfind)
-        throw new NotFoundException('User not found 2')
+        throw new NotFoundException('Please try again later')
       if (username != userEnt.username)
       {
         const new_username = await this.userService.usernameAddSuffix(username);
         await this.userService.updateParams(req.user.id, { username: new_username })
       }
-      // await res.send(await this.userService.findById(req.user.id));
       await res.send({ user: await this.userService.findById(req.user.id), access_token: req.cookies['access_token']});
       return res
-
-      // ou redirige pour eviter une pending request
-      // res.redirect('/api/users/me');
-      // await res.redirect('http://127.0.0.1:8080/account')
     }
 
-    @UseGuards(JwtAuthGuard, Jwt2FAGuard)
-    @Get('/me/delete-avatar')
-    async deleteAvatar(@Res() res, @Request() req): Promise<any> {
-      const user = this.userService.findById(req.user.id);
-      if (!user)
-        throw new NotFoundException('User not found')
-      // delete l'avatar
-      const avatar_path: string = join(process.cwd(), req.user.avatar)
-      if (await this.userService.fileExists(avatar_path) == false)
-        throw new NotFoundException('Cannot delete avatar - File ' + avatar_path + ' does not exists')
-      if (await this.userService.deleteFile(avatar_path) == false)
-        throw new NotFoundException('failed to delete')
-      // prepare un nouvel avatar par defaut
-      const userEnt: UserEntity = req.user;
-      if (!userEnt)
-        throw new NotFoundException('User not found')
-      var defaultfile = await join('/public/avatar_default.png')
-      var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
-      if (await this.userService.fileExists(defaultpath) == false)
-        throw new NotFoundException('Cannot set default avatar - File does not exists')
-      // update le user avec l'avatar
-      await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
-      await res.send({ user: req.user });
-      return res
-      // ou redirige pour eviter une pending request
-      // res.redirect('/api/users/me');
-    }
+    // @UseGuards(JwtAuthGuard, Jwt2FAGuard)
+    // @Get('/me/delete-avatar')
+    // async deleteAvatar(@Res() res, @Request() req): Promise<any> {
+    //   const user = this.userService.findById(req.user.id);
+    //   if (!user)
+    //     throw new NotFoundException('Please try again later')
+    //   // delete l'avatar
+    //   const avatar_path: string = join(process.cwd(), req.user.avatar)
+    //   if (await this.userService.fileExists(avatar_path) == false)
+    //     throw new NotFoundException('Cannot delete avatar - File ' + avatar_path + ' does not exists')
+    //   if (await this.userService.deleteFile(avatar_path) == false)
+    //     throw new NotFoundException('failed to delete')
+    //   // prepare un nouvel avatar par defaut
+    //   const userEnt: UserEntity = req.user;
+    //   if (!userEnt)
+    //     throw new NotFoundException('Please try again later')
+    //   var defaultfile = await join('/public/avatar_default.png')
+    //   var defaultpath = await join(process.cwd(), 'public/avatar_default.png')
+    //   if (await this.userService.fileExists(defaultpath) == false)
+    //     throw new NotFoundException('Cannot set default avatar - File does not exists')
+    //   // update le user avec l'avatar
+    //   await this.userService.updateParams(userEnt.id, {avatar: defaultfile})
+    //   await res.send({ user: req.user });
+    //   return res
+    // }
 
   }

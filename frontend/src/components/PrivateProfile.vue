@@ -35,26 +35,45 @@ export default {
     Log
   },
   methods: {
+    notifyError(err) {
+      if (err?.response?.data?.message)
+        this.$notify("An error has occured : " + err.response.data.message + ".")
+      else
+        this.$notify("An error has occured. Please try again later.")
+    },
     goToAccount() {
       this.$router.go('/account');
     },
     pushToLog2fa() {
       this.$router.push('/log2fa');
     },
+    checkUsernameChars(str) {
+      var allowed = /^[a-zA-Z0-9-_]*$/; // letters, numbers, hyphen and underscore
+      if (str.match(allowed))
+        return true
+      return false
+    },
     checkFormUsername: function (e) {
       if (this.name)
       {
+        if (!this.checkUsernameChars(this.name))
+        {
+          this.errors = [];
+          this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
+          return;
+        }
         const token = this.userStore.user.access_token
         axios.post("http://127.0.0.1:3000/api/users/me/update-username", { username : this.name }, { withCredentials: true, headers: { 'access_token' : token }} )
         .then(async res => {
           this.goToAccount();
         })
         .catch(err => {
-          console.log("err : ", err)
           this.errors = [];
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
             this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
+          else
+            this.notifyError(err);
         });
         return true;
       }
@@ -72,7 +91,9 @@ export default {
       formData.append('file', this.file);
       axios.post( "http://127.0.0.1:3000/api/users/me/upload-avatar", formData, { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' }} )
       .then(async res => {
-          this.goToAccount();
+          this.$notify("Avatar uploaded !")
+          this.$refs.fileInput.type = 'text'
+          this.$refs.fileInput.type = 'file'
       })
       .catch(err => {
         var statusCode = err.message.split(' ').slice(-1);
@@ -84,9 +105,9 @@ export default {
         if (statusCode == 415)
           this.errors.push('Unsupported mime type.');
         else if (statusCode == 413)
-        {
           this.errors.push('Payload too large.');
-        }
+        else
+          this.notifyError(err);
       });
     },
     hexToBase64(str : string) {
@@ -175,7 +196,7 @@ export default {
       <!-- Update avatar -->
       <div class="text space">
         <p> Update your avatar :
-          <input type="file" @change="handleFileUpload( $event )"/>
+          <input type="file" ref="fileInput" @change="handleFileUpload( $event )"/>
         </p>
         <p><button class="pwd-btn" v-on:click="submitFile()">Submit</button></p>
       </div>
