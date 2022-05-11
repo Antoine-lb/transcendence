@@ -205,7 +205,9 @@ export default {
       for (let i = grid; i < this.canvas.height - grid; i += grid * 2) {
         this.ctx.fillRect(this.canvas.width / 2 - grid / 2, i, grid, grid);
       }
+
       // draw ball
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
 
       // draw PowerUps (if any)
@@ -218,7 +220,7 @@ export default {
 
       // draw scrore
       this.ctx.font = "20pt Calibri,Geneva,Arial";
-      this.ctx.strokeStyle = "rgb(0,0,0)";
+      this.ctx.strokeStyle = "#703ab8";
       this.ctx.strokeText(
         String(this.score.p1),
         this.canvas.width / 2 - 40,
