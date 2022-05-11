@@ -150,6 +150,9 @@ export default {
           :user="user"
           :userRooms="this.userRooms"
           :userRoomsRoles="this.userRoomsRoles"
+          @notifyWarn="notifyWarn"
+          @notifyError="notifyError"
+          @notifySuccess="notifySuccess"
         />
         <ChatAvailableRooms
           v-if="userRooms && userRooms.length"

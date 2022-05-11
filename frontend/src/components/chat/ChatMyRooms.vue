@@ -107,7 +107,7 @@ export default {
       this.$emit("updateSelected", room);
     });
     this.socket.on("WrongPassword", () => {
-      this.$notify("Wrong password !");
+      this.$emit("notifyError", "Wrong password !");
     });
   },
 };
