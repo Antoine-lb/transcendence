@@ -86,7 +86,6 @@ export class AuthController{
             if (!req.user || !req.user['username']){
                 res.clearCookie('access_token');
                 res.clearCookie('access_token_2fa');
-                console.log('coucou')
                 return res.redirect('http://127.0.0.1:8080/');
             }
 

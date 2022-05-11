@@ -50,7 +50,6 @@ export default {
           this.goToAccount();
         })
         .catch(err => {
-          console.log("err : ", err)
           this.errors = [];
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
@@ -138,7 +137,6 @@ export default {
         return true;
     },
         invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu room : ${code}`);
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
         this.socket.emit('acceptInvit', adversaire, code);

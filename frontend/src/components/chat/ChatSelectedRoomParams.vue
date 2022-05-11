@@ -109,19 +109,16 @@ export default {
   },
   async created() {
     this.socket.on("modifyingPasswordSuccess", (room: RoomI) => {
-      console.log(">>>>>> return on modifyingPasswordSuccess in COMPONENT");
       this.modifyingPasswordSuccess = true;
       this.showModifyPassword = false;
       this.$emit("refreshSelected", room);
     });
     this.socket.on("addingPasswordSuccess", (room: RoomI) => {
-      console.log(">>>>>> return on addingPasswordSuccess in COMPONENT");
       this.addingPasswordSuccess = true;
       this.showAddPassword = false;
       this.$emit("refreshSelected", room);
     });
     this.socket.on("deletingPasswordSuccess", (room: RoomI) => {
-      console.log(">>>>>> return on deletingPasswordSuccess in COMPONENT");
       this.deletingPasswordSuccess = true;
       this.$emit("refreshSelected", room);
     });

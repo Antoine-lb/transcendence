@@ -77,7 +77,6 @@ export default {
         );
         if (response.status == 200) {
           this.pendingFriendList = await response.json();
-          console.log("this.pendingFriendList", this.pendingFriendList);
         }
       } catch (error) {
         console.error(error);
@@ -92,7 +91,6 @@ export default {
         );
         if (response.status == 200) {
           this.blockedFriendList = await response.json();
-          console.log("this.blockedFriendList", this.blockedFriendList);
         }
       } catch (error) {
         console.error(error);

@@ -82,7 +82,6 @@ export default {
       });
 
       this.socket.on("samePlayer", (arg1, callback) => {
-        console.log(arg1);
         callback({
           status: alert("test"),
           // status1: "ok"
@@ -100,7 +99,6 @@ export default {
     },
 
     invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu room : ${code}`);
       if (
         confirm(
           adversaire.username + ", vous défie au pong : lancer la partie ?"
@@ -245,8 +243,6 @@ export default {
     },
 
     handleInit(number) {
-      console.log(`handleInit`);
-
       this.playerNumber = number;
       this.init();
     },
@@ -257,7 +253,6 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
-      console.log("this.gameStatus : ", this.gameStatus);
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         requestAnimationFrame(() => this.paintGame(gameState));
     },
@@ -353,12 +348,9 @@ export default {
     },
     liveGame() {
       this.socket.emit("getLiveGame", (response) => {
-        console.log(response);
       });
     },
     pushLiveGame(liveGame) {
-      console.log("ds pushLiveGame");
-      console.log(liveGame);
       this.gameStatus = "play";
     },
   },
