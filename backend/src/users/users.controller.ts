@@ -110,16 +110,18 @@ export class UserController {
         throw new NotFoundException('Username not received')
       var check = await this.userService.checkUsernameChars(username)
       if (check == false)
-        throw new BadRequestException('Allowed characters : alphanummeric and underscore')
+        throw new BadRequestException('Allowed characters : alphanumerical, hyphen and underscore')
       const userEnt: UserEntity = req.user;
       if (!userEnt)
         throw new NotFoundException('User not found 1')
       const userEntfind = this.userService.findById(req.user.id);
       if (!userEntfind)
         throw new NotFoundException('User not found 2')
-      const new_username = await this.userService.usernameAddSuffix(username);
-      await this.userService.updateParams(req.user.id, { username: new_username })
-
+      if (username != userEnt.username)
+      {
+        const new_username = await this.userService.usernameAddSuffix(username);
+        await this.userService.updateParams(req.user.id, { username: new_username })
+      }
       // await res.send(await this.userService.findById(req.user.id));
       await res.send({ user: await this.userService.findById(req.user.id), access_token: req.cookies['access_token']});
       return res

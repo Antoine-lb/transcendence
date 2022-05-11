@@ -213,7 +213,7 @@ export class UsersService {
     // ############################################ username functions ############################################ 
 
     async checkUsernameChars(str) {
-      var allowed = /^[a-zA-Z0-9_]*$/; // letters, numbers and underscore
+      var allowed = /^[a-zA-Z0-9-_]*$/; // letters, numbers and underscore
       if (await str.match(allowed))
         return true
       return false

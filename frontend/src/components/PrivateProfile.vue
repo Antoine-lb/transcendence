@@ -54,7 +54,7 @@ export default {
           this.errors = [];
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
-            this.errors.push('Allowed characters : alphanumerical and underscore.');
+            this.errors.push('Allowed characters : alphanumerical, hyphen and underscore.');
         });
         return true;
       }
