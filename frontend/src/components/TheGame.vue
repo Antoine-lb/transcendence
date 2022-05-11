@@ -409,7 +409,7 @@ export default {
             ref="pauseButton"
             v-on:click="handlePause()"
           >
-            {{ this.gameStatus == "play" ? "pause" : "continue" }}
+            {{ this.gameStatus == "play" ? "⏸ Pause" : "▶️ play" }}
           </button>
           <button
             type="submit"
@@ -467,6 +467,7 @@ export default {
 }
 
 .chat {
+  margin-top: 40px;
   height: 40px;
   color: blueviolet;
   border: 1px;
@@ -522,5 +523,22 @@ textarea {
     0 0 30px rgba(94, 14, 206, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
     0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
     0 0 54px rgba(211, 193, 236, 0.92); /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); */
+}
+
+.btn {
+  background-color: #703ab8;
+  border: none;
+  color: white;
+  font-weight: bold;
+  font-size: large;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 13px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  /* margin-left: 10px; */
+  margin: auto;
+  margin-top: 20px;
+  display: block;
 }
 </style>
