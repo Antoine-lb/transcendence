@@ -202,7 +202,6 @@ export default {
       });
     },
     invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu room : ${code}`);
       if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
         this.socket.emit('newGame', code);
         this.socket.emit('acceptInvit', adversaire, code);

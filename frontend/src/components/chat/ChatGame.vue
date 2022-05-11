@@ -93,7 +93,6 @@ export default {
       });
 
       this.socket.on("samePlayer", (arg1, callback) => {
-        console.log(arg1);
         callback({
           status: alert("test"),
           // status1: "ok"
@@ -101,20 +100,17 @@ export default {
       });
 
       this.socket.on("acceptInvit", async (roomCode) => {
-        console.log(">>>>>> acceptInvit (chat) roomCode : ", roomCode);
         // await this.startGameAnimation()
         this.socket.emit("joinGame", roomCode);
         this.gameStatus = "playing";
       });
 
       this.socket.on("declineGameInvit", () => {
-        console.log(">>>>>> declineGameInvit (chat)");
         alert("your opponent decline the challenge");
       });
     },
 
     invitationRecu(adversaire, code) {
-      console.log(`Ds invitation Reçu (ChatGame) room : ${code}`);
       if (
         confirm(
           adversaire.username + ", vous défie au pong : lancer la partie ?"
@@ -131,7 +127,7 @@ export default {
     },
 
     handleJoinGame() {
-      const code = this.gameCodeInput.value;
+      const code = this.gameCodeInput?.value;
       this.socket.emit("joinGame", code);
     },
 
@@ -211,6 +207,7 @@ export default {
         this.ctx.fillRect(this.canvas.width / 2 - grid / 2, i, grid, grid);
       }
       // draw ball
+      this.ctx.fillStyle = "#703ab8";
       this.ctx.fillRect(state.ball.x, state.ball.y, 15, 15);
 
       // draw PowerUps (if any)
@@ -223,7 +220,7 @@ export default {
 
       // draw scrore
       this.ctx.font = "20pt Calibri,Geneva,Arial";
-      this.ctx.strokeStyle = "rgb(0,0,0)";
+      this.ctx.strokeStyle = "#703ab8";
       this.ctx.strokeText(
         String(this.score.p1),
         this.canvas.width / 2 - 40,
@@ -253,7 +250,6 @@ export default {
       }
       gameState = JSON.parse(gameState);
       this.score = gameState.score;
-      console.log("this.gameStatus : ", this.gameStatus);
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         // c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
@@ -268,11 +264,11 @@ export default {
 
       this.gameActive = false;
       this.$notify({
-          position: "center",
-          title: "The Game has reach its end..",
-          text: data + " has Won !!",
-          duration: 6000,
-        });
+        position: "center",
+        title: "The Game has reach its end..",
+        text: data + " has Won !!",
+        duration: 6000,
+      });
     },
 
     handleUnknownCode() {

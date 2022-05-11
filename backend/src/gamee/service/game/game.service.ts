@@ -120,7 +120,6 @@ export class GameService {
       p2.y = canvas.height - grid - p2.paddleH;
       p2.vel = 0;
     }
-
     if (powerUPenable)
       this.managePowerUP(state);
 

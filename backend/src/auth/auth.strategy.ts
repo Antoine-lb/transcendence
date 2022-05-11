@@ -21,6 +21,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'OAuth2') {
     const user  = {
         id: profile.id,
         username: profile.username,
+        avatar: profile.photos[0].value
     };
     var ret_user : UserEntity = await this.authService.getUser(user)
     var isNew = false;
