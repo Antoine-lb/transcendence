@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRoomEntity, UserRoomRole } from 'src/chat/model/user-room.entity';
 import { UserRoomI } from 'src/chat/model/user-room.interface';
@@ -20,14 +20,19 @@ export class UserRoomService {
     
     ////////////////////////////////////////// SAVE/UPDATE FUNCTIONS //////////////////////////////////////////////////////////////
 
+    // FAIT
     async create(userRoom: UserRoomI): Promise<UserRoomI> {
-        // s'il existe deja, ne pas creer
-        var exists = await this.getRole(userRoom.room, userRoom.user);
-        if (exists)
-            return;
-        return await this.userRoomRepository.save( userRoom );
+        try {
+            // s'il existe deja, ne pas creer
+            var exists = await this.getRole(userRoom.room, userRoom.user);
+            if (exists)
+                return;
+            return await this.userRoomRepository.save( userRoom );
+        }
+        catch {
+            throw new BadRequestException("Please try again later")
+        }
     }
-    
 
     async delete(room: RoomI, user: UserDto) { 
         return await this.userRoomRepository.delete({ room: room, user: user });
@@ -95,10 +100,10 @@ export class UserRoomService {
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
         const checkModifier = await this.userService.findById(modifier.id);
         if (!checkModifier)
-          throw new NotFoundException('User not found')
+          throw new NotFoundException("Please try again later")
         const checkUser = await this.userService.findById(modifier.id);
-          if (!checkUser)
-            throw new NotFoundException('User not found')
+        if (!checkUser)
+            throw new NotFoundException("Please try again later")
         var roles = await this.getAllRolesForRoom(room);
         // si un owner quitte la room
         if (user.id == modifier.id && roles[user.id] == UserRoomRole.OWNER && newRole == UserRoomRole.AVAILABLE)

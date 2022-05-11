@@ -126,21 +126,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('createRoom')
   async onCreateRoom(socket: Socket, room: RoomI) {
-    const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
-    await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
-    await this.emitRoomsForConnectedUsers(newRoom);
-    await this.emitRolesForConnectedUsers(newRoom);
+    try {
+      const newRoom: RoomI = await this.roomService.createRoom(room, socket.data.user);
+      await this.createUserRooms(newRoom, socket.data.user, newRoom.users); // that will actually be in the room
+      await this.emitRoomsForConnectedUsers(newRoom);
+      await this.emitRolesForConnectedUsers(newRoom);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('getRoomsForUser')
   async onGetRoomsForUser(socket: Socket, user: UserDto) {
-    const rooms = await this.userRoomService.getAllRoomsForUser(user);
-    await this.server.to(socket.id).emit('getRoomsForUser', rooms);
+    try {
+      const rooms = await this.userRoomService.getAllRoomsForUser(user);
+      await this.server.to(socket.id).emit('getRoomsForUser', rooms);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('quitRoom')
   async onQuitRoom(socket: Socket, { room, user }) {
-    // TODO : Check validity of all users before quit the room
     try {
       await this.userRoomService.updateRole(room, user, user, UserRoomRole.AVAILABLE);
       await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
@@ -156,52 +165,66 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('enterRoom')
   async onEnterRoom(socket: Socket, { room, user }) {
-    // TODO : Check validity of all users before enter the room
-    await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
-    await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
-    await this.emitRoomsForConnectedUsers(room);
-    await this.emitRolesForConnectedUsers(room);
+    try {
+      await this.userRoomService.updateRole(room, user, user, UserRoomRole.LAMBDA);
+      await this.emitRoomsForOneUser(socket, user); // emit to current user not in room anymore
+      await this.emitRoomsForConnectedUsers(room);
+      await this.emitRolesForConnectedUsers(room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('selectRoom')
   async onSelectRoom(socket: Socket, { room, password }) {
-    if (room.protected == true) {
-       if (!password) {
-         socket.emit('WrongPassword', new UnauthorizedException());
-         return;
-       }
-      const matched = comparePassword(password, room.password)
-       if (!matched) {
-         socket.emit('WrongPassword', new UnauthorizedException());
-         return;
-       }
-    }
-    // Find previous Room Messages
-    const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
-     // check if already join (for if the client switch between)
-    var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
-    // Save Connection to Room in DB
-    if (found.length == 0)
-      await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
-    // Send Last Message to User
-    await this.server.to(socket.id).emit('updateSelected', room);
+    try {
+      if (room.protected == true) {
+        if (!password) {
+          socket.emit('WrongPassword', new UnauthorizedException());
+          return;
+        }
+        const matched = comparePassword(password, room.password)
+        if (!matched) {
+          socket.emit('WrongPassword', new UnauthorizedException());
+          return;
+        }
+      }
+      // Find previous Room Messages
+      const messages = await this.messageService.findMessageForRoom(room, { page: 1, limit: 100 });
+      // check if already join (for if the client switch between)
+      var found = await this.joinedRoomService.findByRoomSocket(socket.data.user, room, socket.id); // check socket id too ?
+      // Save Connection to Room in DB
+      if (found.length == 0)
+        await this.joinedRoomService.create({ socketID: socket.id, user: socket.data.user, room: room });
+      // Send Last Message to User
+      await this.server.to(socket.id).emit('updateSelected', room);
 
-    var roles = await this.userRoomService.getAllRolesForRoom(room);
-    await this.server.to(socket.id).emit('getRoles', roles); // peut-etre redondant
-    var users = await this.userRoomService.getUsersForRoom(room);
-    await this.server.to(socket.id).emit('getUsers', users)
-    await this.server.to(socket.id).emit('getMessages', messages);
-    await this.emitRolesForConnectedUsers(room);
-    return await this.emitRoomsForConnectedUsers(room);
+      var roles = await this.userRoomService.getAllRolesForRoom(room);
+      await this.server.to(socket.id).emit('getRoles', roles); // peut-etre redondant
+      var users = await this.userRoomService.getUsersForRoom(room);
+      await this.server.to(socket.id).emit('getUsers', users)
+      await this.server.to(socket.id).emit('getMessages', messages);
+      await this.emitRolesForConnectedUsers(room);
+      return await this.emitRoomsForConnectedUsers(room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
-   
-  @SubscribeMessage('leaveRoom')
+
+  @SubscribeMessage('leaveRoom') // unselectRoom
   async onLeaveRoom(socket: Socket, room: RoomI) {
-    // Remove connection for Joined Room
-    await this.joinedRoomService.deleteBySocketID(socket.id);
-    await this.server.to(socket.id).emit('updateSelected', room);
-    await this.emitRolesForConnectedUsers(room);
-    return await this.emitRoomsForConnectedUsers(room);
+    try {
+      // Remove connection for Joined Room
+      await this.joinedRoomService.deleteBySocketID(socket.id);
+      await this.server.to(socket.id).emit('updateSelected', room);
+      await this.emitRolesForConnectedUsers(room);
+      return await this.emitRoomsForConnectedUsers(room);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
       
   //////////////////////////////////////// PASSWORD FUNCTIONS ////////////////////////////////////////////////////////////
@@ -260,32 +283,50 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
 
   @SubscribeMessage('getAllInformation')
   async onGetAllInformation(socket: Socket, user: UserDto) {
-     return await this.emitRoomsForOneUser(socket, user);
+    try {
+      return await this.emitRoomsForOneUser(socket, user);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('getRoles')
   async onGetRoles(socket: Socket, room: RoomI) {
-
-    var roles = await this.userRoomService.getAllRolesForRoom(room);
-    return await this.server.to(socket.id).emit('getRoles', roles);
+    try {
+      var roles = await this.userRoomService.getAllRolesForRoom(room);
+      return await this.server.to(socket.id).emit('getRoles', roles);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('getAllRolesForUser')
   async onGetAllRolesForUser(socket: Socket, user: UserDto) {
+    try {
+      // emit all blocked friends
+      var blocked = await this.friendsService.getBlockedFriends(user);
+      await this.server.to(socket.id).emit('getBlockedFriends', blocked);
 
-    // emit all blocked friends
-    var blocked = await this.friendsService.getBlockedFriends(user);
-    await this.server.to(socket.id).emit('getBlockedFriends', blocked);
-
-    // emit all roles for user
-    var rooms = await this.userRoomService.getAllRolesForUser(user);
-    return await this.server.to(socket.id).emit('getAllRolesForUser', rooms);
+      // emit all roles for user
+      var rooms = await this.userRoomService.getAllRolesForUser(user);
+      return await this.server.to(socket.id).emit('getAllRolesForUser', rooms);
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('getUsers')
   async onGetUsers(socket: Socket, room: RoomI, users: UserDto[]) {
-    users = await this.userRoomService.getUsersForRoom(room);
-    return this.server.to(socket.id).emit('getUsers', users)
+    try {
+      users = await this.userRoomService.getUsersForRoom(room);
+      return this.server.to(socket.id).emit('getUsers', users)
+    }
+    catch (e) {
+      socket.emit('error', e);
+    }
   }
 
   @SubscribeMessage('updateRole')
@@ -309,15 +350,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
  
   @SubscribeMessage('addMessage')
   async onAddMessage(socket: Socket, { message, role }) {
-    if (role == UserRoomRole.MUTED)
-      return;
-    const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
-    const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
-    const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
-    // Send New Message to all joineds Users (online on the room)
-    // console.log("joinedUsers : ", joinedUsers);
-    for (const user of joinedUsers) {
-      await this.server.to(user.socketID).emit('messageAdded', createdMessage);
+    try {
+      if (role == UserRoomRole.MUTED)
+        return;
+      const createdMessage: MessageI = await this.messageService.create({ ...message, user: socket.data.user });
+      const room: RoomI = await this.roomService.getRoom(createdMessage.room.id);
+      const joinedUsers: JoinedRoomI[] = await this.joinedRoomService.findByRoom(room);
+      // Send New Message to all joineds Users (online on the room)
+      // console.log("joinedUsers : ", joinedUsers);
+      for (const user of joinedUsers) {
+        await this.server.to(user.socketID).emit('messageAdded', createdMessage);
+      }
+    }
+    catch {
+      socket.emit('error', new UnauthorizedException());
     }
   }
   
