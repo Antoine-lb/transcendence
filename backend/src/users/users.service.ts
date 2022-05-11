@@ -182,8 +182,7 @@ export class UsersService {
       const fs = await require("fs");
       await fs.unlink(filepath, (err) => {
         if (err) {
-        console.error('failed to delete file:', err);
-        return false;
+          return false;
         }
       })
       return true
@@ -213,7 +212,7 @@ export class UsersService {
     // ############################################ username functions ############################################ 
 
     async checkUsernameChars(str) {
-      var allowed = /^[a-zA-Z0-9_]*$/; // letters, numbers and underscore
+      var allowed = /^[a-zA-Z0-9-_]*$/; // letters, numbers, hyphen and underscore
       if (await str.match(allowed))
         return true
       return false

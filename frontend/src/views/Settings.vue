@@ -36,17 +36,7 @@ export default {
 
     <div v-if="!userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
-        <!-- <PublicProfile
-          :username="userStore.user.username"
-          :avatarUrl="userStore.avatarUrl"
-          :played="userStore.user.played"
-          :victory="userStore.user.victory"
-          :defeats="userStore.user.defeats"
-          :xp="userStore.user.xp"
-          :lvl="userStore.user.lvl"
-          :id="userStore.user.id"
-          :socket="userStore.socket"
-        /> -->
+        <div>You can update some settings</div>
         <PrivateProfile 
         :socket="userStore.socket"/>
       </div>

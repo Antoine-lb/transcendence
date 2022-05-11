@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RoomEntity } from 'src/chat/model/room.entity';
 import { RoomI } from 'src/chat/model/room.interface';
@@ -76,6 +76,17 @@ export class RoomService {
             throw new UnauthorizedException();
         room.password = encodePassword(password);
         room.protected = true;
+        return await this.roomRepository.save(room);
+    }
+
+    //////////////////////////////////////// ROOM RENAMING ////////////////////////////////////////////////////////////
+ 
+    async renameRoom(room: RoomI, modifier: UserDto, newName: string): Promise<RoomI> {            
+        if (await this.isOwner(modifier, room) == false)
+            throw new UnauthorizedException();
+        room.name = newName;
+        if (!newName || !newName.length)
+            room.name = "No name"
         return await this.roomRepository.save(room);
     }
 
