@@ -76,6 +76,8 @@ export const useUserStore = defineStore({
                 Authorization: userTmp.access_token,
               },
             });
+            this.socket.on("already_playing", () => alert("already playing"));
+
           } else {
             console.log("no socket created because there is already one");
           }
