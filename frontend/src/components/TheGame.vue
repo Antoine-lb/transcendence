@@ -327,7 +327,7 @@ export default {
         "background: #222; color: #bada55"
       );
       this.socket.emit("pause");
-      this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
+      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {

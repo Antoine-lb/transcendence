@@ -386,7 +386,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     ////////////////////////////////////////// CHAT GAME SPECIFIC FUNCTIONS ////////////////////////////////////////////////////////////
   
     @SubscribeMessage('sendInvit')
-    async sendInvit(socket: Socket, [user_defié , user_defiant]) {
+    async sendInvit(socket: Socket, [user_defié, user_defiant]) {
+    
       var opponentSocket = await this.connectedUserService.findByUser(user_defié);
       if (!opponentSocket[0]) {
         socket.emit('is_disconnected');
@@ -397,6 +398,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     
     @SubscribeMessage('acceptInvit')
     async acceptInvit(socket: Socket, [adversaire, roomCode]) {
+
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
 
       if (!opponentSocket[0]) {
@@ -414,7 +416,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   
     @SubscribeMessage('declineGameInvit')
     async declineGameInvit(socket: Socket, adversaire : UserDto) {
-      // console.log(">>>>>> declineGameInvit "/* adversaire : ", adversaire */);
+
       var opponentSocket = await this.connectedUserService.findByUser(adversaire);
       if (!opponentSocket[0]) {
         socket.emit('is_disconnected');
