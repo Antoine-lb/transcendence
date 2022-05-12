@@ -151,11 +151,15 @@ export default {
 
     keydown(e) {
       if (!this.socket.connected) return;
+      e.preventDefault();
+      e.stopPropagation();
       this.socket.emit("keydown", e.keyCode);
     },
 
     keyup(e) {
       if (!this.socket.connected) return;
+      e.preventDefault();
+      e.stopPropagation();
       this.socket.emit("keyup", e.keyCode);
     },
 
