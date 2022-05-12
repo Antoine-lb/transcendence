@@ -34,11 +34,12 @@ export default {
       title: "Game Room",
 
       score: {},
-      gameStatus: String("paused"),
+      gameStatus: String("idle"),
       // socket: ref(),
       ctx: null,
       msg: String(""),
       gameActive: Boolean(false),
+      hasBeenInvited: Boolean(false),
     };
   },
   created() {
@@ -50,8 +51,13 @@ export default {
     this.reset();
   },
   unmounted() {
-    this.socket.emit("test");
-      this.gameStatus = "opponentLeft";
+    console.log(this.gameStatus);
+    if (!this.hasBeenInvited)
+    {
+      this.socket.emit("test");
+
+    }
+    this.gameStatus = "idle";
     this.socket.removeAllListeners();
   },
 
@@ -100,6 +106,7 @@ export default {
     },
 
     invitationRecu(adversaire, code) {
+      this.hasBeenInvited = true;
       if (
         confirm(
           adversaire.username + ", vous défie au pong : lancer la partie ?"
@@ -396,6 +403,7 @@ export default {
             h-100
           "
         >
+        <div> Status:   {{this.gameStatus}}</div>
           <div v-if="this.gameStatus == 'idle'" class="name-title">
             Wating for another player...
           </div>

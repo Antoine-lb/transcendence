@@ -61,6 +61,8 @@ export default {
     this.init();
   },
   unmounted() {
+    this.socket.emit("test");
+    this.gameStatus = "idle";
     this.socket.removeAllListeners();
   },
 
