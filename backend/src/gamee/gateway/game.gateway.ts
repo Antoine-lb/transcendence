@@ -246,7 +246,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     let roomName = Math.floor((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) / 2).toString();
     
-    if (this.state[roomName] && this.state[roomName].userID == socket.data.user.id) {
+    if (this.state[roomName] && this.state[roomName]?.userID == socket?.data?.user?.id) {
       // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
       return;
     }

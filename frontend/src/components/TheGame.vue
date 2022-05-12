@@ -51,6 +51,7 @@ export default {
   },
   unmounted() {
     this.socket.emit("test");
+      this.gameStatus = "opponentLeft";
     this.socket.removeAllListeners();
   },
 
