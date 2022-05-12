@@ -29,7 +29,6 @@ export default {
   setup() {
     const userStore = useUserStore();
     userStore.requestLogState();
-
     return { userStore };
   },
   components : {
@@ -203,7 +202,8 @@ export default {
         />
       </div>
       <div v-else>
-        <p>Vous devez être connecté pour voir vos amis</p>
+        <p>Vous devez être connecté pour voir vos amis.
+        <br>Connectez-vous sur la page Accueil.</p>
       </div>
     </div>
   </main>

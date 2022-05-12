@@ -35,9 +35,9 @@ export default {
       <div v-if="isLogged()" class="form-group">
         <Chat :user="userStore.user"  :socket="userStore.socket" />
       </div>
-
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour voir le chat</p>
+        <p>Vous devez être connecté pour voir le chat.
+        <br>Connectez-vous sur la page Accueil.</p>
       </div>
     </div>
   </div>

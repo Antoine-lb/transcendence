@@ -32,27 +32,18 @@ export default {
 
 <template>
   <main>
-    <h1>Welcome</h1>
-    <div>You can setup some settings</div>
     <div v-if="userStore.isLoading">Loading...</div>
 
     <div v-if="!userStore.isLoading">
       <div v-if="isLogged()" class="form-group">
-        <!-- <PublicProfile
-          :username="userStore.user.username"
-          :avatarUrl="userStore.avatarUrl"
-          :played="userStore.user.played"
-          :victory="userStore.user.victory"
-          :defeats="userStore.user.defeats"
-          :xp="userStore.user.xp"
-          :lvl="userStore.user.lvl"
-          :id="userStore.user.id"
-        /> -->
+        <h1>Welcome</h1>
+        <div>You can setup some settings</div>
         <PrivateProfile 
         :socket="userStore.socket"/>
       </div>
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour modifier votre profil</p>
+        <p>Vous devez être connecté pour modifier votre profil.
+        <br>Connectez-vous sur la page Accueil.</p>
       </div>
     </div>
   </main>
