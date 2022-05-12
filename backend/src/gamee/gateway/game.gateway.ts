@@ -89,13 +89,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.state[roomName].score.p1 = -42;
         this.state[roomName].score.p2 = scoreLimit;
         this.emitGameState(roomName);
-        this.emitGameOver(roomName, 2, socket.data.user.id);
+        await this.emitGameOver(roomName, 2, socket.data.user.id);
       }
       else {
         this.state[roomName].score.p2 = -42;
         this.state[roomName].score.p1 = scoreLimit;
         this.emitGameState(roomName);
-        this.emitGameOver(roomName, 1, socket.data.user.id);
+        await this.emitGameOver(roomName, 1, socket.data.user.id);
       }
      }
      else 
@@ -123,26 +123,39 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async check_if_on_game(socket : Socket){
     const roomName = this.clientRooms[socket.id];
     if (roomName)
+    {
       socket.emit('init', socket.data.number);
+    }
   }
 
   @SubscribeMessage('test')
   async clearQueue(socket: Socket) {
     const roomName = this.clientRooms[socket.id];
-    if (this.liveGame[roomName]?.player2)
-    {
-      this.handlePause(socket);
-      return;
-    }
-
-    socket.leave(roomName);
-    if (roomName) {
-      this.liveGame[roomName].is_special_game ? this.stackIndexPowerUPPong-- : this.stackIndexBasicPong--;
-    }
-
-    delete this.state[roomName];
-    delete this.liveGame[roomName];
-    delete this.clientRooms[socket.id];
+    console.log(this.state);
+    if (this.liveGame[roomName]?.player2) {
+      clearInterval(this.state[roomName].intervalId);
+      // identify witch client is disconnect and give him -42
+      if (socket.data.number == 1) {
+        this.state[roomName].score.p1 = -42;
+        this.state[roomName].score.p2 = scoreLimit;
+        this.emitGameState(roomName);
+        await this.emitGameOver(roomName, 2, socket.data.user.id);
+      }
+      else {
+        this.state[roomName].score.p2 = -42;
+        this.state[roomName].score.p1 = scoreLimit;
+        this.emitGameState(roomName);
+        await this.emitGameOver(roomName, 1, socket.data.user.id);
+      }
+     }
+    else
+      this.clearQueue(socket);       
+    if (this.state[roomName])
+      delete this.state[roomName];
+    if (this.liveGame[roomName])
+      delete this.liveGame[roomName];
+    if (this.clientRooms[socket.id])
+      delete this.clientRooms[socket.id];
   }
 
   @SubscribeMessage('newGame')
@@ -459,22 +472,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // --------------------- Status -----------------------------
     const clients = this.server.sockets.adapter.rooms.get(roomName);
     //to just change the status to all members of a room and emit to all there friends
-    for (const clientId of clients) {
+    if (clients)
+      for (const clientId of clients) {
               
-      // this is the socket of each client in the room.
-      const clientSocket = this.server.sockets.sockets.get(clientId);
-                        
-      this.userService.updateUserStatus(clientSocket.data.user.id, 1);
-                
-      const users = await this.friendService.getFriends(clientSocket.data.user);
-      
-      for (const user of users) {
-      
-        const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-        for (const connection of connections) {
-          this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
+        // this is the socket of each client in the room.
+        const clientSocket = this.server.sockets.sockets.get(clientId);
+                          
+        this.userService.updateUserStatus(clientSocket.data.user.id, 1);
+                  
+        const users = await this.friendService.getFriends(clientSocket.data.user);
+        
+        for (const user of users) {
+        
+          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+          for (const connection of connections) {
+            this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
+          }
         }
-      }
     }
   // -----------------------------------------------------------
 
@@ -500,8 +514,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       else
         loserId = clientSocket.data.user.id;
     }
-
     const players: UserEntity[] = await this.userService.findManyIds([winnerId, loserId]);
+
     let score: number = (this.state[roomName].score.p1 > this.state[roomName].score.p2) ? this.state[roomName].score.p2 : this.state[roomName].score.p1;
 
     // save the game score for Match History 

@@ -297,6 +297,7 @@ export default {
         "background: #222; color: #bada55"
       );
       this.socket.emit("pause");
+      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {
@@ -305,8 +306,10 @@ export default {
 
     reset() {
       this.playerNumber = null;
-      this.gameCodeInput.value = "";
-      this.gameCodeSpec.value = "";
+      if (this.gameCodeInput)
+        this.gameCodeInput.value = "";
+      if (this.gameCodeSpec)
+        this.gameCodeSpec.value = "";
     },
   },
 };
