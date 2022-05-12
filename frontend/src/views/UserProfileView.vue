@@ -100,7 +100,8 @@ export default {
         </div>
       </div>
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour voir un profil</p>
+        <p>Vous devez être connecté pour voir un profil.
+        <br>Connectez-vous sur la page Accueil.</p>
       </div>
     </div>
   </main>
