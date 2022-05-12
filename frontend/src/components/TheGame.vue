@@ -57,7 +57,6 @@ export default {
       this.socket.emit("test");
 
     }
-    this.gameStatus = "idle";
     this.socket.removeAllListeners();
   },
 
@@ -347,6 +346,12 @@ export default {
     },
 
     reset() {
+    this.gameStatus = "idle";
+    if (!this.hasBeenInvited)
+      {
+      this.socket.emit("test");
+
+      }
       this.gameStatus =
         this.gameStatus == "play" || this.gameStatus == "paused"
           ? this.gameStatus

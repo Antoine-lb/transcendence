@@ -132,8 +132,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async clearQueue(socket: Socket) {
     const roomName = this.clientRooms[socket.id];
 
-    if (this.state[roomName] && this.liveGame[roomName]?.player2) {
-
+    if (roomName && this.state[roomName] && this.liveGame[roomName]?.player2 && (this.state[roomName]?.score?.p1 || this.state[roomName]?.score?.p2 != scoreLimit)) {
       clearInterval(this.state[roomName].intervalId);
       // identify witch client is disconnect and give him -42
       if (socket.data.number == 1) {
@@ -148,7 +147,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName);
         await this.emitGameOver(roomName, 1, socket.data.user.id);
       }
-     }    
+    } 
+    
+    socket.leave(roomName);
+    if (roomName) {
+      this.liveGame[roomName]?.is_special_game ? this.stackIndexPowerUPPong-- : this.stackIndexBasicPong--;
+    }
     if (this.state[roomName])
       delete this.state[roomName];
     if (this.liveGame[roomName])
