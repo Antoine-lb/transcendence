@@ -131,8 +131,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('test')
   async clearQueue(socket: Socket) {
     const roomName = this.clientRooms[socket.id];
-    console.log(this.state);
-    if (this.liveGame[roomName]?.player2) {
+
+    if (this.state[roomName] && this.liveGame[roomName]?.player2) {
+
       clearInterval(this.state[roomName].intervalId);
       // identify witch client is disconnect and give him -42
       if (socket.data.number == 1) {
@@ -147,9 +148,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.emitGameState(roomName);
         await this.emitGameOver(roomName, 1, socket.data.user.id);
       }
-     }
-    else
-      this.clearQueue(socket);       
+     }    
     if (this.state[roomName])
       delete this.state[roomName];
     if (this.liveGame[roomName])
