@@ -24,15 +24,16 @@ import { GamePlayedEntity } from './gamee/model/gamePlayed.entity';
 import { MatchHistoryController } from './gamee/service/matchHistory/matchHistory.controller';
 
 @Module({
+	
   imports: [
     TypeOrmModule.forRoot({
 			// https://docs.nestjs.com/techniques/database
 			type: 'postgres',
-			host: 'database',
-			port: Number(5432),
-			username: 'ft_root',
-			password: 'admin',
-			database: 'transcendance',
+			host: process.env.POSTGRES_HOST,
+			port: Number(process.env.POSTGRES_PORT),
+			username: process.env.POSTGRES_USER,
+			password: process.env.POSTGRES_PASSWORD,
+			database: process.env.POSTGRES_DB,
 			entities: [
 				UserEntity,
 				FriendRequestEntity,

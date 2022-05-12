@@ -14,8 +14,8 @@ import { JwtAuthGuard } from './jwt.guard';
   imports: [
     UsersModule,
     JwtModule.register({
-      secret: 'REPLACE_THIS_SECRET',
-      signOptions: { expiresIn: 800000 }}),
+      secret: process.env.BACKEND_JWT_SECRET,
+      signOptions: { expiresIn: process.env.BACKEND_JWT_EXPIRATION }}),
     ],
   controllers: [AuthController],
   providers: [AuthService, SessionSerializer, OAuth2Strategy, Guard42, JwtStrategy, JwtAuthGuard, Jwt2FAStrategy],

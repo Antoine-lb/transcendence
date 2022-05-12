@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly usersService: UsersService) {
     super({
       ignoreExpiration: false,
-      secretOrKey: 'REPLACE_THIS_SECRET',
+      secretOrKey: process.env.BACKEND_JWT_SECRET,
       jwtFromRequest: (request) => {
             if (!request || !request.cookies)
               return null;
