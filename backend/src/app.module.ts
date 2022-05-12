@@ -63,6 +63,6 @@ import { MatchHistoryController } from './gamee/service/matchHistory/matchHistor
 		configure(consumer: MiddlewareConsumer) {
 		  consumer
 			.apply(testMiddleware)
-			.forRoutes('*');
+			.forRoutes('*', '/api/auth/islog');
 		}
 }

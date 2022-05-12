@@ -94,11 +94,6 @@ export default {
     removeUser(user) {
       this.allUsers.map((element) => {
         if (element.username === user.username) {
-          console.log(
-            "remove user { id: element.id }",
-            { id: element.id },
-            element.username
-          );
           this.newRoomUsers.splice(this.newRoomUsers.indexOf(user), 1);
         }
       });

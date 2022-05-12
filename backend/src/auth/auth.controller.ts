@@ -34,7 +34,6 @@ export class AuthController{
                         res.status(302).redirect('/api/auth/callback')
                 }
                 catch {
-                    // console.log("catch token 1")
                     res.clearCookie('access_token');
                     res.clearCookie('access_token_2fa'); 
                     return res.status(302).redirect('http://127.0.0.1:8080')
@@ -65,7 +64,6 @@ export class AuthController{
                     }
                 }
                 catch {
-                    // console.log("catch token 2")
                     res.clearCookie('access_token');
                     res.clearCookie('access_token_2fa'); 
                     return res.status(302).redirect('http://127.0.0.1:8080')
@@ -127,7 +125,6 @@ export class AuthController{
                     isAuthenticated = true;
                 }
             } catch (e) {
-                // console.log("catch token 3")
                 resp.clearCookie('access_token');
                 resp.clearCookie('access_token_2fa'); 
                 return resp.status(302).redirect('http://127.0.0.1:8080')

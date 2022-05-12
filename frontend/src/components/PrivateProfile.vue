@@ -23,7 +23,6 @@ export default {
     socket: Object,
   },
   async created() {
-    // console.log(`onCreated`);
     this.socket.on("invit", this.invitationRecu);
     this.socket.on("acceptInvit", this.acceptInvit);
   },
@@ -210,8 +209,6 @@ export default {
         this.socket.emit('declineGameInvit', adversaire);
     },
     acceptInvit (roomCode) {
-        console.log(">>>>>> acceptInvitGame (pb profile) roomCode : ", roomCode);
-        // await this.startGameAnimation()
         this.socket.emit('joinGame', roomCode);
     },
   },

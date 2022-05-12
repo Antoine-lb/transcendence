@@ -1,4 +1,4 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserEntity } from 'src/entities/users.entity';
@@ -31,7 +31,6 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       return user;
     }
     else {
-      // console.log("2FA VALIDATION = NOT OK")
     }
     // sinon on ne retourne rien donc on ne valide pas
   }

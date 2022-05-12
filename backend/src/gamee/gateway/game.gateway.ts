@@ -216,7 +216,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // start the game when both player are connected
     
     // Store the username to render OnLiveGame player
-    this.liveGame[roomName].player2 = socket.data.user.username;
+    if (this.liveGame[roomName])
+      this.liveGame[roomName].player2 = socket.data.user.username;
     // maj des onLiveGame vers les autres clients
     this.server.emit('pushLiveGame', this.liveGame)
       
@@ -286,7 +287,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
       // Store the username to render OnLiveGame player
-      this.liveGame[roomName].player2 = socket.data.user.username;
+      if (this.liveGame[roomName])
+        this.liveGame[roomName].player2 = socket.data.user.username;
       // join the room socket
       socket.join(roomName);
       // init the front for player 2
@@ -406,8 +408,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.error(e);
       return;
     }
-
-    this.GameService.getUpdatedVelocity(false, keyCodeInt, this.state[roomName].players[socket.data.number - 1], socket.data.number);
+    if (roomName)
+      this.GameService.getUpdatedVelocity(false, keyCodeInt, this.state[roomName].players[socket.data.number - 1], socket.data.number);
   }
 
   @SubscribeMessage('keyup')
@@ -472,7 +474,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
-    this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
+    if (this.liveGame[roomName])
+      this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
  
     // --------------------- Status -----------------------------
     const clients = this.server.sockets.adapter.rooms.get(roomName);

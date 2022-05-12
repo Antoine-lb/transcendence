@@ -46,17 +46,13 @@ export default {
     this.socketSetter();
   },
   mounted() {
-    console.log(`mounted`);
     this.socket.emit("check_on_game");
     this.reset();
   },
   unmounted() {
-    console.log(this.gameStatus);
     if (!this.hasBeenInvited)
-    {
       this.socket.emit("test");
 
-    }
     this.socket.removeAllListeners();
   },
 
@@ -79,18 +75,9 @@ export default {
       this.socket.on("invit", this.invitationRecu);
       this.socket.on("acceptInvit", this.acceptInvit);
       this.socket.on("pushLiveGame", this.pushLiveGame);
-      this.socket.on("disconnect", (reason) => {
-        if (reason === "io server disconnect") {
-          // console.log("the disconnection was initiated by the server, you need to reconnect manually")
-          // this.socket.connect();
-        }
-        // else the socket will automatically try to reconnect
-      });
-
       this.socket.on("samePlayer", (arg1, callback) => {
         callback({
           status: alert("test"),
-          // status1: "ok"
         });
       });
     },
@@ -118,8 +105,6 @@ export default {
     },
 
     acceptInvit(roomCode) {
-      console.log(">>>>>> acceptInvitGame (game) roomCode : ", roomCode);
-      // await this.startGameAnimation()
       this.socket.emit("joinGame", roomCode);
     },
 
@@ -221,7 +206,6 @@ export default {
 
       // draw PowerUps (if any)
       if (state.powerUp[0].x > 0) {
-        // console.log("state.powerUp_t", state.powerUp_t)
         this.ctx.fillStyle = state.powerUp_t;
         this.ctx.fillRect(state.powerUp[0].x, state.powerUp[0].y, 15, 15);
         this.ctx.fillRect(state.powerUp[1].x, state.powerUp[1].y, 15, 15);
@@ -333,10 +317,6 @@ export default {
     },
 
     handlePause(msg) {
-      console.log(
-        `%c your opponent paused ${msg}`,
-        "background: #222; color: #bada55"
-      );
       this.socket.emit("pause");
       // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
@@ -408,7 +388,6 @@ export default {
             h-100
           "
         >
-        <div> Status:   {{this.gameStatus}}</div>
           <div v-if="this.gameStatus == 'idle'" class="name-title">
             Wating for another player...
           </div>

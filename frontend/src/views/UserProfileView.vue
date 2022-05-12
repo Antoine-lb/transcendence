@@ -48,13 +48,11 @@ export default {
         );
         if (response.status == 200) {
           this.user = await response.json();
-          console.log("this.user", this.user);
           if (this.user)
             this.userAvatar = "http://localhost:3000" + this.user.avatar;
           this.userNotFound = false;
         } else {
           this.userNotFound = true;
-          console.log("user not found");
         }
       } catch (error) {
         console.error(error);

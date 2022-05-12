@@ -11,35 +11,9 @@ export default {
     xp: Number,
     lvl: Number,
     id: Number,
-    // socket: Object,
   },
   components: {
     GamesHistory,
-  },
-    created() {
-    // console.log(`onCreated`);
-    // this.socket.on("invit", this.invitationRecu);
-    // this.socket.on("acceptInvit", this.acceptInvit);
-  },
-    unmounted() {
-    // this.socket.removeAllListeners();
-  },
-  methods: {
-    // invitationRecu(adversaire, code) {
-    //   console.log(`Ds invitation Reçu room : ${code}`);
-    //   if (confirm(adversaire.username + ", vous défie au pong : lancer la partie ?")){
-    //     this.socket.emit('newGame', code);
-    //     this.socket.emit('acceptInvit', adversaire, code);
-    //     this.$router.push("Chat");
-    //   }
-    //   else
-    //     this.socket.emit('declineGameInvit', adversaire);
-    // },
-    // acceptInvit (roomCode) {
-    //     console.log(">>>>>> acceptInvitGame (pb profile) roomCode : ", roomCode);
-    //     // await this.startGameAnimation()
-    //     this.socket.emit('joinGame', roomCode);
-    // },
   },
 };
 </script>
