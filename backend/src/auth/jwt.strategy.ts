@@ -10,7 +10,7 @@ import { request } from 'express';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly usersService: UsersService) {
     super({
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: process.env.BACKEND_JWT_SECRET,
       jwtFromRequest: (request) => {
             if (!request || !request.cookies)

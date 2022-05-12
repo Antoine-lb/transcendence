@@ -1,4 +1,4 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserEntity } from 'src/entities/users.entity';
@@ -8,7 +8,7 @@ import { UsersService } from 'src/users/users.service';
 export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   constructor(private readonly usersService: UsersService) {
     super({
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: process.env.BACKEND_JWT_SECRET,
       jwtFromRequest: (request) => {
             if (!request.user.isTwoFA)
@@ -31,7 +31,6 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
       return user;
     }
     else {
-      // console.log("2FA VALIDATION = NOT OK")
     }
     // sinon on ne retourne rien donc on ne valide pas
   }

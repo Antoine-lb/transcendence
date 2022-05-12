@@ -83,13 +83,6 @@ export default {
       this.socket.on("broadcastMsg", this.receiveMsg);
       this.socket.on("disconnection", this.handleDisconnection);
       this.socket.on("startGameAnimation", this.startGameAnimation);
-      this.socket.on("disconnect", (reason) => {
-        if (reason === "io server disconnect") {
-          // console.log("the disconnection was initiated by the server, you need to reconnect manually")
-          // this.socket.connect();
-        }
-        // else the socket will automatically try to reconnect
-      });
       this.socket.on("pushLiveGame", (liveGame) => {
         this.liveGame = liveGame;
       });
@@ -218,7 +211,6 @@ export default {
 
       // draw PowerUps (if any)
       if (state.powerUp[0].x > 0) {
-        // console.log("state.powerUp_t", state.powerUp_t)
         this.ctx.fillStyle = state.powerUp_t;
         this.ctx.fillRect(state.powerUp[0].x, state.powerUp[0].y, 15, 15);
         this.ctx.fillRect(state.powerUp[1].x, state.powerUp[1].y, 15, 15);
@@ -298,10 +290,6 @@ export default {
     },
 
     handlePause(msg) {
-      console.log(
-        `%c your opponent paused ${msg}`,
-        "background: #222; color: #bada55"
-      );
       this.socket.emit("pause");
       // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },

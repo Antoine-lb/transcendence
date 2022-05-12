@@ -33,27 +33,25 @@ export default {
   created() {
     this.fetchAllData();
   },
-  // components: {
-  //   PublicProfile,
-  //   FriendshipManagement,
-  // },
   methods: {
     fetchAllData: function () {
       this.fetchUser();
     },
     fetchUser: async function () {
       this.loading = true;
+      if (!this.winnerId || !this.loserId)
+       {
+        this.loading = false;
+        return;
+       }
       try {
         let response = await fetchWithHeaders(
           `http://127.0.0.1:3000/api/users/${this.winnerId}`
         );
         if (response.status == 200) {
           this.winner = await response.json();
-          // console.log("this.winner", this.winner);
           if (this.winner)
             this.winnerAvatar = "http://localhost:3000" + this.winner.avatar;
-        } else {
-          console.log("user not found");
         }
 
         response = await fetchWithHeaders(
@@ -61,14 +59,10 @@ export default {
         );
         if (response.status == 200) {
           this.loser = await response.json();
-          // console.log("this.loser", this.loser);
           if (this.loser)
             this.loserAvatar = "http://localhost:3000" + this.loser.avatar;
-        } else {
-          console.log("user not found");
         }
       } catch (error) {
-        console.error(error);
       }
       this.loading = false;
     },
@@ -81,7 +75,7 @@ export default {
     <div v-if="loading">
       <p>is loading...</p>
     </div>
-    <div v-if="!loading" class="container">
+    <div v-if="!loading && winner && loser" class="container">
       <div class="player-profile">
         <a class="username" :href="'/user/' + winnerId">
           <div

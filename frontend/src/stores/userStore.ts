@@ -36,7 +36,7 @@ export const useUserStore = defineStore({
           credentials: "include",
         });
         const userLogged = await tmp.json();
-        // console.log("userLogged : ", userLogged);
+        // ("userLogged : ", userLogged);
         
         this._response = await fetch("http://127.0.0.1:3000/api/users/me", {
           method: "GET",
@@ -70,7 +70,6 @@ export const useUserStore = defineStore({
           this._user.access_token = userTmp.access_token;
           this._user.access_token_2fa = userTmp.access_token_2fa;
           if (!this._socket?.connected) {
-            console.log("new socket created");
             this._socket = await io("http://127.0.0.1:3000", {
               extraHeaders: {
                 Authorization: userTmp.access_token,
@@ -79,8 +78,6 @@ export const useUserStore = defineStore({
             this.socket.on("already_playing", () => alert("Already playing"));
             this.socket.on("is_disconnected", () => alert("Player not online"));
 
-          } else {
-            console.log("no socket created because there is already one");
           }
         }
       } catch (error) {

@@ -59,11 +59,6 @@ export default {
       this.newRoomUserShowError = false;
       this.allUsers.map((element) => {
         if (element.username === this.newRoomUser) {
-          console.log(
-            "add user { id: element.id }",
-            { id: element.id },
-            element.username
-          );
           this.newRoomUsers.push(element);
           this.newRoomUser = "";
           valid = true;

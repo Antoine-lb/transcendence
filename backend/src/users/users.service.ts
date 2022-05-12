@@ -158,7 +158,6 @@ export class UsersService {
     }
 
     async turnOffTwoFA(id: number) {
-      // console.log("userService.turnOffTwoFA")
       return await this.usersRepository.update(id, {
         secret: null,
         isTwoFA: false
