@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "@kyvg/vue3-notification": "^2.3.4"
+    "@kyvg/vue3-notification": "^2.3.4",
+    "@nestjs/config": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.32"
   }
 }
