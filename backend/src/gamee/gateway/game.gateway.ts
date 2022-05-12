@@ -246,7 +246,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     let roomName = Math.floor((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) / 2).toString();
     
-    if (this.state[roomName] && this.state[roomName].userID == socket.data.user.id) {
+    if (this.state[roomName] && this.state[roomName]?.userID == socket?.data?.user?.id) {
       // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
       return;
     }
@@ -258,7 +258,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // init the game state 
       this.state[roomName] = this.GameService.initGame(true);
-      this.state[roomName].userID = socket.data.user.id;
+      if (this.state[roomName])
+        this.state[roomName].userID = socket.data.user.id;
 
       // set the creator to player 1
       socket.data.number = 1;
@@ -275,7 +276,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // [JOIN] the game if somebody is already in queue
     else {
       (playWithPowerUP ? this.stackIndexPowerUPPong++ : this.stackIndexBasicPong++)
-      this.state[roomName].userID = socket.data.user.id;
+      if (this.state[roomName])
+        this.state[roomName].userID = socket.data.user.id;
       // set the creator to player 1
       socket.data.number = 2;
       this.clientRooms[socket.id] = roomName;
