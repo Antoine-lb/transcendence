@@ -110,7 +110,6 @@ export default {
       this.file = event.target.files[0];
     },
     submitFile(){
-      console.log("this.file : ", this.file);
       if (!this.file)
       {
         this.notifyWarn("Please submit a file.")

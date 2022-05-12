@@ -46,9 +46,10 @@ export class UserRoomService {
             newRole == UserRoomRole.OWNER || 
             currentRole == UserRoomRole.FORBIDDEN || 
             currentRole == UserRoomRole.BANNED ||
-            ((currentRole == UserRoomRole.LAMBDA || currentRole == UserRoomRole.MUTED) && newRole != UserRoomRole.AVAILABLE) ||
+            currentRole == UserRoomRole.MUTED || // ne peut pas partir non plus s'il est MUTED
+            (currentRole == UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE) ||
             (currentRole == UserRoomRole.AVAILABLE && newRole != UserRoomRole.LAMBDA) ||
-            (currentRole == UserRoomRole.ADMIN && (newRole != UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE))
+            (currentRole == UserRoomRole.ADMIN && (newRole != UserRoomRole.LAMBDA && newRole != UserRoomRole.AVAILABLE)) 
         )
             return false;
         return true;

@@ -191,10 +191,10 @@ export default {
           </div>
         </div>
       </div>
-      <button class="quit-room-button" @click="quitRoom()" title="Quit Room">
+      <button v-if="!isMuted(user)" class="quit-room-button" @click="quitRoom()" title="Quit Room">
         👋 quit room
       </button>
-      <div class="bold-red"> You can't leave room if you are the last person in it </div>
+      <div class="bold-red"> You can't leave room if you are muted or the last person in it </div>
 
       <!-- <code>
         <pre>{{ this.usersForRoom }}</pre>
