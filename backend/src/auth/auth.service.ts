@@ -41,7 +41,7 @@ export class AuthService {
   // }
 
   async verifyToken(token: string) {
-      var ret = this.jwtService.verify(token, { ignoreExpiration: false });
+      var ret = this.jwtService.verify(token, { ignoreExpiration: true });
       // console.log("verifyToken : ", ret);
       return ret
   }

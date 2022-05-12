@@ -8,7 +8,7 @@ import { UsersService } from 'src/users/users.service';
 export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   constructor(private readonly usersService: UsersService) {
     super({
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: process.env.BACKEND_JWT_SECRET,
       jwtFromRequest: (request) => {
             if (!request.user.isTwoFA)
