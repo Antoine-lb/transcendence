@@ -61,6 +61,8 @@ export default {
     this.init();
   },
   unmounted() {
+    this.socket.emit("test");
+    this.gameStatus = "idle";
     this.socket.removeAllListeners();
   },
 
@@ -151,11 +153,15 @@ export default {
 
     keydown(e) {
       if (!this.socket.connected) return;
+      // e.preventDefault();
+      // e.stopPropagation();
       this.socket.emit("keydown", e.keyCode);
     },
 
     keyup(e) {
       if (!this.socket.connected) return;
+      // e.preventDefault();
+      // e.stopPropagation();
       this.socket.emit("keyup", e.keyCode);
     },
 
@@ -297,6 +303,7 @@ export default {
         "background: #222; color: #bada55"
       );
       this.socket.emit("pause");
+      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {
@@ -305,8 +312,10 @@ export default {
 
     reset() {
       this.playerNumber = null;
-      this.gameCodeInput.value = "";
-      this.gameCodeSpec.value = "";
+      if (this.gameCodeInput)
+        this.gameCodeInput.value = "";
+      if (this.gameCodeSpec)
+        this.gameCodeSpec.value = "";
     },
   },
 };

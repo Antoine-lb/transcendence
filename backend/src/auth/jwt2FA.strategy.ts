@@ -9,7 +9,7 @@ export class Jwt2FAStrategy extends PassportStrategy(Strategy, 'jwt2FA') {
   constructor(private readonly usersService: UsersService) {
     super({
       ignoreExpiration: false,
-      secretOrKey: 'REPLACE_THIS_SECRET',
+      secretOrKey: process.env.BACKEND_JWT_SECRET,
       jwtFromRequest: (request) => {
             if (!request.user.isTwoFA)
               return request.cookies['access_token']

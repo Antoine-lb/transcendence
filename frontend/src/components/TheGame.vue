@@ -34,11 +34,12 @@ export default {
       title: "Game Room",
 
       score: {},
-      gameStatus: String("paused"),
+      gameStatus: String("idle"),
       // socket: ref(),
       ctx: null,
       msg: String(""),
       gameActive: Boolean(false),
+      hasBeenInvited: Boolean(false),
     };
   },
   created() {
@@ -50,7 +51,13 @@ export default {
     this.reset();
   },
   unmounted() {
-    this.socket.emit("test");
+    console.log(this.gameStatus);
+    if (!this.hasBeenInvited)
+    {
+      this.socket.emit("test");
+
+    }
+    this.gameStatus = "idle";
     this.socket.removeAllListeners();
   },
 
@@ -99,6 +106,7 @@ export default {
     },
 
     invitationRecu(adversaire, code) {
+      this.hasBeenInvited = true;
       if (
         confirm(
           adversaire.username + ", vous défie au pong : lancer la partie ?"
@@ -143,6 +151,8 @@ export default {
 
     keydown(e) {
       if (!this.socket.connected) return;
+      // e.preventDefault();
+      // e.stopPropagation();
       this.socket.emit("keydown", e.keyCode);
       // if (e.key == "d") this.socket.disconnect();
       // if (e.key == "f") this.socket.connect();
@@ -150,6 +160,8 @@ export default {
 
     keyup(e) {
       if (!this.socket.connected) return;
+      // e.preventDefault();
+      // e.stopPropagation();
       this.socket.emit("keyup", e.keyCode);
     },
 
@@ -327,7 +339,7 @@ export default {
         "background: #222; color: #bada55"
       );
       this.socket.emit("pause");
-      this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
+      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {
@@ -391,6 +403,7 @@ export default {
             h-100
           "
         >
+        <div> Status:   {{this.gameStatus}}</div>
           <div v-if="this.gameStatus == 'idle'" class="name-title">
             Wating for another player...
           </div>
