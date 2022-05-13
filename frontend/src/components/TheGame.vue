@@ -46,7 +46,6 @@ export default {
     this.socketSetter();
   },
   mounted() {
-    this.socket.emit("check_on_game");
     this.reset();
   },
   unmounted() {
@@ -62,6 +61,7 @@ export default {
       this.socket.on("connect", () => {
         this.gameStatus = "idle";
       });
+      this.socket.on("reset", this.handleReset);
       this.socket.on("init", this.handleInit);
       this.socket.on("gameState", this.handleGameState);
       this.socket.on("gameOver", this.handleGameOver);
@@ -85,6 +85,7 @@ export default {
     joinQueue(playWithPowerUP: boolean) {
       this.socket.emit("joinQueue", playWithPowerUP);
       this.gameState = "play";
+      this.gameStatus = "idle";
     },
 
     createNewGame() {
@@ -109,8 +110,13 @@ export default {
     },
 
     handleJoinGame() {
+      this.gameStatus = "idle";
       const code = this.gameCodeInput?.value;
       this.socket.emit("joinGame", code);
+    },
+
+    handleReset() {
+      this.reset();
     },
 
     handleSpecGame() {
@@ -236,12 +242,10 @@ export default {
       this.msgBox.innerText += "\n" + msg;
       this.msgBox.scrollTop = this.msgBox.scrollHeight;
     },
-
     handleInit(number) {
       this.playerNumber = number;
       this.init();
     },
-
     handleGameState(gameState) {
       if (!this.gameActive) {
         return;
@@ -251,34 +255,6 @@ export default {
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         requestAnimationFrame(() => this.paintGame(gameState));
     },
-
-    /*     handleGameOver(data) {
-      if (!this.gameActive) {
-        return;
-      }
-      this.gameStatus == "ended"
-      document.removeEventListener("keydown", this.keydown);
-      document.removeEventListener("keyup", this.keydown);
-
-      data = JSON.parse(data);
-      this.gameActive = false;
-      if (data.winner === this.playerNumber) {
-        this.$notify({
-          position: "center",
-          title: "Congratulations !!",
-          text: "You Won :)",
-          duration: 6000,
-        });
-      } else {
-        this.$notify({
-          position: "center",
-          title: "Try Again !!",
-          text: "You Loose :(",
-          duration: 6000,
-        });
-      }
-    }, */
-
     handleGameOver(data) {
       if (!this.gameActive) {
         return;
@@ -327,10 +303,9 @@ export default {
 
     reset() {
     this.gameStatus = "idle";
-    if (!this.hasBeenInvited)
+      if (!this.hasBeenInvited)
       {
-      this.socket.emit("test");
-
+        this.socket.emit("test");
       }
       this.gameStatus =
         this.gameStatus == "play" || this.gameStatus == "paused"
@@ -388,6 +363,7 @@ export default {
             h-100
           "
         >
+        <div>  {{ this.gameStatus }} </div>
           <div v-if="this.gameStatus == 'idle'" class="name-title">
             Wating for another player...
           </div>

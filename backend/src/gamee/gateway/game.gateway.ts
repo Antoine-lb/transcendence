@@ -46,6 +46,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(socket: Socket, payload: string) {
     try {
+      console.log('===========CONNECTION============')
+      console.log('clientROOMS : ', this.clientRooms);
+      console.log('live GAME : ', this.liveGame);
+      console.log('State : ', this.state);
       const decodedToken = await this.authService.verifyToken(socket.handshake.headers.authorization);
       const user = await this.userService.findById(decodedToken.id);
 
@@ -82,7 +86,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (room1)
       roomSize = room1.size;
     
-    if (this.liveGame[roomName]?.player2) {
+    if (this.liveGame[roomName]) {
       clearInterval(this.state[roomName].intervalId);
       // identify witch client is disconnect and give him -42
       if (socket.data.number == 1) {
@@ -110,18 +114,31 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           this.server.to(connection.socketID).emit('status', 0, tmp.id)
        }
      }
+    
+    if (this.state[roomName])
+      delete this.state[roomName];
+    if (this.liveGame[roomName])
+      delete this.liveGame[roomName];
+    if (this.clientRooms[socket.id])
+     delete this.clientRooms[socket.id];
 
     // this.server.sockets.in(room).emit('disconnection');
     socket.leave(roomName)
 
     if (this.clientRooms[socket.id])
       delete this.clientRooms[socket.id];
+    
+      console.log('===========DISCONNECT============')
+      console.log('clientROOMS : ', this.clientRooms);
+      console.log('live GAME : ', this.liveGame);
+      console.log('State : ', this.state);
     socket.disconnect();
   }
 
   @SubscribeMessage('check_on_game')
   async check_if_on_game(socket : Socket){
     const roomName = this.clientRooms[socket.id];
+    console.log('--->check_on_gamee');
     if (roomName)
     {
       socket.emit('init', socket.data.number);
@@ -136,6 +153,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(this.state[roomName].intervalId);
       // identify witch client is disconnect and give him -42
       if (socket.data.number == 1) {
+       
         this.state[roomName].score.p1 = -42;
         this.state[roomName].score.p2 = scoreLimit;
         this.emitGameState(roomName);
@@ -151,7 +169,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     
     socket.leave(roomName);
     if (roomName) {
-      this.liveGame[roomName]?.is_special_game ? this.stackIndexPowerUPPong-- : this.stackIndexBasicPong--;
+      console.log('powerUp before -> ', this.stackIndexPowerUPPong);
+      console.log('basic before -> ', this.stackIndexBasicPong);
+      if (this.liveGame[roomName]?.is_special_game) {
+        this.stackIndexPowerUPPong--
+      }
+      else if (this.liveGame[roomName])
+        this.stackIndexBasicPong--
+      console.log('powerUp after -> ', this.stackIndexPowerUPPong);
+      console.log('basic after -> ', this.stackIndexBasicPong);
     }
     if (this.state[roomName])
       delete this.state[roomName];
@@ -159,6 +185,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       delete this.liveGame[roomName];
     if (this.clientRooms[socket.id])
       delete this.clientRooms[socket.id];
+      console.log('===========UNMOUNT============')
+      console.log('clientROOMS : ', this.clientRooms);
+      console.log('live GAME : ', this.liveGame);
+      console.log('State : ', this.state);
   }
 
   @SubscribeMessage('newGame')
@@ -250,7 +280,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleJoinQueue(socket: Socket, playWithPowerUP: boolean) {
 
     let roomName = Math.floor((playWithPowerUP ? this.stackIndexPowerUPPong : this.stackIndexBasicPong) / 2).toString();
-    
+    console.log('=====BEFORE QUEU=======')
+    console.log('powerUp after -> ', this.stackIndexPowerUPPong);
+    console.log('basic after -> ', this.stackIndexBasicPong);
+
+    for (let index = 0; index < this.stackIndexBasicPong/2; index++) {
+      if (this.liveGame[index] && ((this.liveGame[index]?.player1 == socket?.data?.user?.username) || (this.liveGame[index]?.player2 == socket?.data?.user?.username)))
+        return;
+    } 
+    for (let index = 250; index < this.stackIndexPowerUPPong/2; index++) {
+      if (this.liveGame[index] && ((this.liveGame[index]?.player1 == socket?.data?.user?.username) || (this.liveGame[index]?.player2 == socket?.data?.user?.username)))
+        return;
+    } 
     if (this.state[roomName] && this.state[roomName]?.userID == socket?.data?.user?.id) {
       // socket.disconnect(); // Faut pas disconnecte sinon ça bug... sais pas pk...
       return;
@@ -277,6 +318,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('init', 1);
       // set the creator to player mode
       socket.data.status = "play";
+      console.log('===========AFTER CREATE============')
+      console.log('clientROOMS : ', this.clientRooms);
+      console.log('live GAME : ', this.liveGame);
+      console.log('State : ', this.state);
     }
     // [JOIN] the game if somebody is already in queue
     else {
@@ -319,11 +364,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // -----------------------------------------------------------
 
       // Animation to warn players the game is starting
-      this.server.to(roomName).emit('startGameAnimation')
     // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
       this.server.emit('pushLiveGame', this.liveGame)
+      console.log('===========AFTER START============')
+      console.log('clientROOMS : ', this.clientRooms);
+      console.log('live GAME : ', this.liveGame);
+      console.log('State : ', this.state);
+      this.server.to(roomName).emit('startGameAnimation')
+      console.log('start game ANIIIIFFFF')
+
     }
   }
 
@@ -474,8 +525,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
-    if (this.liveGame[roomName])
-      this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
+
  
     // --------------------- Status -----------------------------
     const clients = this.server.sockets.adapter.rooms.get(roomName);
@@ -535,8 +585,32 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     })
     // Modif xp & match history for the players
     this.userService.updateUserScore(players, winnerId);// <-- C'est ça qui cause les CORS à la fin du jeu
+    // if (roomName) {
+    //   console.log('powerUp before -> ', this.stackIndexPowerUPPong);
+    //   console.log('basic before -> ', this.stackIndexBasicPong);
+    //   if (this.liveGame[roomName]?.is_special_game) {
+    //     this.stackIndexPowerUPPong -= 2;
+    //   }
+    //   else if (this.liveGame[roomName])
+    //     this.stackIndexBasicPong -= 2;
 
-    delete this.liveGame[roomName];
-    delete this.state[roomName];
+    // }
+
+    if (this.liveGame[roomName]) {
+      this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
+      this.server.sockets.in(room).emit('reset');
+    }
+    
+    if (this.liveGame[roomName])
+      delete this.liveGame[roomName];
+    if (this.state[roomName])
+      delete this.state[roomName];
+
+    console.log('===========OVEEEER============')
+    console.log('clientROOMS : ', this.clientRooms);
+    console.log('live GAME : ', this.liveGame);
+    console.log('State : ', this.state);
+    console.log('powerUp after -> ', this.stackIndexPowerUPPong);
+    console.log('basic after -> ', this.stackIndexBasicPong);
   }
 } 

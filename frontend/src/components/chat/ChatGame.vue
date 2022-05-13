@@ -126,6 +126,10 @@ export default {
       this.socket.emit("joinGame", code);
     },
 
+    handleReset() {
+      this.reset();
+    },
+
     handleSpecGame(code) {
       // const code = this.gameCodeSpec.value;
       this.socket.emit("spec", code);
@@ -169,7 +173,7 @@ export default {
             this.canvas.width / 3 - index / 3,
             this.canvas.height / 3 + index / 3
           );
-          await this.sleep(10);
+          // await this.sleep(10);
         }
     },
 
@@ -299,6 +303,15 @@ export default {
     },
 
     reset() {
+      this.gameStatus = "idle";
+      if (!this.hasBeenInvited)
+      {
+        this.socket.emit("test");
+      }
+      this.gameStatus =
+        this.gameStatus == "play" || this.gameStatus == "paused"
+          ? this.gameStatus
+          : "idle";
       this.playerNumber = null;
       if (this.gameCodeInput)
         this.gameCodeInput.value = "";

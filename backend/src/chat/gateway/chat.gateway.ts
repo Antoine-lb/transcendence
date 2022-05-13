@@ -404,11 +404,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
         socket.emit('is_disconnected');
         return;
       }
-      
-      // if (socket.data.status == "play") {
-      //   this.server.to(opponentSocket[0].socketID).emit('already_playing');
-      //   return;
-      // }
  
       this.server.to(opponentSocket[0].socketID).emit('acceptInvit', roomCode);
     }
