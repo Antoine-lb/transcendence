@@ -418,7 +418,7 @@ export default {
             ← Go back ←
           </button>
         </div>
-        <div class="chat">
+        <!-- <div class="chat">
           <h1>Instant Chat</h1>
           <div ref="msgBox" class="message-box"></div>
           <div>
@@ -434,7 +434,7 @@ export default {
               Send
             </button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </section>
