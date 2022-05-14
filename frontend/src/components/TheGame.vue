@@ -36,7 +36,6 @@ export default {
       gameStatus: String("idle"),
       // socket: ref(),
       ctx: null,
-      msg: String(""),
       gameActive: Boolean(false),
       hasBeenInvited: Boolean(false),
     };
@@ -234,16 +233,6 @@ export default {
       );
     },
 
-    sendMsg() {
-      this.socket.emit("msg", this.msg);
-      this.msg = "";
-    },
-
-    receiveMsg(msg) {
-      // Sig : "broadcastMsg"
-      this.msgBox.innerText += "\n" + msg;
-      this.msgBox.scrollTop = this.msgBox.scrollHeight;
-    },
     handleInit(number) {
       this.playerNumber = number;
       this.init();
@@ -319,7 +308,6 @@ export default {
       if (this.gameCodeSpec) this.gameCodeSpec.value = "";
       this.initialScreen.style.display = "block";
       this.gameScreen.style.display = "none";
-      this.msgBox.innerText = "";
     },
     liveGame() {
       this.socket.emit("getLiveGame", (response) => {
@@ -418,23 +406,6 @@ export default {
             ← Go back ←
           </button>
         </div>
-        <!-- <div class="chat">
-          <h1>Instant Chat</h1>
-          <div ref="msgBox" class="message-box"></div>
-          <div>
-            <textarea
-              id="textarea"
-              v-model="msg"
-              placeholder="Enter message..."
-            >
-            </textarea>
-          </div>
-          <div>
-            <button type="submit" ref="sendButton" v-on:click="sendMsg">
-              Send
-            </button>
-          </div>
-        </div> -->
       </div>
     </div>
   </section>

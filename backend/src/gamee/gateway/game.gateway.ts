@@ -332,7 +332,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Store the username to render OnLiveGame player
       this.liveGame[roomName] = { player1 : socket.data.user.username, is_special_game : playWithPowerUP };
       // join the room socket
-      socket.join(roomName);
+      await socket.join(roomName);
       // init the front for player 1
       socket.emit('init', 1);
       // set the creator to player mode
@@ -354,9 +354,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (this.liveGame[roomName])
         this.liveGame[roomName].player2 = socket.data.user.username;
       // join the room socket
-      socket.join(roomName);
-      // init the front for player 2
+      await socket.join(roomName);
+
       socket.emit('init', 2);
+      // init the front for player 2
 
       // --------------------- Status -----------------------------
       const clients = this.server.sockets.adapter.rooms.get(roomName);
@@ -367,7 +368,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         // this is the socket of each client in the room.
         const clientSocket = this.server.sockets.sockets.get(clientId);
                             
-        this.userService.updateUserStatus(clientSocket.data.user.id, 2);
+        await this.userService.updateUserStatus(clientSocket.data.user.id, 2);
     
                     
         const users = await this.friendService.getFriends(clientSocket.data.user);
@@ -386,12 +387,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
-      this.server.emit('pushLiveGame', this.liveGame);
+      await this.server.emit('pushLiveGame', this.liveGame);
       console.log('===========AFTER START============')
       console.log('clientROOMS : ', this.clientRooms);
       console.log('live GAME : ', this.liveGame);
       console.log('State : ', this.state);
-      this.server.to(roomName).emit('startGameAnimation')
+      await this.server.to(roomName).emit('startGameAnimation')
       console.log('start game ANIIIIFFFF')
 
     }
