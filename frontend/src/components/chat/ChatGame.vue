@@ -402,6 +402,6 @@ strong {
 }
 
 .display-none {
-  height: 0px;
+  /* height: 0px; */
 }
 </style>
