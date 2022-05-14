@@ -37,8 +37,7 @@ export default {
         <TheGame :user="userStore.user" :socket="userStore.socket"/>
       </div>
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour voir le jeu.
-        <br>Connectez-vous sur la page Accueil.</p>
+        <p>Vous devez être connecté pour voir le jeu.</p>
       </div>
     </div>
   </main>

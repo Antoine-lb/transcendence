@@ -202,8 +202,7 @@ export default {
         />
       </div>
       <div v-else>
-        <p>Vous devez être connecté pour voir vos amis.
-        <br>Connectez-vous sur la page Accueil.</p>
+        <p>Vous devez être connecté pour voir vos amis.</p>
       </div>
     </div>
   </main>

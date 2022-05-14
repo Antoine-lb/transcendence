@@ -13,13 +13,14 @@ import Log from "@/components/Log.vue";
         width="125"
       />
       <div class="wrapper">
-        <nav class="bg-pan-left">
+        <nav>
           <RouterLink to="/">Accueil</RouterLink>
           <RouterLink to="/chat">Chat</RouterLink>
           <RouterLink to="/friends">Amis</RouterLink>
           <RouterLink to="/game">Jeux</RouterLink>
           <RouterLink to="/settings">Réglages</RouterLink>
         </nav>
+        <Log />
       </div>
     </header>
     <notifications />
@@ -70,14 +71,17 @@ nav {
   background-color: white;
   font-size: 12px;
   text-align: center;
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
   display: inline-block;
-  margin: auto;
+  /* margin: auto; */
   padding: 15px;
   border-radius: 23px;
   border: 3px solid #703ab8;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-right: 20px;
+  margin-bottom: 13px;
+
 }
 
 nav:hover {
@@ -95,7 +99,7 @@ nav a.router-link-exact-active:hover {
 
 nav a {
   display: inline-block;
-  padding: 0 1rem;
+  padding: 2px 1rem;
   border-left: 1px solid var(--color-border);
   font-size: 18px;
 }
@@ -105,6 +109,16 @@ nav a:first-of-type {
 }
 .wrapper {
   display: flex;
+  justify-content: center;
+}
+@media (max-width: 824px) {
+  .wrapper {
+    /* display: flex; */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
 }
 @media (min-width: 4024px) {
   body {

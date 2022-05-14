@@ -21,10 +21,10 @@ export default {
 
 <template>
   <div v-if="!this.userStore.isFullyLogged && !this.userStore.isHalfLogged">
-    <div class="login-container">
+    <!-- <div class="login-container"> -->
       <a class="intra-login" href="http://127.0.0.1:3000/api/auth/login">
         <div class="intra-login-wrapper">
-          <p>Se connecter avec</p>
+          <p>Se connecter</p>
           <img
             alt="Invader Logo"
             class="logo-42"
@@ -32,10 +32,10 @@ export default {
           />
         </div>
       </a>
-    </div>
+    <!-- </div> -->
   </div>
   <div v-else>
-    <div class="login-container">
+    <!-- <div class="login-container"> -->
       <a class="intra-login" href="http://127.0.0.1:3000/api/auth/logout">
         <div class="intra-login-wrapper">
           <p>Se déconnecter</p>
@@ -46,17 +46,20 @@ export default {
           />
         </div>
       </a>
-    </div>
+    <!-- </div> -->
   </div>
 </template>
 
 <style scoped>
 
 .intra-login {
-  margin: auto;
+  /* margin: auto; */
   color: rgba(0, 0, 0, 0.822);
   display: flex;
   flex-direction: row;
+  border-radius: 23px;
+    /* margin-left: 20px; */
+
 }
 
 .intra-login:hover {
@@ -64,7 +67,9 @@ export default {
 }
 
 .intra-login-wrapper {
-  border: 4px solid rgba(0, 0, 0, 0.822);
+  /* margin-left: 20px; */
+  border: 3.5px solid rgba(0, 0, 0, 0.822);
+  border-radius: 23px;
   padding: 10px;
   align-items: stretch;
   justify-content: center;
@@ -72,14 +77,14 @@ export default {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .intra-login-wrapper:hover {
-  padding: 10px 25px;
+  /* padding: 10px 25px; */
   align-items: stretch;
   justify-content: center;
 }
 
 .intra-login-wrapper p {
   display: inline-block;
-  font-size: 30px;
+  font-size: 20px;
   vertical-align: middle;
 }
 
@@ -88,7 +93,7 @@ export default {
   /* max-width: 100%; */
   /* align: center; */
   vertical-align: middle;
-  width: 70px;
+  width: 50px;
 }
 
 
