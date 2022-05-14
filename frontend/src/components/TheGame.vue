@@ -24,7 +24,6 @@ export default {
       userStore,
     };
   },
-
   props: {
     user: Object,
     socket: Object,
@@ -346,12 +345,24 @@ export default {
             h-100
           "
         >
-          <div>
-            <button type="submit" class="pwd-btn" @click="joinQueue(false)">
-              Play Basic Pong
+          <p style="font-size: 20px">
+            Join a queue to play agains other players:
+          </p>
+          
+          <div style="display: flex; flex-direction: column">
+            <button class="wrapper" @click="joinQueue(false)">
+              <div class="icon">👾</div>
+              <div>
+                <p class="title">Play Basic Pong</p>
+                <p class="explenation">Regular 2v2 pong</p>
+              </div>
             </button>
-            <button type="submit" class="pwd-btn" @click="joinQueue(true)">
-              Play PowerUP Pong!!!
+            <button class="wrapper" @click="joinQueue(true)">
+              <div class="icon">🚀</div>
+              <div>
+                <p class="title">Play PowerUP Pong!</p>
+                <p class="explenation">Play pong with increased features</p>
+              </div>
             </button>
           </div>
         </div>
@@ -430,6 +441,38 @@ export default {
 </template>
 
 <style scoped>
+.wrapper {
+ display: flex;
+ /* justify-content: center; */
+ align-items: center;
+ background-color: rgba(121, 61, 204, 0.155);
+ border-radius: 10px;
+ margin-top: 30px;
+border: none;  
+cursor: pointer;
+padding: 10px;
+font-size: 15px;
+box-shadow: 0 0 6px rgba(213, 183, 255, 0.2),
+  0 0 30px rgba(219, 202, 243, 0.34), 0 0 12px rgba(211, 193, 236, 0.52),
+  0 0 21px rgba(211, 193, 236, 0.92), 0 0 34px rgba(211, 193, 236, 0.78),
+  0 0 54px rgba(211, 193, 236, 0.92);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.wrapper:hover {
+ background-color: rgba(121, 61, 204, 0.317);
+}
+
+.icon {
+  font-size: 50px;
+  margin-right: 30px;
+}
+
+.title {
+  font-size: 25px;
+    font-weight: bold;
+
+}
 
 .game-canvas {
   margin: auto;

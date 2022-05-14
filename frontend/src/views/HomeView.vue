@@ -1,8 +1,8 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
-import Log from "@/components/Log.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
+import GamesHistory from "@/components/GamesHistory.vue";
 
 export default {
   setup() {
@@ -13,7 +13,7 @@ export default {
   components: {
     TheWelcome,
     PublicProfile,
-    Log,
+    GamesHistory
   },
   methods: {
     isLogged() {
@@ -41,12 +41,12 @@ export default {
           :id="userStore.user.id"
           :socket="userStore.socket"
         />
+        <GamesHistory :userId="userStore.user.id" />
       </form>
       <div v-else>
         <TheWelcome />
       </div>
     </div>
-    <Log />
   </main>
 </template>
 

@@ -1,7 +1,6 @@
 
 <script lang="ts">
 import TheGame from "@/components/TheGame.vue";
-import Log from "@/components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -13,7 +12,6 @@ export default {
   },
   components: {
     TheGame,
-    Log
   },
   methods: {
     isLogged() {
@@ -37,8 +35,7 @@ export default {
         <TheGame :user="userStore.user" :socket="userStore.socket"/>
       </div>
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour voir le jeu.
-        <br>Connectez-vous sur la page Accueil.</p>
+        <p>Vous devez être connecté pour voir le jeu.</p>
       </div>
     </div>
   </main>

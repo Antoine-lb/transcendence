@@ -214,7 +214,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div style="display: flex; flex-direction: column; font-size: 20px;">
     <!-- <p> loading => {{ this.loading }} </p>
       <p> friendList => {{ this.friendList }} </p>
       <p> pendingFriendList => {{ this.pendingFriendList }} </p>

@@ -1,6 +1,5 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
-import Log from "@/components/Log.vue";
 import axios from "axios";
 
 export default {
@@ -30,7 +29,6 @@ export default {
     this.socket.removeAllListeners();
   },
   components : {
-    Log
   },
   methods: {
     notifyErrorResponse(err) {
