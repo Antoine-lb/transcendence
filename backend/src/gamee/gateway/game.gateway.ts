@@ -83,9 +83,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let roomSize = 0;
     const room1 = this.server.sockets.adapter.rooms.get(roomName)
   
-    if (room1)
-      roomSize = room1.size;
-    
+    if (socket.data.status == "spec")
+    {
+      socket.leave(roomName)
+      return;
+    }
     if (this.liveGame[roomName]) {
       clearInterval(this.state[roomName].intervalId);
       // identify witch client is disconnect and give him -42
@@ -103,7 +105,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
      }
      else 
-      this.clearQueue(socket);
+       this.clearQueue(socket);
       
      const tmp = await this.userService.updateUserStatus(socket.data.user.id, 0);
 
@@ -132,7 +134,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('clientROOMS : ', this.clientRooms);
       console.log('live GAME : ', this.liveGame);
       console.log('State : ', this.state);
-    socket.disconnect();
+      socket.disconnect();
   }
 
   @SubscribeMessage('check_on_game')
@@ -148,6 +150,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('test')
   async clearQueue(socket: Socket) {
     const roomName = this.clientRooms[socket.id];
+
+    if (socket.data.status == "spec")
+    {
+      socket.leave(roomName)
+      return;
+    }
 
     if (roomName && this.state[roomName] && this.liveGame[roomName]?.player2 && (this.state[roomName]?.score?.p1 || this.state[roomName]?.score?.p2 != scoreLimit)) {
       clearInterval(this.state[roomName].intervalId);
@@ -396,9 +404,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       roomSize = this.server.sockets.adapter.rooms.get(roomName).size;
     if (roomSize === 0) {
       socket.emit('unknownCode');
-      return;
-    } else if (roomSize != 2) {
-      socket.emit('tooManyPlayers');
       return;
     }
     this.clientRooms[socket.id] = roomName;
