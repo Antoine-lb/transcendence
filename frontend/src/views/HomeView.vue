@@ -1,7 +1,6 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
-import Log from "@/components/Log.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
 
 export default {
@@ -13,7 +12,6 @@ export default {
   components: {
     TheWelcome,
     PublicProfile,
-    Log,
   },
   methods: {
     isLogged() {
@@ -46,7 +44,6 @@ export default {
         <TheWelcome />
       </div>
     </div>
-    <Log />
   </main>
 </template>
 

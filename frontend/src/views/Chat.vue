@@ -36,8 +36,9 @@ export default {
         <Chat :user="userStore.user"  :socket="userStore.socket" />
       </div>
       <div v-else class="form-group">
-        <p>Vous devez être connecté pour voir le chat.
-        <br>Connectez-vous sur la page Accueil.</p>
+        <br/>
+        <br/>
+        <p>Vous devez être connecté pour voir le chat.</p>
       </div>
     </div>
   </div>
