@@ -104,16 +104,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
      }
      else 
       this.clearQueue(socket);
-      
-     const tmp = await this.userService.updateUserStatus(socket.data.user.id, 0);
-
-     const users = await this.friendService.getFriends(socket.data.user);
-     for (const user of users) {
-       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-       for (const connection of connections) {
-          this.server.to(connection.socketID).emit('status', 0, tmp.id)
-       }
-     }
+    
+      if (socket.data.user)
+      {
+        const tmp = await this.userService.updateUserStatus(socket.data.user.id, 0);
+        const users = await this.friendService.getFriends(socket.data.user);
+        for (const user of users) {
+          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+          for (const connection of connections) {
+             this.server.to(connection.socketID).emit('status', 0, tmp.id)
+          }
+        }
+      }
     
     if (this.state[roomName])
       delete this.state[roomName];

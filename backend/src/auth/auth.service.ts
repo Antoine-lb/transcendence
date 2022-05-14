@@ -27,8 +27,14 @@ export class AuthService {
   }
 
   async verifyToken(token: string) {
-      var ret = this.jwtService.verify(token, { ignoreExpiration: true });
+    try {
+      var ret = this.jwtService.verify(token, { ignoreExpiration: false });
       return ret
+    } catch (error) {
+      console.log('Verify token failed')
+      return 0
+    }
+      
   }
 
   // ajoute un arg a get token to know whether it's a 2fa token

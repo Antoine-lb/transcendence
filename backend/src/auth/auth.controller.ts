@@ -27,18 +27,14 @@ export class AuthController{
         @Get('/login')
         async login(@Res() res: Response, @Req() req: Request) {
             if (req.cookies && req.cookies['access_token']) {
-                try {
-                    if (this.authService.verifyToken(req.cookies['access_token']))
-                        res.status(302).redirect('http://127.0.0.1:8080')
-                    else
-                        res.status(302).redirect('/api/auth/callback')
-                }
-                catch {
+                if (await this.authService.verifyToken(req.cookies['access_token']))
+                    res.status(302).redirect('http://127.0.0.1:8080')
+                else{
+					console.log('reset token')
                     res.clearCookie('access_token');
                     res.clearCookie('access_token_2fa'); 
-                    return res.status(302).redirect('http://127.0.0.1:8080')
+                    return res.status(302).redirect('/api/auth/callback')
                 }
-
             }
             else res.status(302).redirect('/api/auth/callback')
         }
