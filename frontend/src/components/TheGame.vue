@@ -84,7 +84,7 @@ export default {
 
     joinQueue(playWithPowerUP: boolean) {
       this.socket.emit("joinQueue", playWithPowerUP);
-      this.gameState = "play";
+      // this.gameState = "play";
       this.gameStatus = "idle";
     },
 
@@ -169,6 +169,9 @@ export default {
           // await this.sleep(10);
         }
       this.gameStatus = "play";
+      console.log('----');
+      console.log(this.gameStatus);
+
       if (this.playerNumber == 1) this.socket.emit("startGame");
     },
 
@@ -303,6 +306,8 @@ export default {
 
     reset() {
     this.gameStatus = "idle";
+      console.log('reset')
+
       if (!this.hasBeenInvited)
       {
         this.socket.emit("test");
@@ -323,7 +328,8 @@ export default {
       });
     },
     pushLiveGame(liveGame) {
-      this.gameStatus = "play";
+      console.log(liveGame);
+      // this.gameStatus = "play";
     },
   },
 };

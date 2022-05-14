@@ -272,6 +272,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // -----------------------------------------------------------
 
     // start the game when both player are connected
+    console.log('//// START GAME INTERVAL //// ')
     this.startGameInterval(roomName, false);
     
   }
@@ -367,7 +368,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
-      this.server.emit('pushLiveGame', this.liveGame)
+      this.server.emit('pushLiveGame', this.liveGame);
       console.log('===========AFTER START============')
       console.log('clientROOMS : ', this.clientRooms);
       console.log('live GAME : ', this.liveGame);
