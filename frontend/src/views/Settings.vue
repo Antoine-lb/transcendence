@@ -2,7 +2,6 @@
 <script lang="ts">
 import PrivateProfile from "@/components/PrivateProfile.vue";
 import PublicProfile from "@/components/PublicProfile.vue";
-import Log from "@/components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -15,7 +14,6 @@ export default {
   components: {
     PrivateProfile,
     PublicProfile,
-    Log,
   },
   methods: {
     isLogged() {
