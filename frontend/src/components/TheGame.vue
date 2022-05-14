@@ -297,7 +297,6 @@ export default {
 
     handlePause(msg) {
       this.socket.emit("pause");
-      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {
@@ -305,7 +304,7 @@ export default {
     },
 
     reset() {
-    this.gameStatus = "idle";
+      this.gameStatus = "idle";
       console.log('reset')
 
       if (!this.hasBeenInvited)
@@ -328,8 +327,7 @@ export default {
       });
     },
     pushLiveGame(liveGame) {
-      console.log(liveGame);
-      // this.gameStatus = "play";
+        this.liveGame = liveGame;
     },
   },
 };

@@ -59,6 +59,7 @@ export default {
   },
   mounted() {
     this.init();
+    this.socket.emit("getLiveGame");
   },
   unmounted() {
     this.socket.emit("test");
@@ -132,6 +133,11 @@ export default {
 
     handleSpecGame(code) {
       // const code = this.gameCodeSpec.value;
+      console.log('-------');
+      console.log(code);
+      console.log('----live game---');
+      console.log(this.liveGame);
+
       this.socket.emit("spec", code);
       this.init();
     },
@@ -284,7 +290,7 @@ export default {
     },
 
     handleDisconnection() {
-      // this.gameStatus = "opponentLeft"
+      this.gameStatus = "opponentLeft"
       this.$notify({
         title: "Important message",
         text: "The opponent disconnected\nGame won by forfeit",
@@ -295,7 +301,6 @@ export default {
 
     handlePause(msg) {
       this.socket.emit("pause");
-      // this.gameStatus = this.gameStatus == "paused" ? "play" : "paused";
     },
 
     handleNotification(msg) {
@@ -303,13 +308,12 @@ export default {
     },
 
     reset() {
-      this.gameStatus = "idle";
       if (!this.hasBeenInvited)
       {
         this.socket.emit("test");
       }
       this.gameStatus =
-        this.gameStatus == "play" || this.gameStatus == "paused"
+        this.gameStatus == "playing" || this.gameStatus == "paused"
           ? this.gameStatus
           : "idle";
       this.playerNumber = null;

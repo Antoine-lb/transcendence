@@ -199,6 +199,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('State : ', this.state);
   }
 
+
+  @SubscribeMessage('getLiveGame')
+  async sendLiveGame(socket: Socket)
+  {
+    this.server.emit('pushLiveGame', this.liveGame);
+  }
+
+
+
+
   @SubscribeMessage('newGame')
   async handleNewGame(socket: Socket, roomCode: string) {
     if (socket.data.status == "play") {
@@ -591,16 +601,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     })
     // Modif xp & match history for the players
     this.userService.updateUserScore(players, winnerId);// <-- C'est ça qui cause les CORS à la fin du jeu
-    // if (roomName) {
-    //   console.log('powerUp before -> ', this.stackIndexPowerUPPong);
-    //   console.log('basic before -> ', this.stackIndexBasicPong);
-    //   if (this.liveGame[roomName]?.is_special_game) {
-    //     this.stackIndexPowerUPPong -= 2;
-    //   }
-    //   else if (this.liveGame[roomName])
-    //     this.stackIndexBasicPong -= 2;
+    if (roomName) {
+      console.log('powerUp before -> ', this.stackIndexPowerUPPong);
+      console.log('basic before -> ', this.stackIndexBasicPong);
+      if (this.liveGame[roomName]?.is_special_game) {
+        this.stackIndexPowerUPPong -= 2;
+      }
+      else if (this.liveGame[roomName])
+        this.stackIndexBasicPong -= 2;
 
-    // }
+    }
 
     if (this.liveGame[roomName]) {
       this.server.sockets.in(room).emit('gameOver', winner === 1 ? this.liveGame[roomName].player1 : this.liveGame[roomName].player2);
