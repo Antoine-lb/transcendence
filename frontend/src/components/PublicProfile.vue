@@ -1,5 +1,4 @@
 <script lang="ts">
-import GamesHistory from "@/components/GamesHistory.vue";
 
 export default {
   props: {
@@ -11,9 +10,6 @@ export default {
     xp: Number,
     lvl: Number,
     id: Number,
-  },
-  components: {
-    GamesHistory,
   },
 };
 </script>
@@ -38,8 +34,6 @@ export default {
       <p>🏆 Victory - {{ victory }}</p>
       <p>💩 Defeats - {{ defeats }}</p>
     </div>
-
-    <GamesHistory :userId="id" />
   </div>
 </template>
 

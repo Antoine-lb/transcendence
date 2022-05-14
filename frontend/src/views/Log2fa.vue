@@ -1,7 +1,6 @@
 <script lang="ts">
 import { useUserStore } from "../stores/userStore";
 import TheWelcome from "@/components/TheWelcome.vue";
-import Log from "@/components/Log.vue";
 import axios from "axios";
 
 
@@ -18,7 +17,6 @@ export default {
   },
   components : {
     TheWelcome,
-    Log
   },
   methods: {
     notifyError(msg) {

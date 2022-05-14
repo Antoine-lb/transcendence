@@ -1,7 +1,6 @@
 
 <script lang="ts">
 import Chat from "@/components/Chat.vue";
-import Log from "@/components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 export default {
@@ -13,7 +12,6 @@ export default {
   },
   components: {
     Chat,
-    Log,
   },
   methods: {
     isLogged() {

@@ -1,6 +1,5 @@
 <script lang="ts">
 import MyFriends from "../components/MyFriends.vue";
-import Log from "../components/Log.vue";
 import { useUserStore } from "../stores/userStore";
 
 function fetchWithHeaders(url) {
@@ -33,7 +32,6 @@ export default {
   },
   components : {
     MyFriends,
-    Log,
   },
   created() {
     this.fetchAllData();

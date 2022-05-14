@@ -2,6 +2,7 @@
 import { useUserStore } from "../stores/userStore";
 import PublicProfile from "@/components/PublicProfile.vue";
 import FriendshipManagement from "@/components/FriendshipManagement.vue";
+import GamesHistory from "@/components/GamesHistory.vue";
 
 function fetchWithHeaders(url) {
   return fetch(url, {
@@ -35,6 +36,7 @@ export default {
   components: {
     PublicProfile,
     FriendshipManagement,
+    GamesHistory
   },
   methods: {
     fetchAllData: function () {
@@ -95,6 +97,9 @@ export default {
             :userStore="userStore"
             v-if="this.userStore.user.id !== user.id"
           />
+          <br />
+          <GamesHistory :userId="user.id" />
+
         </div>
       </div>
       <div v-else class="form-group">
