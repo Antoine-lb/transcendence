@@ -270,25 +270,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // maj des onLiveGame vers les autres clients
     this.server.emit('pushLiveGame', this.liveGame)
       
-    // --------------------- Status -----------------------------
-    const clients = this.server.sockets.adapter.rooms.get(roomName);
-    //to just change the status to all members of a room and emit to all there friends
-    for (const clientId of clients) {
-          
-       // this is the socket of each client in the room.
-       const clientSocket = this.server.sockets.sockets.get(clientId);
-                 
-       this.userService.updateUserStatus(clientSocket.data.user.id, 2);
-          
-       const users = await this.friendService.getFriends(clientSocket.data.user);
-       for (const user of users) {
-         const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-         for (const connection of connections) {
-          this.server.to(connection.socketID).emit('status', 2, clientSocket.data.user.id);
-        }
-      }
-    }
-    // -----------------------------------------------------------
+    // --------------------- Change Users Status -----------------------------
+    await this.GameService.changeUsersStatus(this.server, roomName);
+    // -----------------------------------------------------------------------
 
     // start the game when both player are connected
     console.log('//// START GAME INTERVAL //// ')
@@ -304,7 +288,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('powerUp after -> ', this.stackIndexPowerUPPong);
     console.log('basic after -> ', this.stackIndexBasicPong);
 
-    for (let index = 0; index < this.stackIndexBasicPong/2; index++) {
+    for (let index = 0; index < this.stackIndexBasicPong / 2; index++) {
       if (this.liveGame[index] && ((this.liveGame[index]?.player1 == socket?.data?.user?.username) || (this.liveGame[index]?.player2 == socket?.data?.user?.username)))
         return;
     } 
@@ -360,32 +344,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('init', 2);
       // init the front for player 2
 
-      // --------------------- Status -----------------------------
-      const clients = this.server.sockets.adapter.rooms.get(roomName);
-
-      //to just change the status to all members of a room and emit to all there friends
-      for (const clientId of clients) {
-                  
-        // this is the socket of each client in the room.
-        const clientSocket = this.server.sockets.sockets.get(clientId);
-                            
-        await this.userService.updateUserStatus(clientSocket.data.user.id, 2);
-    
-                    
-        const users = await this.friendService.getFriends(clientSocket.data.user);
-          
-        for (const user of users) {
-          
-          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-          for (const connection of connections) {
-            this.server.to(connection.socketID).emit('status', 2, clientSocket.data.user.id);
-          }
-        }
-      }
-      // -----------------------------------------------------------
+      // --------------------- Change Users Status -----------------------------
+      await this.GameService.changeUsersStatus(this.server, roomName);
+      // -----------------------------------------------------------------------
 
       // Animation to warn players the game is starting
-    // set the creator to player mode
+      // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
       this.server.emit('pushLiveGame', this.liveGame);
@@ -545,34 +509,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async emitGameOver(roomName: string, winner: number, disconnectedPlayerId: number) {
-    console.log('lalalala')
-    console.log(this.liveGame)
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
 
  
-    // --------------------- Status -----------------------------
-    const clients = this.server.sockets.adapter.rooms.get(roomName);
-    //to just change the status to all members of a room and emit to all there friends
-    if (clients)
-      for (const clientId of clients) {
-              
-        // this is the socket of each client in the room.
-        const clientSocket = this.server.sockets.sockets.get(clientId);
-                          
-        this.userService.updateUserStatus(clientSocket.data.user.id, 1);
-                  
-        const users = await this.friendService.getFriends(clientSocket.data.user);
-        
-        for (const user of users) {
-        
-          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-          for (const connection of connections) {
-            this.server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
-          }
-        }
-    }
-  // -----------------------------------------------------------
+    // --------------------- Change Users Status -----------------------------
+    await this.GameService.changeUsersStatus(this.server, roomName);
+    // -----------------------------------------------------------------------
 
     let playersSockets = this.server.sockets.adapter.rooms.get(roomName);
     let winnerId, loserId;
@@ -609,7 +552,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     })
     // Modif xp & match history for the players
     this.userService.updateUserScore(players, winnerId);// <-- C'est ça qui cause les CORS à la fin du jeu
-    if (roomName) {
+    if (roomName && this.state[roomName].is_public == true) {
       console.log('powerUp before -> ', this.stackIndexPowerUPPong);
       console.log('basic before -> ', this.stackIndexBasicPong);
       if (this.liveGame[roomName]?.is_special_game) {

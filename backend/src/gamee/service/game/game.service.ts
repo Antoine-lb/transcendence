@@ -9,13 +9,22 @@ import {
   powerUp_color,
   scoreLimit
 } from 'src/utils/constants';
-import { UserEntity } from 'src/entities/users.entity';
+import { FriendsService } from 'src/friends/friends.service';
+import { ConnectedUserService } from 'src/chat/service/connected-user/connected-user.service';
+import { ConnectedUserI } from 'src/chat/model/connected.user.interface';
+import { UsersService } from 'src/users/users.service';
+
 
 
 @Injectable()
 export class GameService {
 
-  constructor() { }
+  constructor(
+    private connectedUserService: ConnectedUserService,
+    private readonly friendService: FriendsService,
+    private userService: UsersService
+
+    ) {}
 
   initGame(is_public: Boolean) {
     let state = {
@@ -232,5 +241,27 @@ export class GameService {
     return result;
   }
 
+  async changeUsersStatus(server, roomName) {
+    const clients = server.sockets.adapter.rooms.get(roomName);
+    //to just change the status to all members of a room and emit to all there friends
+    if (clients)
+      for (const clientId of clients) {
+              
+        // this is the socket of each client in the room.
+        const clientSocket = server.sockets.sockets.get(clientId);
+                          
+        this.userService.updateUserStatus(clientSocket.data.user.id, 1);
+                  
+        const users = await this.friendService.getFriends(clientSocket.data.user);
+        
+        for (const user of users) {
+        
+          const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+          for (const connection of connections) {
+            server.to(connection.socketID).emit('status', 1, clientSocket.data.user.id);
+          }
+        }
+    }
+  }
 
 }
