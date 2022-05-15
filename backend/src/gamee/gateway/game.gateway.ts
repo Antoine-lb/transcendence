@@ -228,6 +228,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(roomName);
     socket.emit('init', 1);
     this.state[this.clientRooms[socket.id]].gameState = "play"
+    this.liveGame[roomName] = { player1 : socket.data.user.username, is_special_game : 0 };
     socket.data.status = "play"
   }
 
@@ -257,7 +258,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // set the creator to player 1
     socket.data.number = 2;
     // join the room socket
-    socket.join(roomName);
+    await socket.join(roomName);
     // init the front for player 2
     socket.emit('init', 2);
     socket.data.status = "play"
@@ -387,12 +388,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // set the creator to player mode
       socket.data.status = "play"
       // maj des onLiveGame vers les autres clients
-      await this.server.emit('pushLiveGame', this.liveGame);
+      this.server.emit('pushLiveGame', this.liveGame);
       console.log('===========AFTER START============')
       console.log('clientROOMS : ', this.clientRooms);
       console.log('live GAME : ', this.liveGame);
       console.log('State : ', this.state);
-      await this.server.to(roomName).emit('startGameAnimation')
+        // await this.startGameAnimation()
+      if (this.liveGame[roomName].is_special_game)
+        this.server.to(roomName).emit('startGameAnimation')
+      else
+        this.startGameInterval(roomName, false);
       console.log('start game ANIIIIFFFF')
 
     }
@@ -452,7 +457,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
     else {
-      
+      console.log('gandlePause')
+      console.log( this.liveGame[this.clientRooms[socket.id]].is_special_game)
       this.startGameInterval(this.clientRooms[socket.id], this.liveGame[this.clientRooms[socket.id]].is_special_game);
       this.server.sockets.in(this.clientRooms[socket.id]).emit('notify', {
         title: "Important message",
@@ -539,7 +545,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async emitGameOver(roomName: string, winner: number, disconnectedPlayerId: number) {
-
+    console.log('lalalala')
+    console.log(this.liveGame)
     const room = [];
     room.push(roomName) // parce qu'on peut pas passer de string direct apparemment...
 

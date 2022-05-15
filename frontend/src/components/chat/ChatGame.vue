@@ -60,6 +60,7 @@ export default {
   mounted() {
     this.init();
     this.socket.emit("getLiveGame");
+    this.socket.emit("getStatus", this.user.id)
   },
   unmounted() {
     this.socket.emit("test");
@@ -83,7 +84,6 @@ export default {
       this.socket.on("notify", this.handleNotification);
       this.socket.on("broadcastMsg", this.receiveMsg);
       this.socket.on("disconnection", this.handleDisconnection);
-      this.socket.on("startGameAnimation", this.startGameAnimation);
       this.socket.on("pushLiveGame", (liveGame) => {
         this.liveGame = liveGame;
       });
@@ -96,9 +96,7 @@ export default {
       });
 
       this.socket.on("acceptInvit", async (roomCode) => {
-        // await this.startGameAnimation()
         this.socket.emit("joinGame", roomCode);
-        this.gameStatus = "playing";
       });
 
       this.socket.on("declineGameInvit", () => {
@@ -114,9 +112,9 @@ export default {
       ) {
         this.socket.emit("newGame", code);
         this.socket.emit("acceptInvit", adversaire, code);
-        this.gameStatus = "playing";
       } else this.socket.emit("declineGameInvit", adversaire);
     },
+
 
     createNewGame() {
       this.socket.emit("newGame");
@@ -166,21 +164,6 @@ export default {
       // e.preventDefault();
       // e.stopPropagation();
       this.socket.emit("keyup", e.keyCode);
-    },
-
-    async startGameAnimation() {
-      for (let cntDown = 5; cntDown > 0; --cntDown)
-        for (let index = 0; index < 100; ++index) {
-          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-          this.ctx.font = index.toString() + "px Calibri,Geneva,Arial";
-          this.ctx.strokeStyle = "rgb(0,0,0)";
-          this.ctx.strokeText(
-            String(cntDown),
-            this.canvas.width / 3 - index / 3,
-            this.canvas.height / 3 + index / 3
-          );
-          // await this.sleep(10);
-        }
     },
 
     sleep(ms) {
@@ -261,6 +244,7 @@ export default {
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         // c'es la d'ou vient l'ecran noir qd l'opponent a refresh opponentLeft
         requestAnimationFrame(() => this.paintGame(gameState));
+      this.gameStatus = "playing";
     },
 
     handleGameOver(data) {
@@ -277,6 +261,8 @@ export default {
         text: data + " has Won !!",
         duration: 6000,
       });
+      this.init();
+      this.gameStatus = "idle";
     },
 
     handleUnknownCode() {

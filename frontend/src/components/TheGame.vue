@@ -83,7 +83,6 @@ export default {
     joinQueue(playWithPowerUP: boolean) {
       this.socket.emit("joinQueue", playWithPowerUP);
       // this.gameState = "play";
-      this.gameStatus = "idle";
     },
 
     createNewGame() {
@@ -108,7 +107,6 @@ export default {
     },
 
     handleJoinGame() {
-      this.gameStatus = "idle";
       const code = this.gameCodeInput?.value;
       this.socket.emit("joinGame", code);
     },
@@ -154,6 +152,7 @@ export default {
     },
 
     async startGameAnimation() {
+
       for (let cntDown = 5; cntDown > 0; --cntDown)
         for (let index = 0; index < 100; ++index) {
           this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -166,9 +165,6 @@ export default {
           );
           // await this.sleep(10);
         }
-      this.gameStatus = "play";
-      console.log('----');
-      console.log(this.gameStatus);
 
       if (this.playerNumber == 1) this.socket.emit("startGame");
     },
@@ -245,12 +241,13 @@ export default {
       this.score = gameState.score;
       if (this.gameStatus !== "opponentLeft" && this.gameStatus !== "paused")
         requestAnimationFrame(() => this.paintGame(gameState));
+      this.gameStatus = "play";
     },
     handleGameOver(data) {
       if (!this.gameActive) {
         return;
       }
-      this.gameStatus == "ended";
+      this.gameStatus == "idle";
       document.removeEventListener("keydown", this.keydown);
       document.removeEventListener("keyup", this.keydown);
 
