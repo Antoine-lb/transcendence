@@ -93,6 +93,8 @@ export default {
           var statusCode = err.message.split(' ').slice(-1);
           if (statusCode == 400)
             this.notifyError("Allowed characters : alphanumerical, hyphen ( - ) and underscore ( _ ).")
+          else if (statusCode == 413)
+            this.notifyError("Allowed username length : 24 characters")
           else
             this.notifyErrorResponse(err);
         });

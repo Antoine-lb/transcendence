@@ -106,6 +106,8 @@ export class UserController {
       const username = req.body.username 
       if (!username)
         throw new NotFoundException('Please try again later')
+      if (username.length > 24)
+        throw new PayloadTooLargeException('Username too long')
       var check = await this.userService.checkUsernameChars(username)
       if (check == false)
         throw new BadRequestException('Allowed characters : alphanumerical, hyphen and underscore')

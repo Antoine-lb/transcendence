@@ -36,17 +36,6 @@ export default {
       <div v-if="isLogged()" class="form-group">
         <PrivateProfile 
         :socket="userStore.socket"/>
-        <PublicProfile
-          :username="userStore.user.username"
-          :avatarUrl="userStore.avatarUrl"
-          :played="userStore.user.played"
-          :victory="userStore.user.victory"
-          :defeats="userStore.user.defeats"
-          :xp="userStore.user.xp"
-          :lvl="userStore.user.lvl"
-          :id="userStore.user.id"
-          :socket="userStore.socket"
-        />
       </div>
       <div v-else class="form-group">
         <p>Vous devez être connecté pour modifier votre profil.</p>
