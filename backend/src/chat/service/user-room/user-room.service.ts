@@ -99,40 +99,35 @@ export class UserRoomService {
     }
 
     async updateRole(room: RoomI, user: UserDto, modifier: UserDto, newRole: UserRoomRole) {
-        try {
-            const checkModifier = await this.userService.findById(modifier.id);
-            if (!checkModifier)
+        const checkModifier = await this.userService.findById(modifier.id);
+        if (!checkModifier)
+        throw new NotFoundException("Please try again later")
+        const checkUser = await this.userService.findById(modifier.id);
+        if (!checkUser)
             throw new NotFoundException("Please try again later")
-            const checkUser = await this.userService.findById(modifier.id);
-            if (!checkUser)
-                throw new NotFoundException("Please try again later")
-            var roles = await this.getAllRolesForRoom(room);
-            // si un owner quitdocerk-te la room
-            if (user.id == modifier.id && roles[user.id] == UserRoomRole.OWNER && newRole == UserRoomRole.AVAILABLE)
-            {
-                var newOwner: UserDto = await this.findNewOwner(room, modifier);
-                if (newOwner === null)
-                    throw new ImATeapotException("Can't leave room if you are the last person in it");
-                await this.userRoomRepository.update({ user: newOwner, room: room }, { role: UserRoomRole.OWNER } );
-                return await this.userRoomRepository.update({ user: modifier, room: room }, { role: newRole } );
-            }
-            // authorisations pour changer mon propre role
-            else if (user.id == modifier.id)
-            {
-                if (this.checkAuthorisationForMyself(roles[user.id], newRole) == false)
-                    throw new UnauthorizedException("Can't change you own role from " + roles[user.id] + " to " + newRole);
-            }
-            // authorisations pour changer le role d'un autre
-            else
-            {
-                if (this.checkAuthorisationForOthers(roles[modifier.id], roles[user.id], newRole) == false)
-                    throw new UnauthorizedException("Can't change other role from " + roles[user.id] + " to " + newRole + " when you are " + roles[modifier.id]);
-            }
-            return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
+        var roles = await this.getAllRolesForRoom(room);
+        // si un owner quitdocerk-te la room
+        if (user.id == modifier.id && roles[user.id] == UserRoomRole.OWNER && newRole == UserRoomRole.AVAILABLE)
+        {
+            var newOwner: UserDto = await this.findNewOwner(room, modifier);
+            if (newOwner === null)
+                throw new ImATeapotException("Can't leave room if you are the last person in it");
+            await this.userRoomRepository.update({ user: newOwner, room: room }, { role: UserRoomRole.OWNER } );
+            return await this.userRoomRepository.update({ user: modifier, room: room }, { role: newRole } );
         }
-        catch {
-            throw new BadRequestException("Please try again later")
+        // authorisations pour changer mon propre role
+        else if (user.id == modifier.id)
+        {
+            if (this.checkAuthorisationForMyself(roles[user.id], newRole) == false)
+                throw new UnauthorizedException("Can't change you own role from " + roles[user.id] + " to " + newRole);
         }
+        // authorisations pour changer le role d'un autre
+        else
+        {
+            if (this.checkAuthorisationForOthers(roles[modifier.id], roles[user.id], newRole) == false)
+                throw new UnauthorizedException("Can't change other role from " + roles[user.id] + " to " + newRole + " when you are " + roles[modifier.id]);
+        }
+        return await this.userRoomRepository.update({ user: user, room: room }, { role: newRole } );
     }
 
     ////////////////////////////////////////// FIND FUNCTIONS //////////////////////////////////////////////////////////////
@@ -150,100 +145,75 @@ export class UserRoomService {
     ////////////////////////////////////////// USERS GETTERS //////////////////////////////////////////////////////////////
 
     async getUsersForRoom(room: RoomI): Promise<UserDto[]> { 
-        try {
-            var userRoomsForRoom: UserRoomEntity[] = await this.userRoomRepository.find({
-                relations: ['user'],
-                where: {
-                    room: room,
-                },
-            });
-            var users = [];
-            for (var userRoom of userRoomsForRoom)
-                users.push(userRoom.user);
-            return users;
-        }
-        catch {
-            throw new BadRequestException("Please try again later")
-        }
+        var userRoomsForRoom: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+            },
+        });
+        var users = [];
+        for (var userRoom of userRoomsForRoom)
+            users.push(userRoom.user);
+        return users;
     }
 
     ////////////////////////////////////////// ROOMS GETTERS //////////////////////////////////////////////////////////////
 
     async getAllRoomsForUser(user: UserDto): Promise<RoomI[]> {
-        try {
-            var userRoomsForUser: UserRoomEntity[] = await this.userRoomRepository.find({
-                relations: ['room'],
-                where: {
-                    user: user,
-                },
-            });
-            var rooms = [];
-            for (var userRoom of userRoomsForUser)
-            {
-                rooms.push(userRoom.room);
-            }
-            return rooms;
+        var userRoomsForUser: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['room'],
+            where: {
+                user: user,
+            },
+        });
+        var rooms = [];
+        for (var userRoom of userRoomsForUser)
+        {
+            rooms.push(userRoom.room);
         }
-        catch {
-            throw new BadRequestException("Please try again later")
-        }
+        return rooms;
     }
 
     ////////////////////////////////////////// ROLES GETTERS //////////////////////////////////////////////////////////////
 
     async getRole(room: RoomI, user: UserDto) {
-        try {
-            var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
-                relations: ['user'],
-                where: {
-                    room: room,
-                    user: user,
-                },
-            });
-            var roles = {};
-            for (var userRoom of userRoomRoles)
-                roles[userRoom.user.id] = userRoom.role;
-            return roles[user.id];   
-        }
-        catch {
-            throw new BadRequestException("Please try again later")
-        }   
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+                user: user,
+            },
+        });
+        var roles = {};
+        for (var userRoom of userRoomRoles)
+            roles[userRoom.user.id] = userRoom.role;
+        return roles[user.id];   
     }
 
     async getAllRolesForRoom(room: RoomI) { 
-        try {
-            var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
-                relations: ['user'],
-                where: {
-                    room: room,
-                },
-            });
-            var roles = {};
-            for (var userRoom of userRoomRoles)
-                roles[userRoom.user.id] = userRoom.role;
-            return roles;
-        }
-        catch {
-            throw new BadRequestException("Please try again later")
-        }
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['user'],
+            where: {
+                room: room,
+            },
+        });
+        var roles = {};
+        for (var userRoom of userRoomRoles)
+            roles[userRoom.user.id] = userRoom.role;
+        return roles;
     }
 
     async getAllRolesForUser(user: UserDto) { 
-        try {
-            var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
-                relations: ['room'],
-                where: {
-                    user: user,
-                },
-            });
-            var roles = {};
-            for (var userRoom of userRoomRoles)
-                roles[userRoom.room.id] = userRoom.role;
-            return roles;
-        }
-        catch {
-            throw new BadRequestException("Please try again later")
-        }
+        var userRoomRoles: UserRoomEntity[] = await this.userRoomRepository.find({
+            relations: ['room'],
+            where: {
+                user: user,
+            },
+        });
+        var roles = {};
+        for (var userRoom of userRoomRoles)
+            roles[userRoom.room.id] = userRoom.role;
+        return roles;
     }
     
 }
