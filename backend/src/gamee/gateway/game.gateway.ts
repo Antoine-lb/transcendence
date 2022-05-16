@@ -107,15 +107,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
      else 
        this.clearQueue(socket);
       
-     const tmp = await this.userService.updateUserStatus(socket.data.user.id, 0);
+    const tmp = await this.userService.updateUserStatus(socket.data.user.id, 0);
 
-     const users = await this.friendService.getFriends(socket.data.user);
-     for (const user of users) {
-       const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
-       for (const connection of connections) {
-          this.server.to(connection.socketID).emit('status', 0, tmp.id)
-       }
-     }
+    const users = await this.friendService.getFriends(socket.data.user);
+    for (const user of users) {
+      const connections: ConnectedUserI[] = await this.connectedUserService.findByUser(user);
+     for (const connection of connections) {
+       this.server.to(connection.socketID).emit('status', 0, tmp.id)
+      }
+    }
     
     if (this.state[roomName])
       delete this.state[roomName];
@@ -126,9 +126,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     // this.server.sockets.in(room).emit('disconnection');
     socket.leave(roomName)
-
-    if (this.clientRooms[socket.id])
-      delete this.clientRooms[socket.id];
+    
+    // refresh the Live Game for the frontend
+    this.server.emit('pushLiveGame', this.liveGame);
     
       console.log('===========DISCONNECT============')
       console.log('clientROOMS : ', this.clientRooms);
@@ -268,7 +268,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (this.liveGame[roomName])
       this.liveGame[roomName].player2 = socket.data.user.username;
     // maj des onLiveGame vers les autres clients
-    this.server.emit('pushLiveGame', this.liveGame)
+    this.server.emit('pushLiveGame', this.liveGame);
       
     // --------------------- Change Users Status -----------------------------
     await this.GameService.changeUsersStatus(this.server, roomName);
@@ -572,6 +572,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       delete this.liveGame[roomName];
     if (this.state[roomName])
       delete this.state[roomName];
+    
+    // refresh the Live Game for the frontend
+    this.server.emit('pushLiveGame', this.liveGame);
+  
 
     console.log('===========OVEEEER============')
     console.log('clientROOMS : ', this.clientRooms);
