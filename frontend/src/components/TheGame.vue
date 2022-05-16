@@ -262,7 +262,7 @@ export default {
 
     handleUnknownCode() {
       this.reset();
-      alert("Unknown Game Code");
+      alert("Already playing or in queue");
     },
 
     handleTooManyPlayers() {
@@ -363,7 +363,6 @@ export default {
             h-100
           "
         >
-        <div>  {{ this.gameStatus }} </div>
           <div v-if="this.gameStatus == 'idle'" class="name-title">
             Wating for another player...
           </div>

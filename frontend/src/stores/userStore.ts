@@ -75,7 +75,7 @@ export const useUserStore = defineStore({
                 Authorization: userTmp.access_token,
               },
             });
-            this.socket.on("already_playing", () => alert("Already playing"));
+            this.socket.on("already_playing", () => alert("Already playing or in queue"));
             this.socket.on("is_disconnected", () => alert("Player not online"));
 
           }

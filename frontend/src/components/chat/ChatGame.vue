@@ -267,7 +267,7 @@ export default {
 
     handleUnknownCode() {
       this.reset();
-      alert("Unknown Game Code");
+      alert("Already playing or in queue");
     },
 
     handleTooManyPlayers() {
