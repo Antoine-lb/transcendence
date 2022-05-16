@@ -181,7 +181,15 @@ export default {
           this.pushToLog2fa();
         })
         .catch(err => {
-          this.notifyError("Wrong code.")
+          var statusCode = err.message.split(' ').slice(-1);
+          if (isNaN(Number(statusCode)) == false)
+            statusCode = parseInt(statusCode);
+          else
+            statusCode = 500;
+          if (statusCode == 413)
+            this.notifyError("Allowed code length : 6 characters.")
+          else
+            this.notifyError("Wrong code.")
           this.code = null
         });
       }

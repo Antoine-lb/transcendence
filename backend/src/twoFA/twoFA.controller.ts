@@ -1,26 +1,22 @@
 import {
-  ClassSerializerInterceptor,
   Controller,
-  Header,
   Post,
-  Get,
-  UseInterceptors,
   Res,
   UseGuards,
   Req,
   HttpCode,
   Body,
-  UnauthorizedException,
   ImATeapotException,
+  PayloadTooLargeException
 } from '@nestjs/common';
 import { TwoFAService } from './twoFA.service';
-import { Response, Request } from 'express';
+import { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UsersService } from '../users/users.service';
 import RequestWithUser from '../auth/requestWithUser.interface';
 import { TwoFADto } from './twoFA.dto';
 import { AuthService } from 'src/auth/auth.service';
-import { ApiTags, ApiCookieAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('2FA')
 @Controller('2fa')
@@ -51,6 +47,8 @@ export class TwoFAController {
   async turnOnTwoFA(
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto) {
+    if (twoFACode.length > 6)
+      throw new PayloadTooLargeException('2FA Code too long')
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
@@ -77,6 +75,8 @@ export class TwoFAController {
     @Req() request: RequestWithUser,
     @Body() { twoFACode } : TwoFADto
   ) {
+    if (twoFACode.length > 6)
+      throw new PayloadTooLargeException('2FA Code too long')
     // vérifie le code recu
     const isCodeValid = this.twoFAService.isTwoFACodeValid(
       twoFACode, request.user
